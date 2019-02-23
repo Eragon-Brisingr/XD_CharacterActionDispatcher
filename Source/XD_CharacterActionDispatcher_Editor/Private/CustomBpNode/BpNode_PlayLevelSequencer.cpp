@@ -375,14 +375,14 @@ private:
 	bool bIsEmpty;
 };
 
-FName SequencerPinName = TEXT("Sequencer");
+FName SequenceActorPinName = TEXT("LevelSequence");
 
 void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
 {
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Execute);
 	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Then);
 
-	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, ALevelSequenceActor::StaticClass(), SequencerPinName);
+	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, ALevelSequenceActor::StaticClass(), SequenceActorPinName);
 
 	for (const FSequencerBindingOption& Option : BindingOptions)
 	{
@@ -465,15 +465,19 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
 
-	UK2Node_Knot* RerouteNode = CompilerContext.SpawnIntermediateNode<UK2Node_Knot>(this, SourceGraph);
-	RerouteNode->AllocateDefaultPins();
-	CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *RerouteNode->GetInputPin());
-
 	UK2Node_Knot* SequencerPinNode = CompilerContext.SpawnIntermediateNode<UK2Node_Knot>(this, SourceGraph);
 	SequencerPinNode->AllocateDefaultPins();
-	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(SequencerPinName), *SequencerPinNode->GetInputPin());
+	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(SequenceActorPinName), *SequencerPinNode->GetInputPin());
 
-	UEdGraphPin* PreThenPin = RerouteNode->GetOutputPin();
+	UK2Node_CallFunction* SetSequencerFunction = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	SetSequencerFunction->SetFromFunction(ALevelSequenceActor::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(ALevelSequenceActor, SetSequence)));
+	SetSequencerFunction->AllocateDefaultPins();
+	SequencerPinNode->GetOutputPin()->MakeLinkTo(SetSequencerFunction->FindPinChecked(UEdGraphSchema_K2::PN_Self));
+	SetSequencerFunction->FindPinChecked(TEXT("InSequence"))->DefaultObject = Sequencer.Get();
+
+	CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *SetSequencerFunction->GetExecPin());
+
+	UEdGraphPin* PreThenPin = SetSequencerFunction->GetThenPin();
 	for (FSequencerBindingOption& Option : BindingOptions)
 	{
 		if (Option.bIsPin)
