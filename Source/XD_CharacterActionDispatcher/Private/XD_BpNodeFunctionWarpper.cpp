@@ -1,4 +1,4 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+﻿// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "XD_BpNodeFunctionWarpper.h"
 #include "XD_CharacterActionDispatcher.h"
@@ -8,4 +8,11 @@
 void UXD_BpNodeFunctionWarpper::PlayLevelSequence(ALevelSequenceActor* LevelSequenceActor)
 {
 	LevelSequenceActor->SequencePlayer->Play();
+}
+
+FDispatchableActionFinishedEvent UXD_BpNodeFunctionWarpper::MakeDispatchableActionFinishedEvent(const FDispatchableActionFinished& Event)
+{
+	FDispatchableActionFinishedEvent DispatchableActionFinishedEvent;
+	DispatchableActionFinishedEvent.Event = Event;
+	return DispatchableActionFinishedEvent;
 }

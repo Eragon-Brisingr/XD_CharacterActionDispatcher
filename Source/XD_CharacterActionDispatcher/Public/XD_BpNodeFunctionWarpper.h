@@ -1,8 +1,9 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+﻿// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "XD_CharacterActionDispatcherType.h"
 #include "XD_BpNodeFunctionWarpper.generated.h"
 
 class ALevelSequenceActor;
@@ -12,6 +13,9 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_BpNodeFunctionWarpper : public UBluep
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly))
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static void PlayLevelSequence(ALevelSequenceActor* LevelSequenceActor);
+
+	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))
+	static FDispatchableActionFinishedEvent MakeDispatchableActionFinishedEvent(const FDispatchableActionFinished& Event);
 };
