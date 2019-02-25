@@ -20,6 +20,7 @@ public:
 	FText GetMenuCategory() const override;
 	FName GetCornerIcon() const override { return TEXT("Graph.Latent.LatentIcon"); }
 	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
 
 	void AllocateDefaultPins() override;
 	void PinDefaultValueChanged(UEdGraphPin* ChangedPin) override;

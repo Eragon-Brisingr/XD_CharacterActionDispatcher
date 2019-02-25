@@ -12,6 +12,8 @@
 #include "K2Node_MakeArray.h"
 #include "K2Node_CustomEvent.h"
 #include "XD_BpNodeFunctionWarpper.h"
+#include "EdGraphSchema_K2_Actions.h"
+#include "BlueprintEditorUtils.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -49,6 +51,14 @@ void UBpNode_ExecuteAction::GetMenuActions(FBlueprintActionDatabaseRegistrar& Ac
 		check(NodeSpawner != nullptr);
 		ActionRegistrar.AddBlueprintAction(ActionKey, NodeSpawner);
 	}
+}
+
+bool UBpNode_ExecuteAction::IsCompatibleWithGraph(const UEdGraph* TargetGraph) const
+{
+	const EGraphType GraphType = TargetGraph->GetSchema()->GetGraphType(TargetGraph);
+	UBlueprint* Blueprint = FBlueprintEditorUtils::FindBlueprintForGraph(TargetGraph);
+	bool bIsValidGraphType = GraphType == EGraphType::GT_Ubergraph || GraphType == EGraphType::GT_Macro;
+	return Super::IsCompatibleWithGraph(TargetGraph) && bIsValidGraphType && Blueprint->GeneratedClass->IsChildOf(UXD_ActionDispatcherBase::StaticClass());
 }
 
 void UBpNode_ExecuteAction::AllocateDefaultPins()
