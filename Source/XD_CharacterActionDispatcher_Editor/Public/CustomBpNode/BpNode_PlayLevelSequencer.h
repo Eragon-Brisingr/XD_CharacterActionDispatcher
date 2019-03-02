@@ -8,7 +8,7 @@
 #include "IPropertyTypeCustomization.h"
 #include "BpNode_PlayLevelSequencer.generated.h"
 
-class UMovieSceneSequence;
+class ULevelSequence;
 
 /**
  * 
@@ -18,14 +18,32 @@ struct FSequencerBindingOption
 {
 	GENERATED_BODY()
 public:
+	FSequencerBindingOption()
+		:bIsPin(false)
+	{}
+
 	UPROPERTY(VisibleAnywhere, Category = "Sequencer")
-	FString DisplayName;
+	FString PinName;
 
 	UPROPERTY()
 	FMovieSceneObjectBindingID Binding;
 
+	UPROPERTY()
+	UClass* BindingClass;
+
+	UPROPERTY()
+	FVector Location = InvalidLocation;
+
+	UPROPERTY()
+	FRotator Rotation = InvalidRotation;
+
 	UPROPERTY(EditAnywhere, Category = "Sequencer")
 	uint8 bIsPin : 1;
+
+	static const FVector InvalidLocation;
+	static const FRotator InvalidRotation;
+
+	bool IsPositionValid() const { return Location != InvalidLocation && Rotation != InvalidRotation; }
 };
 
 struct FSequencerBindingOption_Customization : public IPropertyTypeCustomization
@@ -45,18 +63,20 @@ class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_PlayLevelSequencer : publi
 	GENERATED_BODY()
 public:
  	UPROPERTY(EditAnywhere, Category = "Sequence", meta = (DisplayName = "播放的Sequencer"))
- 	TSoftObjectPtr<UMovieSceneSequence> Sequencer;
+ 	TSoftObjectPtr<ULevelSequence> LevelSequence;
 
 	UPROPERTY(EditAnywhere, Category = "Sequence", EditFixedSize, meta = (DisplayName = "可绑定对象"))
 	TArray<FSequencerBindingOption> BindingOptions;
 
-	TSharedPtr<struct FSequenceBindingTree> DataTree;
-
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent) override;
 public:
-	bool ShouldShowNodeProperties() const override { return true; }
+	bool ShouldShowNodeProperties() const override { return true; }	
+	FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
+	FText GetMenuCategory() const override;
+	FName GetCornerIcon() const override { return TEXT("Graph.Latent.LatentIcon"); }
 	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
 
 	void AllocateDefaultPins() override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
@@ -64,4 +84,8 @@ private:
 	void UpdatePinInfo(const FSequencerBindingOption &Option);
 
 	void ReflushNode();
+
+	static FName PlayLocationPinName;
+	static FName WhenPlayCompletedPinName;
+	static FName RetureValuePinName;
 };

@@ -13,6 +13,18 @@ class UXD_ActionDispatcherManager;
 /**
  * 
  */
+USTRUCT()
+struct FTogetherFlowControl
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(SaveGame)
+	TArray<bool> CheckList;
+
+	UPROPERTY(SaveGame)
+	FDispatchableActionFinishedEvent TogetherEvent;
+};
+
 UCLASS(abstract, Blueprintable)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
 {
@@ -40,7 +52,13 @@ public:
 	void FinishAction(UXD_DispatchableActionBase* Action);
 public:
 	UPROPERTY(SaveGame)
-	TArray<UXD_DispatchableActionBase*> ActivedActions;
+	TArray<UXD_DispatchableActionBase*> CurrentActions;
+
+	UPROPERTY(SaveGame)
+	TMap<FGuid, FTogetherFlowControl> ActivedTogetherControl;
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	bool EnterTogetherFlowControl(FGuid NodeGuid, int32 Index, int32 TogetherCount);
 
 	UXD_ActionDispatcherManager* GetOwner() const;
 

@@ -14,6 +14,8 @@
 #include "XD_BpNodeFunctionWarpper.h"
 #include "EdGraphSchema_K2_Actions.h"
 #include "BlueprintEditorUtils.h"
+#include "Utils/DA_CustomBpNodeUtils.h"
+#include "Settings/XD_ActionDispatcherSettings.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -21,7 +23,7 @@ FText UBpNode_ExecuteAction::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
 	{
-		return LOCTEXT("ExecuteAction", "ExecuteAction");
+		return FText::Format(LOCTEXT("Execute Action Title", "Execute Action [{0}]"), ActionClass->GetDisplayNameText());
 	}
 	else if (UClass* ClassToSpawn = GetClassToSpawn())
 	{
@@ -44,27 +46,54 @@ FText UBpNode_ExecuteAction::GetMenuCategory() const
 
 void UBpNode_ExecuteAction::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
+	bool ShowPluginNode = GetDefault<UXD_ActionDispatcherSettings>()->bShowPluginNode;
+
 	UClass* ActionKey = GetClass();
 	if (ActionRegistrar.IsOpenForRegistration(ActionKey))
 	{
-		UBlueprintNodeSpawner* NodeSpawner = UBlueprintNodeSpawner::Create(GetClass());
-		check(NodeSpawner != nullptr);
-		ActionRegistrar.AddBlueprintAction(ActionKey, NodeSpawner);
+		for (UClass* It : TObjectRange<UClass>())
+		{
+			if (It->IsChildOf(UXD_DispatchableActionBase::StaticClass()))
+			{
+				if (It->HasAnyClassFlags(CLASS_Abstract))
+				{
+					continue;
+				}
+
+				UXD_DispatchableActionBase* Action = It->GetDefaultObject<UXD_DispatchableActionBase>();
+				if (!Action->bShowInExecuteActionNode)
+				{
+					continue;
+				}
+
+				if (!ShowPluginNode && Action->bIsPluginAction)
+				{
+					continue;
+				}
+
+				UBlueprintNodeSpawner* NodeSpawner = UBlueprintNodeSpawner::Create(GetClass());
+				check(NodeSpawner != nullptr);
+
+				NodeSpawner->CustomizeNodeDelegate = UBlueprintNodeSpawner::FCustomizeNodeDelegate::CreateLambda([=](UEdGraphNode* NewNode, bool bIsTemplateNode)
+				{
+					UBpNode_ExecuteAction* ExecuteActionNode = CastChecked<UBpNode_ExecuteAction>(NewNode);
+					ExecuteActionNode->ActionClass = It;
+				});
+				ActionRegistrar.AddBlueprintAction(ActionKey, NodeSpawner);
+			}
+		}
 	}
 }
 
 bool UBpNode_ExecuteAction::IsCompatibleWithGraph(const UEdGraph* TargetGraph) const
 {
-	const EGraphType GraphType = TargetGraph->GetSchema()->GetGraphType(TargetGraph);
-	UBlueprint* Blueprint = FBlueprintEditorUtils::FindBlueprintForGraph(TargetGraph);
-	bool bIsValidGraphType = GraphType == EGraphType::GT_Ubergraph || GraphType == EGraphType::GT_Macro;
-	return Super::IsCompatibleWithGraph(TargetGraph) && bIsValidGraphType && Blueprint->GeneratedClass->IsChildOf(UXD_ActionDispatcherBase::StaticClass());
+	return Super::IsCompatibleWithGraph(TargetGraph) && DA_NodeUtils::IsActionDispatcherGraph(TargetGraph);
 }
 
 void UBpNode_ExecuteAction::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
-
+	GetClassPin()->DefaultObject = ActionClass;
 	ReflushFinishExec();
 
 	//调整节点顺序
@@ -151,7 +180,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 	{
 		if (ActionClass)
 		{
-			UXD_DispatchableActionBase* Action = ActionClass->GetDefaultObject<UXD_DispatchableActionBase>();
+			UXD_DispatchableActionBase* Action = ActionClass.GetDefaultObject();
 			TArray<FName> FinishedEventNames = Action->GetAllFinishedEventName();
 
 			UK2Node_MakeArray* MakeEventArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(this, SourceGraph);
@@ -184,7 +213,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 				FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(MakeEventPin);
 				MakeDispatchableActionFinishedEventNode->GetReturnValuePin()->MakeLinkTo(ElementPin);
 
-				CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(FinishedEventName, EGPD_Output), *FinishedEventNode->FindPinChecked(TEXT("then")));
+				CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(FinishedEventName, EGPD_Output), *FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
 			}
 
 			LastThen->MakeLinkTo(ActiveActionNode->GetExecPin());

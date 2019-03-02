@@ -3,5 +3,5 @@
 #include "XD_CharacterActionDispatcher_EditorUtility.h"
 
 
-DEFINE_LOG_CATEGORY(XD_CharacterActionDispatcher_EditorLog);
+DEFINE_LOG_CATEGORY(XD_ActionDispatcher_EditorLog);
 

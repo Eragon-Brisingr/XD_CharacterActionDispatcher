@@ -41,6 +41,9 @@ public class XD_CharacterActionDispatcher : ModuleRules
 
                 "MovieScene",
                 "LevelSequence",
+                "AIModule",
+
+                "XD_UnrealLibraryEx",
 				// ... add private dependencies that you statically link with here ...	
             }
 			);

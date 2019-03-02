@@ -17,47 +17,49 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_DispatchableActionBase : public UObje
 {
 	GENERATED_BODY()
 public:
+	UXD_DispatchableActionBase()
+		:bIsPluginAction(false), bShowInExecuteActionNode(true)
+	{}
+
 	UPROPERTY()
 	UXD_ActionDispatcherBase* Owner;
 
 	UWorld* GetWorld() const override;
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = "设置")
+	uint8 bIsPluginAction : 1;
+	UPROPERTY(EditAnywhere, Category = "设置")
+	uint8 bShowInExecuteActionNode : 1;
+#endif
 public:
-	void ActiveAction() { WhenActionActived(); }
+	void ActiveAction();
+	//当行为被第一次激活时的实现，别忘记调用RegisterEntity
 	UFUNCTION()
 	virtual void WhenActionActived(){}
 
-	void DeactiveAction() { WhenActionDeactived(); }
+	void DeactiveAction();
+	//当行为被中断时的实现
 	UFUNCTION()
 	virtual void WhenActionDeactived(){}
 
 	void ReactiveAction() { WhenActionReactived(); }
+	//当行为被再次激活时的实现
 	UFUNCTION()
 	virtual void WhenActionReactived() { WhenActionActived(); }
 
-	UFUNCTION()
 	void FinishAction();
-
+	//当行为成功结束时的实现，一般用作UnregisterEntity
+	UFUNCTION()
+	virtual void WhenActionFinished(){}
+public:
 	virtual TArray<FName> GetAllFinishedEventName() const;
-
 	// TODO 可以不为运行时行为，ExpandNode时根据类型绑定上回调，这样还可以支持参数
 	virtual void BindAllFinishedEvent(const TArray<FDispatchableActionFinishedEvent>& FinishedEvents);
-};
 
-UCLASS(meta = (DisplayName = "例子"))
-class XD_CHARACTERACTIONDISPATCHER_API UXD_DispatchableActionExample : public UXD_DispatchableActionBase
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(SaveGame, meta = (DisplayName = "当结束时"))
-	FDispatchableActionFinishedEvent OnFinished;
-
-	void WhenActionActived() override;
-	void WhenActionDeactived() override;
-public:
-	FTimerHandle TimerHandle;
-
-	UPROPERTY(BlueprintReadOnly, Category = "例子", meta = (ExposeOnSpawn = "true"))
-	float DelayTime;
-
-	void WhenTimeFinished();
+protected:
+	//所有执行Action的实体在Active时注册
+	void RegisterEntity(AActor* Actor);
+	//所有执行Action的实体在Finish时反注册
+	void UnregisterEntity(AActor* Actor);
 };

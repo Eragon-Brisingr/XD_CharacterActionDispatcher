@@ -11,17 +11,17 @@ bool UXD_ActionDispatcherBase::ReceiveCanExecuteDispatch_Implementation()
 
 void UXD_ActionDispatcherBase::ActiveAction(UXD_DispatchableActionBase* Action, const TArray<FDispatchableActionFinishedEvent>& FinishedEvents)
 {
-	check(Action && !ActivedActions.Contains(Action) && Action->Owner == nullptr);
+	check(Action && !CurrentActions.Contains(Action) && Action->Owner == nullptr);
 
 	Action->Owner = this;
-	ActivedActions.Add(Action);
+	CurrentActions.Add(Action);
 	Action->BindAllFinishedEvent(FinishedEvents);
 	Action->ActiveAction();
 }
 
 void UXD_ActionDispatcherBase::AbortDispatch()
 {
-	for (UXD_DispatchableActionBase* Action : ActivedActions)
+	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
 		if (Action)
 		{
@@ -32,7 +32,7 @@ void UXD_ActionDispatcherBase::AbortDispatch()
 
 void UXD_ActionDispatcherBase::ReactiveDispatch()
 {
-	for (UXD_DispatchableActionBase* Action : ActivedActions)
+	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
 		if (Action)
 		{
@@ -43,9 +43,26 @@ void UXD_ActionDispatcherBase::ReactiveDispatch()
 
 void UXD_ActionDispatcherBase::FinishAction(UXD_DispatchableActionBase* Action)
 {
-	check(ActivedActions.Contains(Action));
+	check(CurrentActions.Contains(Action));
 
-	ActivedActions.Remove(Action);
+	CurrentActions.Remove(Action);
+}
+
+bool UXD_ActionDispatcherBase::EnterTogetherFlowControl(FGuid NodeGuid, int32 Index, int32 TogetherCount)
+{
+	FTogetherFlowControl& TogetherFlowControl = ActivedTogetherControl.FindOrAdd(NodeGuid);
+	TogetherFlowControl.CheckList.SetNum(TogetherCount);
+	TogetherFlowControl.CheckList[Index] = true;
+	bool IsTogether = !TogetherFlowControl.CheckList.Contains(false);
+	if (IsTogether)
+	{
+		ActivedTogetherControl.Remove(NodeGuid);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 UXD_ActionDispatcherManager* UXD_ActionDispatcherBase::GetOwner() const
