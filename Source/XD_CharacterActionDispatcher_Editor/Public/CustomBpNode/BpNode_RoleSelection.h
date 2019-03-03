@@ -30,7 +30,7 @@ protected:
 	int32 SelectionNum = 2;
 
 	UPROPERTY()
-	UStruct* SelectionStruct;
+	UScriptStruct* SelectionStructType;
 
 	struct FSelectionPin
 	{
@@ -47,5 +47,8 @@ protected:
 
 	FName GetExecPinName(int32 Idx);
 
+	void UpdateSelectionPins();
+
 	static FName RetureValuePinName;
+	static FName RolePinName;
 };

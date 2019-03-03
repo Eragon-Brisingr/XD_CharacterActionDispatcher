@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "XD_CharacterActionDispatcherType.generated.h"
 
 /**
@@ -19,4 +20,30 @@ public:
 	FDispatchableActionFinished Event;
 
 	void ExecuteIfBound() const { Event.ExecuteIfBound(); }
+};
+
+USTRUCT(BlueprintType)
+struct XD_CHARACTERACTIONDISPATCHER_API FDA_RoleSelection
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(SaveGame, BlueprintReadWrite, meta = (DisplayName = "文本"))
+	FText Selection;
+
+	UPROPERTY(SaveGame)
+	FDispatchableActionFinishedEvent WhenSelected;
+
+	DECLARE_DELEGATE(FNativeOnSelected);
+	FNativeOnSelected NativeOnSelected;
+
+	void ExecuteIfBound() const;
+};
+
+UCLASS()
+class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherTypeLibrary : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+	UFUNCTION(BlueprintCallable, Category = "行为")
+	static void ExecuteSelectedEvent(const FDA_RoleSelection& Event);
 };

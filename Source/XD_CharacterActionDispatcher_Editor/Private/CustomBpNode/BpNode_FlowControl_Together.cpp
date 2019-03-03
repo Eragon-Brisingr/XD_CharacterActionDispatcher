@@ -180,7 +180,7 @@ void UBpNode_FlowControl_Together::ReflushNode()
 	UBlueprint* Blueprint = GetBlueprint();
 	if (!Blueprint->bBeingCompiled)
 	{
-		FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+		DA_NodeUtils::UpdateNode(GetBlueprint());
 	}
 }
 

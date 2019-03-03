@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "XD_DA_MoveTo.h"
 #include "GameFramework/Pawn.h"
@@ -18,15 +18,30 @@ void UXD_DA_MoveTo::WhenActionActived()
 	RegisterEntity(Mover);
 	if (AAIController* AIController = Cast<AAIController>(Mover->GetController()))
 	{
+		EPathFollowingRequestResult::Type Result;
 		if (AActor* Target = Goal.Get())
 		{
-			AIController->MoveToActor(Target);
+			Result = AIController->MoveToActor(Target);
 		}
 		else
 		{
-			AIController->MoveToLocation(Location);
+			Result = AIController->MoveToLocation(Location);
 		}
-		AIController->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &UXD_DA_MoveTo::WhenRequestFinished);
+
+		switch (Result)
+		{
+		case EPathFollowingRequestResult::AlreadyAtGoal:
+			FinishAction();
+			WhenReached.ExecuteIfBound();
+			break;
+		case EPathFollowingRequestResult::RequestSuccessful:
+			AIController->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &UXD_DA_MoveTo::WhenRequestFinished);
+			break;
+		case EPathFollowingRequestResult::Failed:
+			FinishAction();
+			WhenCanNotReached.ExecuteIfBound();
+			break;
+		}
 	}
 }
 

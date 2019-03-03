@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -9,18 +9,6 @@
 /**
  * 
  */
-USTRUCT(BlueprintType)
-struct FDA_RoleSelection
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(SaveGame, BlueprintReadWrite)
-	FText Selection;
-
-	UPROPERTY(SaveGame)
-	FDispatchableActionFinishedEvent WhenSelected;
-};
-
 UCLASS()
 class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_RoleSelectionBase : public UXD_DispatchableActionBase
 {
@@ -44,4 +32,7 @@ public:
 
 	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))
 	static FDA_RoleSelection& SetWhenSelectedEvent(UPARAM(Ref)FDA_RoleSelection& Selection, const FDispatchableActionFinishedEvent& Event);
+
+private:
+	void WhenSelected();
 };

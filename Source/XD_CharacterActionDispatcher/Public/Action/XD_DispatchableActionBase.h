@@ -12,7 +12,7 @@ class UXD_ActionDispatcherBase;
 /**
  * 
  */
-UCLASS(abstract)
+UCLASS(abstract, BlueprintType)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_DispatchableActionBase : public UObject
 {
 	GENERATED_BODY()

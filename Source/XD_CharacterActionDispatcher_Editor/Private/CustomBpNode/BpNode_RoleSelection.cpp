@@ -7,14 +7,23 @@
 #include "EdGraphSchema_K2.h"
 #include "XD_DA_RoleSelectionBase.h"
 #include "XD_ActionDispatcherSettings.h"
+#include "K2Node_CallFunction.h"
+#include "KismetCompiler.h"
+#include "XD_BpNodeFunctionWarpper.h"
+#include "K2Node_CustomEvent.h"
+#include "K2Node_MakeArray.h"
+#include "K2Node_MakeStruct.h"
+#include "GameFramework/Pawn.h"
+#include "K2Node_Self.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
 FName UBpNode_RoleSelection::RetureValuePinName = TEXT("ReturnValue");
+FName UBpNode_RoleSelection::RolePinName = TEXT("Role");
 
 UBpNode_RoleSelection::UBpNode_RoleSelection()
 {
-	SelectionStruct = FDA_RoleSelection::StaticStruct();
+	SelectionStructType = FDA_RoleSelection::StaticStruct();
 }
 
 FText UBpNode_RoleSelection::GetNodeTitle(ENodeTitleType::Type TitleType) const
@@ -84,7 +93,11 @@ void UBpNode_RoleSelection::GetContextMenuActions(const FGraphNodeContextMenuBui
 
 void UBpNode_RoleSelection::AllocateDefaultPins()
 {
+	FCreatePinParams CreatePinParams;
+	CreatePinParams.bIsReference = true;
+
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Execute);
+	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_SoftObject, APawn::StaticClass(), RolePinName, CreatePinParams);
 
 	for (int32 i = 0; i < SelectionNum; ++i)
 	{
@@ -97,19 +110,63 @@ void UBpNode_RoleSelection::AllocateDefaultPins()
 
 void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
 {
+	Super::ExpandNode(CompilerContext, SourceGraph);
 
+	UK2Node_CallFunction* CallRoleSelectionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	CallRoleSelectionNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_DA_RoleSelectionBase, ShowSelection), UXD_DA_RoleSelectionBase::StaticClass());
+	CallRoleSelectionNode->AllocateDefaultPins();
+
+	CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *CallRoleSelectionNode->GetExecPin());
+	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(UEdGraphSchema_K2::PN_Then), *CallRoleSelectionNode->GetThenPin());
+	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(RolePinName), *CallRoleSelectionNode->FindPinChecked(TEXT("InRole")));
+
+	UK2Node_Self* SelfNode = CompilerContext.SpawnIntermediateNode<UK2Node_Self>(this, SourceGraph);
+	SelfNode->AllocateDefaultPins();
+	SelfNode->FindPinChecked(UEdGraphSchema_K2::PN_Self)->MakeLinkTo(CallRoleSelectionNode->FindPinChecked(TEXT("ActionDispatcher")));
+
+	UK2Node_MakeArray* MakeActorDatasArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(this, SourceGraph);
+	MakeActorDatasArrayNode->NumInputs = SelectionNum;
+	MakeActorDatasArrayNode->AllocateDefaultPins();
+	MakeActorDatasArrayNode->GetOutputPin()->MakeLinkTo(CallRoleSelectionNode->FindPinChecked(TEXT("InSelections")));
+	MakeActorDatasArrayNode->PinConnectionListChanged(MakeActorDatasArrayNode->GetOutputPin());
+
+	for (int32 i = 0; i < SelectionNum; ++i)
+	{
+		UK2Node_CallFunction* MakeDispatchableActionFinishedEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+		MakeDispatchableActionFinishedEventNode->SetFromFunction(UXD_BpNodeFunctionWarpper::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_BpNodeFunctionWarpper, MakeDispatchableActionFinishedEvent)));
+		MakeDispatchableActionFinishedEventNode->AllocateDefaultPins();
+		UEdGraphPin* MakeEventPin = MakeDispatchableActionFinishedEventNode->FindPinChecked(TEXT("Event"));
+
+		//创建委托
+		UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(this, MakeEventPin, SourceGraph);
+		FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("WhenSelected_[%d]_[%s]"), i, *CompilerContext.GetGuid(this));
+		FinishedEventNode->AllocateDefaultPins();
+		CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(GetExecPinName(i), EGPD_Output), *FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
+
+		UK2Node_CallFunction* SetWhenSelectedEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+		SetWhenSelectedEventNode->SetFromFunction(UXD_DA_RoleSelectionBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_DA_RoleSelectionBase, SetWhenSelectedEvent)));
+		SetWhenSelectedEventNode->AllocateDefaultPins();
+
+		FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(MakeEventPin);
+		MakeDispatchableActionFinishedEventNode->GetReturnValuePin()->MakeLinkTo(SetWhenSelectedEventNode->FindPinChecked(TEXT("Event")));
+
+		CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(GetSelectionPinName(i), EGPD_Input), *SetWhenSelectedEventNode->FindPinChecked(TEXT("Selection")));
+
+		MakeActorDatasArrayNode->FindPinChecked(*FString::Printf(TEXT("[%d]"), i), EGPD_Input)->MakeLinkTo(SetWhenSelectedEventNode->GetReturnValuePin());
+	}
 }
 
 void UBpNode_RoleSelection::AddSelection()
 {
 	AddSelectionImpl(SelectionNum);
 	SelectionNum += 1;
+	DA_NodeUtils::UpdateNode(GetBlueprint());
 }
 
 void UBpNode_RoleSelection::AddSelectionImpl(int32 Idx)
 {
-	UEdGraphPin* SelectionPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Struct, SelectionStruct, GetSelectionPinName(Idx));
-	UEdGraphPin* ExecPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, SelectionStruct, GetExecPinName(Idx));
+	UEdGraphPin* SelectionPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Struct, SelectionStructType, GetSelectionPinName(Idx));
+	UEdGraphPin* ExecPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, GetExecPinName(Idx));
 
 	FSelectionPin SelectionPinData;
 	SelectionPinData.SelectionPin = SelectionPin;
@@ -125,6 +182,9 @@ void UBpNode_RoleSelection::RemoveSelection(const UEdGraphPin* SelectionPin)
 		RemovePin(SelectionPins[Index].SelectionPin);
 		RemovePin(SelectionPins[Index].ExecPin);
 		SelectionPins.RemoveAt(Index);
+		SelectionNum -= 1;
+		UpdateSelectionPins();
+		DA_NodeUtils::UpdateNode(GetBlueprint());
 	}
 }
 
@@ -136,6 +196,15 @@ FName UBpNode_RoleSelection::GetSelectionPinName(int32 Idx)
 FName UBpNode_RoleSelection::GetExecPinName(int32 Idx)
 {
 	return *FString::Printf(TEXT("选择了[%d]"), Idx + 1);
+}
+
+void UBpNode_RoleSelection::UpdateSelectionPins()
+{
+	for (int32 i = 0; i < SelectionPins.Num(); ++i)
+	{
+		SelectionPins[i].SelectionPin->PinName = GetSelectionPinName(i);
+		SelectionPins[i].ExecPin->PinName = GetExecPinName(i);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -238,7 +238,7 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 
 		//创建委托
 		UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(this, MakeEventPin, SourceGraph);
-		FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("%s_[%s]"), TEXT("WhenPlayCompleted"), *CompilerContext.GetGuid(this));
+		FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("WhenPlayCompleted_[%s]"), *CompilerContext.GetGuid(this));
 		FinishedEventNode->AllocateDefaultPins();
 
 		FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(MakeEventPin);
@@ -317,10 +317,7 @@ void UBpNode_PlayLevelSequencer::UpdatePinInfo(const FSequencerBindingOption &Op
 
 void UBpNode_PlayLevelSequencer::ReflushNode()
 {
-	if (!GetBlueprint()->bBeingCompiled)
-	{
-		FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(GetBlueprint());
-	}
+	DA_NodeUtils::UpdateNode(GetBlueprint());
 }
 
 #undef LOCTEXT_NAMESPACE

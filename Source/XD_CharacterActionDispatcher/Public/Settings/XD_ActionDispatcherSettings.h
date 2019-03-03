@@ -8,6 +8,7 @@
 
 class UXD_DA_PlaySequenceBase;
 class UXD_DA_RoleSelectionBase;
+class UXD_DA_ShowSelectionsImplBase;
 
 /**
  * 

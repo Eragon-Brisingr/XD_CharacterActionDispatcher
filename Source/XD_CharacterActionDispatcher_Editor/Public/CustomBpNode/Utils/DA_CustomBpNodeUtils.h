@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 
+class UBlueprint;
+
 /**
  * 
  */
@@ -29,4 +31,6 @@ struct DA_NodeUtils
 	}
 
 	static bool IsActionDispatcherGraph(const UEdGraph* TargetGraph);
+
+	static void UpdateNode(UBlueprint* Blueprint);
 };
