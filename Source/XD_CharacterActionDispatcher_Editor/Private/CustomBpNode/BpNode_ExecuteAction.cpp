@@ -107,10 +107,11 @@ void UBpNode_ExecuteAction::ReflushFinishExec()
 {
 	if (ActionClass)
 	{
-		TArray<FName> FinishedEventNames = ActionClass.GetDefaultObject()->GetAllFinishedEventName();
-		for (const FName& EventName : FinishedEventNames)
+		TArray<UXD_DispatchableActionBase::FPinNameData> FinishedEventNames = ActionClass.GetDefaultObject()->GetAllFinishedEventName();
+		for (const UXD_DispatchableActionBase::FPinNameData& EventName : FinishedEventNames)
 		{
-			CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, EventName);
+			UEdGraphPin* Pin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, EventName.PinName);
+			Pin->PinFriendlyName = EventName.PinDisplayName;
 		}
 	}
 }
@@ -181,7 +182,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 		if (ActionClass)
 		{
 			UXD_DispatchableActionBase* Action = ActionClass.GetDefaultObject();
-			TArray<FName> FinishedEventNames = Action->GetAllFinishedEventName();
+			TArray<UXD_DispatchableActionBase::FPinNameData> FinishedEventNames = Action->GetAllFinishedEventName();
 
 			UK2Node_MakeArray* MakeEventArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(this, SourceGraph);
 			MakeEventArrayNode->NumInputs = FinishedEventNames.Num();
@@ -197,7 +198,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 
 			for (int32 i = 0; i < FinishedEventNames.Num(); ++i)
 			{
-				const FName& FinishedEventName = FinishedEventNames[i];
+				const FName& FinishedEventName = FinishedEventNames[i].PinName;
 				UEdGraphPin* ElementPin = MakeEventArrayNode->FindPinChecked(FString::Printf(TEXT("[%d]"), i));
 
 				UK2Node_CallFunction* MakeDispatchableActionFinishedEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);

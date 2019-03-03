@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "XD_DA_PlaySequence.h"
 #include "GameFramework/Pawn.h"
@@ -63,11 +63,13 @@ void UXD_DA_PlaySequenceBase::WhenActionFinished()
 	{
 		UnregisterEntity(Data.PawnRef.Get());
 	}
-	SequencePlayer->Destroy();
 }
 
 void UXD_DA_PlaySequenceBase::WhenPlayFinished()
 {
+	SequencePlayer->SequencePlayer->OnStop.RemoveDynamic(this, &UXD_DA_PlaySequenceBase::WhenPlayFinished);
+	SequencePlayer->Destroy();
+
 	FinishAction();
 	WhenPlayCompleted.ExecuteIfBound();
 }
@@ -111,6 +113,15 @@ void UXD_DA_PlaySequenceBase::WhenMoveReached(int32 MoverIdx)
 	}
 }
 
+void UXD_DA_PlaySequenceBase::WhenMoveCanNotReached(int32 MoverIdx)
+{
+	if (bIsFinished)
+	{
+		FinishAction();
+		WhenCanNotPlay.ExecuteIfBound();
+	}
+}
+
 void UXD_DA_PlaySequenceBase::WhenMoveFinished(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 MoverIdx)
 {
 	const FPlaySequenceMoveToData& MoveData = PlaySequenceMoveToDatas[MoverIdx];
@@ -124,7 +135,7 @@ void UXD_DA_PlaySequenceBase::WhenMoveFinished(FAIRequestID RequestID, const FPa
 	}
 }
 
-UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::PlaySequence(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform, FDispatchableActionFinishedEvent InWhenPlayEnd)
+UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::PlaySequence(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform, const FDispatchableActionFinishedEvent& InWhenPlayEnd, const FDispatchableActionFinishedEvent& InWhenCanNotPlay)
 {
 	UXD_DA_PlaySequenceBase* DA_PlaySequence = NewObject<UXD_DA_PlaySequenceBase>(ActionDispatcher, GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass);
 	DA_PlaySequence->LevelSequence = Sequence;
@@ -132,6 +143,7 @@ UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::PlaySequence(UXD_ActionDispatc
 	DA_PlaySequence->PlaySequenceMoveToDatas = MoveToDatas;
 	DA_PlaySequence->PlayTransform = InPlayTransform;
 	DA_PlaySequence->WhenPlayCompleted = InWhenPlayEnd;
+	DA_PlaySequence->WhenCanNotPlay = InWhenCanNotPlay;
 	ActionDispatcher->ActiveAction(DA_PlaySequence, {});
 	return DA_PlaySequence;
 }

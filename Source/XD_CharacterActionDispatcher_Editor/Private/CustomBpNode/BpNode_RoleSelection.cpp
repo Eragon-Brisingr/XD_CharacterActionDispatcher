@@ -28,7 +28,14 @@ UBpNode_RoleSelection::UBpNode_RoleSelection()
 
 FText UBpNode_RoleSelection::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
-	return LOCTEXT("RoleSelectionTitle", "RoleSelection");
+	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
+	{
+		return LOCTEXT("Role Selection Title", "Role Selection");
+	}
+	else
+	{
+		return FText::Format(LOCTEXT("Role Selection Detail Title", "显示选项[{0}]"), SelectionNum);
+	}
 }
 
 FText UBpNode_RoleSelection::GetMenuCategory() const

@@ -12,7 +12,7 @@ class UXD_ActionDispatcherBase;
 /**
  * 
  */
-UCLASS(abstract, BlueprintType)
+UCLASS(abstract, BlueprintType, Within = "XD_ActionDispatcherBase")
 class XD_CHARACTERACTIONDISPATCHER_API UXD_DispatchableActionBase : public UObject
 {
 	GENERATED_BODY()
@@ -20,9 +20,6 @@ public:
 	UXD_DispatchableActionBase()
 		:bIsPluginAction(false), bShowInExecuteActionNode(true)
 	{}
-
-	UPROPERTY()
-	UXD_ActionDispatcherBase* Owner;
 
 	UWorld* GetWorld() const override;
 
@@ -32,7 +29,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "设置")
 	uint8 bShowInExecuteActionNode : 1;
 #endif
-public:
+protected:
+	friend class UXD_ActionDispatcherBase;
+
 	void ActiveAction();
 	//当行为被第一次激活时的实现，别忘记调用RegisterEntity
 	UFUNCTION()
@@ -43,17 +42,29 @@ public:
 	UFUNCTION()
 	virtual void WhenActionDeactived(){}
 
-	void ReactiveAction() { WhenActionReactived(); }
+	void ReactiveAction();
 	//当行为被再次激活时的实现
 	UFUNCTION()
-	virtual void WhenActionReactived() { WhenActionActived(); }
+	virtual void WhenActionReactived();
 
 	void FinishAction();
 	//当行为成功结束时的实现，一般用作UnregisterEntity
 	UFUNCTION()
 	virtual void WhenActionFinished(){}
 public:
-	virtual TArray<FName> GetAllFinishedEventName() const;
+	UXD_ActionDispatcherBase* GetOwner() const;
+
+	UPROPERTY()
+	uint8 bIsActived : 1;
+	UPROPERTY()
+	uint8 bIsFinished : 1;
+public:
+	struct FPinNameData
+	{
+		FName PinName;
+		FText PinDisplayName;
+	};
+	virtual TArray<FPinNameData> GetAllFinishedEventName() const;
 	// TODO 可以不为运行时行为，ExpandNode时根据类型绑定上回调，这样还可以支持参数
 	virtual void BindAllFinishedEvent(const TArray<FDispatchableActionFinishedEvent>& FinishedEvents);
 
@@ -62,4 +73,18 @@ protected:
 	void RegisterEntity(AActor* Actor);
 	//所有执行Action的实体在Finish时反注册
 	void UnregisterEntity(AActor* Actor);
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "行为")
+	void AbortDispatcher();
+
+	UFUNCTION(BlueprintCallable, Category = "行为")
+	bool CanReactiveDispatcher() const;
+
+	//With Check
+	UFUNCTION(BlueprintCallable, Category = "行为")
+	bool InvokeReactiveDispatcher();
+
+	UFUNCTION(BlueprintCallable, Category = "行为")
+	void ReactiveDispatcher();
 };

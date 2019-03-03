@@ -20,8 +20,6 @@ void UXD_DA_RoleSelectionBase::WhenActionActived()
 
 	for (FDA_RoleSelection& Selection : Selections)
 	{
-		check(Owner == Selection.WhenSelected.Event.GetUObject());
-
 		Selection.NativeOnSelected.BindUObject(this, &UXD_DA_RoleSelectionBase::WhenSelected);
 	}
 

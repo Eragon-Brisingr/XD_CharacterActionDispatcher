@@ -3,17 +3,28 @@
 #include "XD_ActionDispatcherBase.h"
 #include "XD_DispatchableActionBase.h"
 #include "XD_ActionDispatcherManager.h"
+#include "XD_ActionDispatcher_Log.h"
 
-bool UXD_ActionDispatcherBase::ReceiveCanExecuteDispatch_Implementation()
+bool UXD_ActionDispatcherBase::ReceiveCanExecuteDispatch_Implementation() const
 {
 	return true;
 }
 
+bool UXD_ActionDispatcherBase::CanExecuteDispatch() const
+{
+	return ReceiveCanExecuteDispatch();
+}
+
+void UXD_ActionDispatcherBase::StartDispatch()
+{
+	bIsActive = true;
+	WhenDispatchStart();
+}
+
 void UXD_ActionDispatcherBase::ActiveAction(UXD_DispatchableActionBase* Action, const TArray<FDispatchableActionFinishedEvent>& FinishedEvents)
 {
-	check(Action && !CurrentActions.Contains(Action) && Action->Owner == nullptr);
+	check(Action && !CurrentActions.Contains(Action));
 
-	Action->Owner = this;
 	CurrentActions.Add(Action);
 	Action->BindAllFinishedEvent(FinishedEvents);
 	Action->ActiveAction();
@@ -21,31 +32,49 @@ void UXD_ActionDispatcherBase::ActiveAction(UXD_DispatchableActionBase* Action, 
 
 void UXD_ActionDispatcherBase::AbortDispatch()
 {
-	for (UXD_DispatchableActionBase* Action : CurrentActions)
+	if (bIsActive == true)
 	{
-		if (Action)
+		bIsActive = false;
+		for (UXD_DispatchableActionBase* Action : CurrentActions)
 		{
-			Action->DeactiveAction();
+			if (Action)
+			{
+				Action->DeactiveAction();
+			}
 		}
 	}
 }
 
-void UXD_ActionDispatcherBase::ReactiveDispatch()
+bool UXD_ActionDispatcherBase::InvokeReactiveDispatch()
 {
-	for (UXD_DispatchableActionBase* Action : CurrentActions)
+	if (CanExecuteDispatch())
 	{
-		if (Action)
+		ReactiveDispatcher();
+		return true;
+	}
+	return false;
+}
+
+void UXD_ActionDispatcherBase::ReactiveDispatcher()
+{
+	if (bIsActive == false)
+	{
+		bIsActive = true;
+		for (UXD_DispatchableActionBase* Action : CurrentActions)
 		{
-			Action->ReactiveAction();
+			if (Action)
+			{
+				Action->ReactiveAction();
+			}
 		}
 	}
 }
 
-void UXD_ActionDispatcherBase::FinishAction(UXD_DispatchableActionBase* Action)
+void UXD_ActionDispatcherBase::FinishDispatch(FName Tag)
 {
-	check(CurrentActions.Contains(Action));
+	ActionDispatcher_Warning_LOG("还未实现FinishDispatch");
 
-	CurrentActions.Remove(Action);
+	GetManager()->FinishDispatcher(this);
 }
 
 bool UXD_ActionDispatcherBase::EnterTogetherFlowControl(FGuid NodeGuid, int32 Index, int32 TogetherCount)
@@ -65,7 +94,7 @@ bool UXD_ActionDispatcherBase::EnterTogetherFlowControl(FGuid NodeGuid, int32 In
 	}
 }
 
-UXD_ActionDispatcherManager* UXD_ActionDispatcherBase::GetOwner() const
+UXD_ActionDispatcherManager* UXD_ActionDispatcherBase::GetManager() const
 {
 	return CastChecked<UXD_ActionDispatcherManager>(GetOuter());
 }

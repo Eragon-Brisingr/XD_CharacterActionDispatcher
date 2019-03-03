@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -65,13 +65,17 @@ public:
 	UPROPERTY(SaveGame)
 	FDispatchableActionFinishedEvent WhenPlayCompleted;
 
+	UPROPERTY(SaveGame)
+	FDispatchableActionFinishedEvent WhenCanNotPlay;
+
 	UFUNCTION()
 	void WhenPlayFinished();
-
 protected:
 	virtual bool MoveToSequencePlayLocation(APawn* Mover, const FVector& PlayLocation, const FRotator& PlayRotation, int32 MoverIdx);
 
 	void WhenMoveReached(int32 MoverIdx);
+
+	void WhenMoveCanNotReached(int32 MoverIdx);
 private:
 	void WhenMoveFinished(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 MoverIdx);
 public:
@@ -91,5 +95,5 @@ public:
 	FTransform PlayTransform;
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	static UXD_DA_PlaySequenceBase* PlaySequence(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform, FDispatchableActionFinishedEvent InWhenPlayEnd);
+	static UXD_DA_PlaySequenceBase* PlaySequence(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform, const FDispatchableActionFinishedEvent& InWhenPlayEnd, const FDispatchableActionFinishedEvent& InWhenCanNotPlay);
 };

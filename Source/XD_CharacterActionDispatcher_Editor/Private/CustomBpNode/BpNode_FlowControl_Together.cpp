@@ -12,7 +12,7 @@
 #include "K2Node_Knot.h"
 #include "EdGraph/EdGraphNode.h"
 #include "MultiBoxBuilder.h"
-#include "Utils/DA_CustomBpNodeUtils.h"
+#include "DA_CustomBpNodeUtils.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -20,7 +20,14 @@ FName TogetherEventPinName = TEXT("Together");
 
 FText UBpNode_FlowControl_Together::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
-	return LOCTEXT("TogetherEvent Node Title", "TogetherEvent");
+	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
+	{
+		return LOCTEXT("TogetherEvent Node Title", "Together Event");
+	}
+	else
+	{
+		return FText::Format(LOCTEXT("TogetherEvent node detail title", "共同事件[{0}]"), TogetherEventCount);
+	}
 }
 
 FText UBpNode_FlowControl_Together::GetMenuCategory() const
@@ -85,7 +92,8 @@ void UBpNode_FlowControl_Together::GetContextMenuActions(const FGraphNodeContext
 
 void UBpNode_FlowControl_Together::AllocateDefaultPins()
 {
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, TogetherEventPinName);
+	UEdGraphPin* TogetherPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, TogetherEventPinName);
+	TogetherPin->PinFriendlyName = LOCTEXT("可执行共同事件引脚描述", "可执行共同事件");
 	for (int32 i = 0; i < TogetherEventCount; ++i)
 	{
 		AddExecPinImpl(i);

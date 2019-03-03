@@ -87,5 +87,6 @@ private:
 
 	static FName PlayLocationPinName;
 	static FName WhenPlayCompletedPinName;
+	static FName WhenCanNotPlayPinName;
 	static FName RetureValuePinName;
 };

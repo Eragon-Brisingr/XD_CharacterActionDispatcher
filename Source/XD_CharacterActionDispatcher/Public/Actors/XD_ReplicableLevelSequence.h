@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -38,6 +38,9 @@ public:
 	void GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const override;
 
 	void BeginPlay() override;
+
+	//Client Sequence停止时不恢复原样，在这边调用Stop
+	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(ReplicatedUsing = OnRep_LevelSequence)
 	ULevelSequence* LevelSequenceRef;

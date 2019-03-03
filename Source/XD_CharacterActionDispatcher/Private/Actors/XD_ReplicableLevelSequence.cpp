@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "XD_ReplicableLevelSequence.h"
 #include "UnrealNetwork.h"
@@ -29,6 +29,15 @@ void AXD_ReplicableLevelSequence::BeginPlay()
 
 }
 
+void AXD_ReplicableLevelSequence::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	if (SequencePlayer && HasAuthority() == false)
+	{
+		SequencePlayer->Stop();
+	}
+}
+
 void AXD_ReplicableLevelSequence::OnRep_LevelSequence()
 {
 	if (LevelSequenceRef)
@@ -40,7 +49,7 @@ void AXD_ReplicableLevelSequence::OnRep_LevelSequence()
 
 void AXD_ReplicableLevelSequence::OnRep_BindingDatas()
 {
-	if (GetSequence() && SequencePlayer->IsPlaying())
+	if (HasAuthority() && SequencePlayer && SequencePlayer->IsPlaying())
 	{
 		SequencePlayer->Stop();
 	}
@@ -53,7 +62,7 @@ void AXD_ReplicableLevelSequence::OnRep_BindingDatas()
 		}
 	}
 
-	if (GetSequence() && SequencePlayer)
+	if (HasAuthority() && SequencePlayer)
 	{
 		SequencePlayer->Play();
 	}

@@ -24,7 +24,7 @@ class XD_CHARACTERACTIONDISPATCHER_API IXD_DispatchableEntityInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	UFUNCTION(BlueprintNativeEvent, Category = "行为")
+	UFUNCTION(BlueprintNativeEvent, Category = "行为", BlueprintCallable, meta = (CompactNodeTitle = "GetAction"))
 	UXD_DispatchableActionBase* GetCurrentDispatchableAction() const;
 	virtual UXD_DispatchableActionBase* GetCurrentDispatchableAction_Implementation() const { return nullptr; }
 	static UXD_DispatchableActionBase* GetCurrentDispatchableAction(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_GetCurrentDispatchableAction(Obj); }

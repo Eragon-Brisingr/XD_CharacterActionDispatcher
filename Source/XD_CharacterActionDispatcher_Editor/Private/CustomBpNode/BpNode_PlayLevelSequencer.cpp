@@ -57,6 +57,7 @@ void FSequencerBindingOption_Customization::CustomizeHeader(TSharedRef<class IPr
 
 FName UBpNode_PlayLevelSequencer::PlayLocationPinName = TEXT("PlayLocation");
 FName UBpNode_PlayLevelSequencer::WhenPlayCompletedPinName = TEXT("WhenPlayCompleted");
+FName UBpNode_PlayLevelSequencer::WhenCanNotPlayPinName = TEXT("WhenCanNotPlay");
 FName UBpNode_PlayLevelSequencer::RetureValuePinName = TEXT("ReturnValue");
 
 void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
@@ -64,7 +65,10 @@ void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Execute);
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Struct, TBaseStructure<FTransform>::Get(), PlayLocationPinName);
 
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, NAME_None, WhenPlayCompletedPinName);
+	UEdGraphPin* WhenPlayCompletedPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, NAME_None, WhenPlayCompletedPinName);
+	WhenPlayCompletedPin->PinFriendlyName = LOCTEXT("播放完毕执行引脚描述", "播放完毕");
+	UEdGraphPin* WhenCanNotPlayPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, NAME_None, WhenCanNotPlayPinName);
+	WhenCanNotPlayPin->PinFriendlyName = LOCTEXT("无法播放执行引脚描述", "无法播放");
 	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass, RetureValuePinName);
 	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Then);
 
@@ -230,6 +234,7 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(PlayLocationPinName), *PlaySequenceNode->FindPinChecked(TEXT("InPlayTransform")));
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(RetureValuePinName), *PlaySequenceNode->GetReturnValuePin());
 
+	//WhenPlayCompleted
 	{
 		UK2Node_CallFunction* MakeDispatchableActionFinishedEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 		MakeDispatchableActionFinishedEventNode->SetFromFunction(UXD_BpNodeFunctionWarpper::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_BpNodeFunctionWarpper, MakeDispatchableActionFinishedEvent)));
@@ -245,6 +250,24 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 		MakeDispatchableActionFinishedEventNode->GetReturnValuePin()->MakeLinkTo(PlaySequenceNode->FindPinChecked(TEXT("InWhenPlayEnd")));
 
 		CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(WhenPlayCompletedPinName, EGPD_Output), *FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
+	}
+
+	//WhenCanNotPlay
+	{
+		UK2Node_CallFunction* MakeDispatchableActionFinishedEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+		MakeDispatchableActionFinishedEventNode->SetFromFunction(UXD_BpNodeFunctionWarpper::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_BpNodeFunctionWarpper, MakeDispatchableActionFinishedEvent)));
+		MakeDispatchableActionFinishedEventNode->AllocateDefaultPins();
+		UEdGraphPin* MakeEventPin = MakeDispatchableActionFinishedEventNode->FindPinChecked(TEXT("Event"));
+
+		//创建委托
+		UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(this, MakeEventPin, SourceGraph);
+		FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("WhenCanNotPlay_[%s]"), *CompilerContext.GetGuid(this));
+		FinishedEventNode->AllocateDefaultPins();
+
+		FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(MakeEventPin);
+		MakeDispatchableActionFinishedEventNode->GetReturnValuePin()->MakeLinkTo(PlaySequenceNode->FindPinChecked(TEXT("InWhenCanNotPlay")));
+
+		CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(WhenCanNotPlayPinName, EGPD_Output), *FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
 	}
 
 	UK2Node_MakeArray* MakeActorDatasArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(this, SourceGraph);
