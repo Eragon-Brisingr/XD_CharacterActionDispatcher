@@ -67,7 +67,7 @@ UXD_DA_RoleSelectionBase* UXD_DA_RoleSelectionBase::ShowSelection(UXD_ActionDisp
 	return RoleSelection;
 }
 
-FDA_RoleSelection& UXD_DA_RoleSelectionBase::SetWhenSelectedEvent(FDA_RoleSelection& Selection, const FDispatchableActionFinishedEvent& Event)
+FDA_RoleSelection& UXD_DA_RoleSelectionBase::SetWhenSelectedEvent(FDA_RoleSelection Selection, const FDispatchableActionFinishedEvent& Event)
 {
 	Selection.WhenSelected = Event;
 	return Selection;

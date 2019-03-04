@@ -3,6 +3,8 @@
 #include "XD_CharacterActionDispatcher_Editor.h"
 #include "PropertyEditorModule.h"
 #include "BpNode_PlayLevelSequencer.h"
+#include "EdGraphUtilities.h"
+#include "DA_RoleSelectionGraphPin.h"
 
 #define LOCTEXT_NAMESPACE "FXD_CharacterActionDispatcher_EditorModule"
 
@@ -12,6 +14,8 @@ void FXD_CharacterActionDispatcher_EditorModule::StartupModule()
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
 	PropertyModule.RegisterCustomPropertyTypeLayout(FSequencerBindingOption::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSequencerBindingOption_Customization::MakeInstance));
+
+	FEdGraphUtilities::RegisterVisualPinFactory(MakeShared<FDA_RoleSelectionGraphPinFactory>());
 }
 
 void FXD_CharacterActionDispatcher_EditorModule::ShutdownModule()

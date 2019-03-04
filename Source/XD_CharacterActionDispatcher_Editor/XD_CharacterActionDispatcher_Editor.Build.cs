@@ -43,6 +43,7 @@ public class XD_CharacterActionDispatcher_Editor : ModuleRules
                 "KismetCompiler",
                 "UnrealEd",
                 "EditorStyle",
+                "EditorWidgets",
 
                 "MovieScene",
                 "MovieSceneTools",
