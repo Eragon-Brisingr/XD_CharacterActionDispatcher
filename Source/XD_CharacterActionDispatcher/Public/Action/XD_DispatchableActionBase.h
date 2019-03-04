@@ -66,6 +66,7 @@ public:
 	};
 	virtual TArray<FPinNameData> GetAllFinishedEventName() const;
 	// TODO 可以不为运行时行为，ExpandNode时根据类型绑定上回调，这样还可以支持参数
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	virtual void BindAllFinishedEvent(const TArray<FDispatchableActionFinishedEvent>& FinishedEvents);
 
 protected:

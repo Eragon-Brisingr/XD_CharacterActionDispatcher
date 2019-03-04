@@ -49,7 +49,7 @@ void AXD_ReplicableLevelSequence::OnRep_LevelSequence()
 
 void AXD_ReplicableLevelSequence::OnRep_BindingDatas()
 {
-	if (HasAuthority() && SequencePlayer && SequencePlayer->IsPlaying())
+	if (!HasAuthority() && SequencePlayer && SequencePlayer->IsPlaying())
 	{
 		SequencePlayer->Stop();
 	}
@@ -62,7 +62,7 @@ void AXD_ReplicableLevelSequence::OnRep_BindingDatas()
 		}
 	}
 
-	if (HasAuthority() && SequencePlayer)
+	if (!HasAuthority() && SequencePlayer)
 	{
 		SequencePlayer->Play();
 	}

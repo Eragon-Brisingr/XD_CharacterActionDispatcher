@@ -40,7 +40,7 @@ public:
 	void WhenDispatchStart();
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	void ActiveAction(UXD_DispatchableActionBase* Action, const TArray<FDispatchableActionFinishedEvent>& FinishedEvents);
+	void ActiveAction(UXD_DispatchableActionBase* Action);
 
 	void AbortDispatch();
 	//With Check

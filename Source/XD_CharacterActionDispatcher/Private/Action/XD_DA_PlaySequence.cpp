@@ -109,7 +109,7 @@ void UXD_DA_PlaySequenceBase::WhenMoveReached(int32 MoverIdx)
 
 		SequencePlayer->Play(LevelSequence.LoadSynchronous(), PlayTransform, PlayData);
 		ULevelSequencePlayer* Player = SequencePlayer->SequencePlayer;
-		Player->OnStop.AddDynamic(this, &UXD_DA_PlaySequenceBase::WhenPlayFinished);
+		Player->OnStop.AddUniqueDynamic(this, &UXD_DA_PlaySequenceBase::WhenPlayFinished);
 	}
 }
 
@@ -144,7 +144,7 @@ UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::PlaySequence(UXD_ActionDispatc
 	DA_PlaySequence->PlayTransform = InPlayTransform;
 	DA_PlaySequence->WhenPlayCompleted = InWhenPlayEnd;
 	DA_PlaySequence->WhenCanNotPlay = InWhenCanNotPlay;
-	ActionDispatcher->ActiveAction(DA_PlaySequence, {});
+	ActionDispatcher->ActiveAction(DA_PlaySequence);
 	return DA_PlaySequence;
 }
 

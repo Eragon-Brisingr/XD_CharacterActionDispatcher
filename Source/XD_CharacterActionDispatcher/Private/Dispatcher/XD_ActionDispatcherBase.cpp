@@ -21,12 +21,11 @@ void UXD_ActionDispatcherBase::StartDispatch()
 	WhenDispatchStart();
 }
 
-void UXD_ActionDispatcherBase::ActiveAction(UXD_DispatchableActionBase* Action, const TArray<FDispatchableActionFinishedEvent>& FinishedEvents)
+void UXD_ActionDispatcherBase::ActiveAction(UXD_DispatchableActionBase* Action)
 {
 	check(Action && !CurrentActions.Contains(Action));
 
 	CurrentActions.Add(Action);
-	Action->BindAllFinishedEvent(FinishedEvents);
 	Action->ActiveAction();
 }
 
