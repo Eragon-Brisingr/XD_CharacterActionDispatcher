@@ -9,7 +9,7 @@
 UXD_DA_RoleSelectionBase::UXD_DA_RoleSelectionBase()
 {
 #if WITH_EDITORONLY_DATA
-	//bShowInExecuteActionNode = false;
+	bShowInExecuteActionNode = false;
 #endif
 }
 
