@@ -31,7 +31,7 @@ FText UBpNode_RoleSelection::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
 	{
-		return LOCTEXT("Role Selection Title", "显示选项");
+		return LOCTEXT("Role Selection Title", "Show Selection");
 	}
 	else
 	{
