@@ -182,7 +182,7 @@ FText UBpNode_PlayLevelSequencer::GetNodeTitle(ENodeTitleType::Type TitleType) c
 {
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
 	{
-		return LOCTEXT("PlaySequence title", "PlaySequence");
+		return LOCTEXT("PlaySequence title", "播放定序器");
 	}
 	else
 	{

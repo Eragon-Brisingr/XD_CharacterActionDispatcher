@@ -22,7 +22,7 @@ FText UBpNode_FlowControl_Together::GetNodeTitle(ENodeTitleType::Type TitleType)
 {
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
 	{
-		return LOCTEXT("TogetherEvent Node Title", "Together Event");
+		return LOCTEXT("TogetherEvent Node Title", "共同事件");
 	}
 	else
 	{

@@ -23,7 +23,7 @@ FText UBpNode_ExecuteAction::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
 	{
-		return FText::Format(LOCTEXT("Execute Action Title", "Execute Action [{0}]"), ActionClass->GetDisplayNameText());
+		return FText::Format(LOCTEXT("Execute Action Title", "Execute Action [{0}]"), ActionClass ? ActionClass->GetDisplayNameText() : LOCTEXT("None", "None"));
 	}
 	else if (UClass* ClassToSpawn = GetClassToSpawn())
 	{
