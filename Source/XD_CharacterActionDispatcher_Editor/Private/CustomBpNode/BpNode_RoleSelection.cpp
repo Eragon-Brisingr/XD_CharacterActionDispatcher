@@ -15,6 +15,7 @@
 #include "K2Node_MakeStruct.h"
 #include "GameFramework/Pawn.h"
 #include "K2Node_Self.h"
+#include "XD_ActionDispatcherBase.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -127,9 +128,12 @@ void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerCon
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(UEdGraphSchema_K2::PN_Then), *CallRoleSelectionNode->GetThenPin());
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(RolePinName), *CallRoleSelectionNode->FindPinChecked(TEXT("InRole")));
 
-	UK2Node_Self* SelfNode = CompilerContext.SpawnIntermediateNode<UK2Node_Self>(this, SourceGraph);
-	SelfNode->AllocateDefaultPins();
-	SelfNode->FindPinChecked(UEdGraphSchema_K2::PN_Self)->MakeLinkTo(CallRoleSelectionNode->FindPinChecked(TEXT("ActionDispatcher")));
+	UK2Node_CallFunction* GetMainActionDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	{
+		GetMainActionDispatcherNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, GetMainActionDispatcher), UXD_ActionDispatcherBase::StaticClass());
+		GetMainActionDispatcherNode->AllocateDefaultPins();
+	}
+	GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(CallRoleSelectionNode->FindPinChecked(TEXT("ActionDispatcher")));
 
 	UK2Node_MakeArray* MakeActorDatasArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(this, SourceGraph);
 	MakeActorDatasArrayNode->NumInputs = SelectionNum;

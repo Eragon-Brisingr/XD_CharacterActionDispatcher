@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "XD_CharacterActionDispatcherType.h"
+#include "GameplayTagContainer.h"
 #include "XD_ActionDispatcherBase.generated.h"
 
 class UXD_DispatchableActionBase;
@@ -49,20 +50,47 @@ public:
 
 	//TODO 完成实现
 	UFUNCTION(BlueprintCallable, Category = "行为")
-	void FinishDispatch(FName Tag);
+	void FinishDispatch(FGameplayTag Tag);
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDispatchFinished, const FGameplayTag&, Tag);
+	UPROPERTY(BlueprintAssignable)
+	FOnDispatchFinished OnDispatchFinished;
+
+	TArray<FGameplayTag> GetAllFinishTags() const { return {}; }
 public:
 	UPROPERTY(SaveGame)
 	TArray<UXD_DispatchableActionBase*> CurrentActions;
 
-	UPROPERTY(SaveGame)
-	TMap<FGuid, FTogetherFlowControl> ActivedTogetherControl;
-
 	uint8 bIsActive : 1;
-
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	bool EnterTogetherFlowControl(FGuid NodeGuid, int32 Index, int32 TogetherCount);
 
 	UXD_ActionDispatcherManager* GetManager() const;
 
 	UWorld* GetWorld() const override;
+	
+	//共同行为调度器
+public:
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	bool EnterTogetherFlowControl(FGuid NodeGuid, int32 Index, int32 TogetherCount);
+
+	TMap<FGuid, FTogetherFlowControl> ActivedTogetherControl;
+
+	//子流程，允许逻辑分层
+	//若没有需要储存的状态更推荐使用公共宏代替
+public:
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(SaveGame)
+	uint8 bIsSubActionDispatcher : 1;
+#endif
+
+	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))
+	UXD_ActionDispatcherBase* GetMainActionDispatcher();
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	void ActiveSubActionDispatcher(UXD_ActionDispatcherBase* SubActionDispatcher, FGuid NodeGuid);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	bool TryActiveSubActionDispatcher(FGuid NodeGuid);
+
+	UPROPERTY(SaveGame)
+	TMap<FGuid, UXD_ActionDispatcherBase*> ActivedSubActionDispatchers;
 };

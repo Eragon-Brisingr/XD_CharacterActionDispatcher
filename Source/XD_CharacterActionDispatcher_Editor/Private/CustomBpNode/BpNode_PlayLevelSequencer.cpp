@@ -28,6 +28,7 @@
 #include "K2Node_MakeStruct.h"
 #include "DA_CustomBpNodeUtils.h"
 #include "XD_ActionDispatcherSettings.h"
+#include "XD_ActionDispatcherBase.h"
 
 #define LOCTEXT_NAMESPACE "CharacterActionDispatcher"
 
@@ -227,9 +228,12 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 	CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *PlaySequenceNode->GetExecPin());
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(UEdGraphSchema_K2::PN_Then), *PlaySequenceNode->GetThenPin());
 
-	UK2Node_Self* SelfNode = CompilerContext.SpawnIntermediateNode<UK2Node_Self>(this, SourceGraph);
-	SelfNode->AllocateDefaultPins();
-	SelfNode->FindPinChecked(UEdGraphSchema_K2::PN_Self)->MakeLinkTo(PlaySequenceNode->FindPinChecked(TEXT("ActionDispatcher")));
+	UK2Node_CallFunction* GetMainActionDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	{
+		GetMainActionDispatcherNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, GetMainActionDispatcher), UXD_ActionDispatcherBase::StaticClass());
+		GetMainActionDispatcherNode->AllocateDefaultPins();
+	}
+	GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(PlaySequenceNode->FindPinChecked(TEXT("ActionDispatcher")));
 
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(PlayLocationPinName), *PlaySequenceNode->FindPinChecked(TEXT("InPlayTransform")));
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(RetureValuePinName), *PlaySequenceNode->GetReturnValuePin());

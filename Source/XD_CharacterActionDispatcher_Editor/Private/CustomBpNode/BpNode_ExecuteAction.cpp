@@ -137,6 +137,12 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 	// store off the class to spawn before we mutate pin connections:
 	UClass* ClassToSpawn = GetClassToSpawn();
 
+	UK2Node_CallFunction* GetMainActionDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	{
+		GetMainActionDispatcherNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, GetMainActionDispatcher), UXD_ActionDispatcherBase::StaticClass());
+		GetMainActionDispatcherNode->AllocateDefaultPins();
+	}
+
 	bool bSucceeded = true;
 	//connect exe
 	{
@@ -154,12 +160,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 
 	//connect outer
 	{
-		UK2Node_Self* SelfNode = CompilerContext.SpawnIntermediateNode<UK2Node_Self>(this, SourceGraph);
-		SelfNode->AllocateDefaultPins();
-
-		UEdGraphPin* SpawnOuterPin = SelfNode->FindPinChecked(UEdGraphSchema_K2::PN_Self);
-		UEdGraphPin* CallOuterPin = CallCreateNode->FindPin(TEXT("Outer"));
-		SpawnOuterPin->MakeLinkTo(CallOuterPin);
+		GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(CallCreateNode->FindPinChecked(TEXT("Outer")));
 	}
 
 	UEdGraphPin* CallResultPin = nullptr;
@@ -201,6 +202,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 			UK2Node_CallFunction* ActiveActionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 			ActiveActionNode->SetFromFunction(UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, ActiveAction)));
 			ActiveActionNode->AllocateDefaultPins();
+			GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
 			CallCreateNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(TEXT("Action")));
 
 			for (int32 i = 0; i < FinishedEventNames.Num(); ++i)

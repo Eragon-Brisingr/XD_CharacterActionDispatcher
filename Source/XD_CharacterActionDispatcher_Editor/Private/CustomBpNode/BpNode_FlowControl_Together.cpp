@@ -108,11 +108,18 @@ void UBpNode_FlowControl_Together::ExpandNode(class FKismetCompilerContext& Comp
 	FinishedNode->AllocateDefaultPins();
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(TogetherEventPinName), *FinishedNode->GetOutputPin());
 
+	UK2Node_CallFunction* GetMainActionDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	{
+		GetMainActionDispatcherNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, GetMainActionDispatcher), UXD_ActionDispatcherBase::StaticClass());
+		GetMainActionDispatcherNode->AllocateDefaultPins();
+	}
+
 	for (int32 i = 0; i < TogetherEventCount; ++i)
 	{
 		UK2Node_CallFunction* CallEnterTogetherFlowControl = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 		CallEnterTogetherFlowControl->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, EnterTogetherFlowControl), UXD_ActionDispatcherBase::StaticClass());
 		CallEnterTogetherFlowControl->AllocateDefaultPins();
+		GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(CallEnterTogetherFlowControl->FindPinChecked(UEdGraphSchema_K2::PN_Self));
 		DA_NodeUtils::SetPinStructValue(CallEnterTogetherFlowControl->FindPinChecked(TEXT("NodeGuid")), NodeGuid);
 		CallEnterTogetherFlowControl->FindPinChecked(TEXT("Index"))->DefaultValue = FString::FromInt(i);
 		CallEnterTogetherFlowControl->FindPinChecked(TEXT("TogetherCount"))->DefaultValue = FString::FromInt(TogetherEventCount);
