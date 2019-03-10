@@ -76,15 +76,29 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 
 void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 {
-	ActionDispatcher_Warning_LOG("还未实现FinishDispatch");
+	ActionDispatcher_Display_Log("结束行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
 
-	GetManager()->FinishDispatcher(this);
+	if (UXD_ActionDispatcherManager* Manager = GetManager())
+	{
+		Manager->FinishDispatcher(this);
+	}
 	OnDispatchFinished.Broadcast(Tag);
+	if (WhenDispatchFinished.IsBound())
+	{
+		WhenDispatchFinished.Execute(Tag.GetTagName());
+	}
 }
+
+#if WITH_EDITOR
+TArray<FName> UXD_ActionDispatcherBase::GetAllFinishTags() const
+{
+	return FinishTags;
+}
+#endif
 
 UXD_ActionDispatcherManager* UXD_ActionDispatcherBase::GetManager() const
 {
-	return CastChecked<UXD_ActionDispatcherManager>(GetOuter());
+	return Cast<UXD_ActionDispatcherManager>(GetOuter());
 }
 
 UWorld* UXD_ActionDispatcherBase::GetWorld() const

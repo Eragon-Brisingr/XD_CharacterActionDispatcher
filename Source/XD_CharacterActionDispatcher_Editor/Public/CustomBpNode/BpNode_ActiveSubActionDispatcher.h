@@ -30,4 +30,11 @@ protected:
 
 	UPROPERTY()
 	TSubclassOf<UXD_ActionDispatcherBase> ActionDispatcherClass;
+
+	UPROPERTY()
+	TArray<FName> FinishedTags;
+
+	void ReflushFinishExec();
+
+	static FName DefaultPinName;
 };

@@ -1,4 +1,4 @@
-// Some copyright should be here...
+﻿// Some copyright should be here...
 
 using UnrealBuildTool;
 
@@ -49,6 +49,8 @@ public class XD_CharacterActionDispatcher_Editor : ModuleRules
                 "MovieSceneTools",
                 "MovieSceneTracks",
                 "LevelSequence",
+
+                "GameplayTags",
 				// ... add private dependencies that you statically link with here ...	
 
                 "XD_CharacterActionDispatcher",

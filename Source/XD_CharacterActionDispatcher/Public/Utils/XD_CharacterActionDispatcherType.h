@@ -22,14 +22,20 @@ public:
 	void ExecuteIfBound() const { Event.ExecuteIfBound(); }
 };
 
-USTRUCT(BlueprintType)
-struct XD_CHARACTERACTIONDISPATCHER_API FDA_RoleSelection
+USTRUCT(BlueprintType, BlueprintInternalUseOnly)
+struct XD_CHARACTERACTIONDISPATCHER_API FDA_RoleSelectionBase
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(SaveGame, BlueprintReadWrite, meta = (DisplayName = "文本"))
 	FText Selection;
+};
 
+USTRUCT(BlueprintType, BlueprintInternalUseOnly)
+struct XD_CHARACTERACTIONDISPATCHER_API FDA_RoleSelection : public FDA_RoleSelectionBase
+{
+	GENERATED_BODY()
+public:
 	UPROPERTY(SaveGame)
 	FDispatchableActionFinishedEvent WhenSelected;
 
@@ -39,11 +45,16 @@ public:
 	void ExecuteIfBound() const;
 };
 
-UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherTypeLibrary : public UBlueprintFunctionLibrary
+USTRUCT(BlueprintType)
+struct XD_CHARACTERACTIONDISPATCHER_API FDA_DisplaySelection : public FDA_RoleSelectionBase
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintCallable, Category = "行为")
-	static void ExecuteSelectedEvent(const FDA_RoleSelection& Event);
+	FDA_DisplaySelection() = default;
+	FDA_DisplaySelection(const FDA_RoleSelection& Selection)
+		:FDA_RoleSelectionBase(static_cast<const FDA_RoleSelectionBase&>(Selection))
+	{}
+
+	UPROPERTY()
+	int32 SelectionIdx;
 };

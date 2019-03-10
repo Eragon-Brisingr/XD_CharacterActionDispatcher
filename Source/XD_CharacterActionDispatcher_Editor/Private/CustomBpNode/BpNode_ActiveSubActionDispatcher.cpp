@@ -13,8 +13,11 @@
 #include "K2Node_CustomEvent.h"
 #include "K2Node_Knot.h"
 #include "K2Node_IfThenElse.h"
+#include "K2Node_SwitchName.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
+
+FName UBpNode_ActiveSubActionDispatcher::DefaultPinName = TEXT("Default");
 
 FText UBpNode_ActiveSubActionDispatcher::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
@@ -62,6 +65,7 @@ void UBpNode_ActiveSubActionDispatcher::AllocateDefaultPins()
 	Super::AllocateDefaultPins();
 	GetClassPin()->DefaultObject = ActionDispatcherClass;
 
+	ReflushFinishExec();
 	//调整节点顺序
 	RemovePin(GetThenPin());
 	RemovePin(GetResultPin());
@@ -75,13 +79,20 @@ void UBpNode_ActiveSubActionDispatcher::PinDefaultValueChanged(UEdGraphPin* Chan
 	if (ChangedPin && (ChangedPin->PinName == TEXT("Class")))
 	{
 		ActionDispatcherClass = GetClassToSpawn();
-		//ReflushFinishExec();
+		FinishedTags = ActionDispatcherClass.GetDefaultObject()->GetAllFinishTags();
+		ReflushFinishExec();
 	}
 }
 
 void UBpNode_ActiveSubActionDispatcher::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
+
+	if (ActionDispatcherClass == nullptr)
+	{
+		CompilerContext.MessageLog.Error(*LOCTEXT("激活子调度器_类型为空Error", "ICE: @@类型不得为空").ToString(), this);
+		return;
+	}
 
 	UK2Node_Knot* FinishedNode = CompilerContext.SpawnIntermediateNode<UK2Node_Knot>(this, SourceGraph);
 	FinishedNode->AllocateDefaultPins();
@@ -149,7 +160,6 @@ void UBpNode_ActiveSubActionDispatcher::ExpandNode(class FKismetCompilerContext&
 		bSucceeded &= SpawnResultPin && CallResultPin && CompilerContext.MovePinLinksToIntermediate(*SpawnResultPin, *CallResultPin).CanSafeConnect();
 	}
 
-	//TODO 创建子流程完成时的分支事件
 	UEdGraphPin* LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallResultPin, ClassToSpawn);
 	{
 		UK2Node_CallFunction* ActiveSubActionDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
@@ -160,6 +170,43 @@ void UBpNode_ActiveSubActionDispatcher::ExpandNode(class FKismetCompilerContext&
 		GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(ActiveSubActionDispatcherNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
 		LastThen->MakeLinkTo(ActiveSubActionDispatcherNode->GetExecPin());
 		LastThen = ActiveSubActionDispatcherNode->GetThenPin();
+
+		UK2Node_CallFunction* BindWhenSubDispatchFinishedNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+		BindWhenSubDispatchFinishedNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, BindWhenDispatchFinished), UXD_ActionDispatcherBase::StaticClass());
+		BindWhenSubDispatchFinishedNode->AllocateDefaultPins();
+		LastThen->MakeLinkTo(BindWhenSubDispatchFinishedNode->GetExecPin());
+		LastThen = BindWhenSubDispatchFinishedNode->GetThenPin();
+		CallCreateNode->GetReturnValuePin()->MakeLinkTo(BindWhenSubDispatchFinishedNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
+
+		UEdGraphPin* SubDispatchFinishedEventPin = BindWhenSubDispatchFinishedNode->FindPinChecked(TEXT("DispatchFinishedEvent"));
+		UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(this, SubDispatchFinishedEventPin, SourceGraph);
+		FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("WhenSubDispatcherFinished_[%s]"), *CompilerContext.GetGuid(this));
+		FinishedEventNode->AllocateDefaultPins();
+		const UDelegateProperty* DelegateProperty = CastChecked<UDelegateProperty>(UXD_ActionDispatcherBase::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UXD_ActionDispatcherBase, WhenDispatchFinished)));
+		for (TFieldIterator<UProperty> PropIt(DelegateProperty->SignatureFunction); PropIt && (PropIt->PropertyFlags & CPF_Parm); ++PropIt)
+		{
+			const UProperty* Param = *PropIt;
+			if (!Param->HasAnyPropertyFlags(CPF_OutParm) || Param->HasAnyPropertyFlags(CPF_ReferenceParm))
+			{
+				FEdGraphPinType PinType;
+				CompilerContext.GetSchema()->ConvertPropertyToPinType(Param, /*out*/ PinType);
+				FinishedEventNode->CreateUserDefinedPin(Param->GetFName(), PinType, EGPD_Output);
+			}
+		}
+
+		FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(SubDispatchFinishedEventPin);
+
+		UK2Node_SwitchName* FinishedSwitchNameNode = CompilerContext.SpawnIntermediateNode<UK2Node_SwitchName>(this, SourceGraph);
+		FinishedSwitchNameNode->PinNames = FinishedTags;
+		FinishedSwitchNameNode->AllocateDefaultPins();
+		FinishedSwitchNameNode->FindPinChecked(TEXT("Selection"))->MakeLinkTo(FinishedEventNode->FindPinChecked(TEXT("Tag")));
+		FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then)->MakeLinkTo(FinishedSwitchNameNode->GetExecPin());
+
+		CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(DefaultPinName, EGPD_Output), *FinishedSwitchNameNode->FindPinChecked(DefaultPinName));
+		for (const FName& Tag : FinishedTags)
+		{
+			CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(Tag, EGPD_Output), *FinishedSwitchNameNode->FindPinChecked(Tag));
+		}
 	}
 
 	//connect then
@@ -178,6 +225,15 @@ void UBpNode_ActiveSubActionDispatcher::ExpandNode(class FKismetCompilerContext&
 UClass* UBpNode_ActiveSubActionDispatcher::GetClassPinBaseClass() const
 {
 	return UXD_ActionDispatcherBase::StaticClass();
+}
+
+void UBpNode_ActiveSubActionDispatcher::ReflushFinishExec()
+{
+	for (const FName& Tag : FinishedTags)
+	{
+		CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, Tag);
+	}
+	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, DefaultPinName);
 }
 
 #undef LOCTEXT_NAMESPACE

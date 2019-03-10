@@ -48,21 +48,36 @@ public:
 	bool InvokeReactiveDispatch();
 	void ReactiveDispatcher();
 
-	//TODO 完成实现
-	UFUNCTION(BlueprintCallable, Category = "行为")
+	//结束调度器
+public:
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	void FinishDispatch(FGameplayTag Tag);
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDispatchFinished, const FGameplayTag&, Tag);
 	UPROPERTY(BlueprintAssignable)
 	FOnDispatchFinished OnDispatchFinished;
 
-	TArray<FGameplayTag> GetAllFinishTags() const { return {}; }
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FWhenDispatchFinished, const FName&, Tag);
+	UPROPERTY(SaveGame)
+	FWhenDispatchFinished WhenDispatchFinished;
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	void BindWhenDispatchFinished(const FWhenDispatchFinished& DispatchFinishedEvent) { WhenDispatchFinished = DispatchFinishedEvent; }
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = "编译")
+	TArray<FName> FinishTags;
+	TArray<FName> GetAllFinishTags() const;
+#endif
 public:
 	UPROPERTY(SaveGame)
 	TArray<UXD_DispatchableActionBase*> CurrentActions;
 
+	UPROPERTY(BlueprintReadOnly, Category = "行为调度器")
 	uint8 bIsActive : 1;
 
+	// 调度器可能不存在管理器
+	// e.g. 玩家开机关的行为，调度器直接交给机关管理
 	UXD_ActionDispatcherManager* GetManager() const;
 
 	UWorld* GetWorld() const override;
@@ -81,7 +96,6 @@ public:
 	UPROPERTY(SaveGame)
 	uint8 bIsSubActionDispatcher : 1;
 #endif
-
 	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))
 	UXD_ActionDispatcherBase* GetMainActionDispatcher();
 
