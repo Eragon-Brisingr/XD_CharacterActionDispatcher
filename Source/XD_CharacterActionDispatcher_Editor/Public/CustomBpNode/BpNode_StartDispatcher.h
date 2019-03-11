@@ -66,4 +66,7 @@ public:
 
 protected:
 	static FName Dispatcher_MemberVarPinName;
+	static FName OwnerPinName;
+
+	bool IsSpawnVarPin(UEdGraphPin* Pin) const override;
 };

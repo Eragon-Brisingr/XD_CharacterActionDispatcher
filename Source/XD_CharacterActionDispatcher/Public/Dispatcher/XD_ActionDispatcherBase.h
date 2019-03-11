@@ -36,6 +36,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "行为")
 	bool ReceiveCanExecuteDispatch() const;
 
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void StartDispatch();
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为")
 	void WhenDispatchStart();

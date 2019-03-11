@@ -18,8 +18,15 @@ bool UXD_ActionDispatcherBase::CanExecuteDispatch() const
 
 void UXD_ActionDispatcherBase::StartDispatch()
 {
-	bIsActive = true;
-	WhenDispatchStart();
+	if (GetWorld()->GetNetMode() != NM_Client)
+	{
+		bIsActive = true;
+		WhenDispatchStart();
+	}
+	else
+	{
+		ActionDispatcher_Error_Log("只能在服务端执行行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
+	}
 }
 
 void UXD_ActionDispatcherBase::ActiveAction(UXD_DispatchableActionBase* Action)
