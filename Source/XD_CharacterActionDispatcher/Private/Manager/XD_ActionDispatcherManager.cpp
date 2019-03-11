@@ -85,20 +85,3 @@ void UXD_ActionDispatcherManager::FinishDispatcher(UXD_ActionDispatcherBase* Dis
 
 	ActivedDispatchers.Remove(Dispatcher);
 }
-
-void UXD_ActionDispatcherLibrary::InvokeStartDispatcher(TSubclassOf<UXD_ActionDispatcherBase> ActionDispatcher, const UObject* WorldContextObject)
-{
-	if (ActionDispatcher)
-	{
-		if (UXD_ActionDispatcherManager* ActionDispatcherManager = GetActionDispatcherManager(WorldContextObject))
-		{
-			UXD_ActionDispatcherBase* ActionDispatcherInstance = NewObject<UXD_ActionDispatcherBase>(ActionDispatcherManager, ActionDispatcher);
-			ActionDispatcherManager->InvokeStartDispatcher(ActionDispatcherInstance);
-		}
-	}
-}
-
-UXD_ActionDispatcherManager* UXD_ActionDispatcherLibrary::GetActionDispatcherManager(const UObject* WorldContextObject)
-{
-	return UXD_ActionDispatcherManager::Get(WorldContextObject);
-}

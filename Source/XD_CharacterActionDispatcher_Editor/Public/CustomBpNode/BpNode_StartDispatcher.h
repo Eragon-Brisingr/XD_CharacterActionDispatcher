@@ -6,13 +6,64 @@
 #include "K2Node_ConstructObjectFromClass.h"
 #include "BpNode_StartDispatcher.generated.h"
 
+class UXD_ActionDispatcherBase;
+
 /**
  * 
  */
-UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_StartDispatcher : public UK2Node_ConstructObjectFromClass
+UCLASS(abstract)
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_StartDispatcherBase : public UK2Node_ConstructObjectFromClass
 {
 	GENERATED_BODY()
 public:
+	void AllocateDefaultPins() override;
+	void PinDefaultValueChanged(UEdGraphPin* ChangedPin) override;
+	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
+protected:
+	UClass* GetClassPinBaseClass() const override;
 
+	UPROPERTY()
+	TSubclassOf<UXD_ActionDispatcherBase> ActionDispatcherClass;
+
+	UPROPERTY()
+	TArray<FName> FinishedTags;
+
+	void ReflushFinishExec();
+
+	void GenerateFinishEvent(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph, UEdGraphPin* DispatchFinishedEventPin, const FString& EventName);
+
+	static FName DefaultPinName;
+};
+
+UCLASS()
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_StartDispatcherWithManager : public UBpNode_StartDispatcherBase
+{
+	GENERATED_BODY()
+public:
+	FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
+	FText GetMenuCategory() const override;
+	FName GetCornerIcon() const override { return TEXT("Graph.Latent.LatentIcon"); }
+	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
+
+	void AllocateDefaultPins() override;
+	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
+};
+
+UCLASS()
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_StartDispatcherWithOwner : public UBpNode_StartDispatcherBase
+{
+	GENERATED_BODY()
+public:
+	FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
+	FText GetMenuCategory() const override;
+	FName GetCornerIcon() const override { return TEXT("Graph.Latent.LatentIcon"); }
+	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
+
+	void AllocateDefaultPins() override;
+	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
+
+protected:
+	static FName Dispatcher_MemberVarPinName;
 };
