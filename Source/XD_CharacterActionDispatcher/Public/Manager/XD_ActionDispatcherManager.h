@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "XD_SaveGameInterface.h"
 #include "XD_ActionDispatcherManager.generated.h"
 
 class UXD_ActionDispatcherBase;
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherManager : public UActorComponent
+class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherManager : public UActorComponent, public IXD_SaveGameInterface
 {
 	GENERATED_BODY()
 
@@ -23,6 +24,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	bool NeedSave_Implementation() const override { return true; }
+	void WhenPreSave_Implementation() override;
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

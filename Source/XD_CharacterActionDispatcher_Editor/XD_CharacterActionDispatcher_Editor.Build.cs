@@ -54,6 +54,7 @@ public class XD_CharacterActionDispatcher_Editor : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 
                 "XD_CharacterActionDispatcher",
+                "XD_SaveGameSystem",
             }
 			);
 		

@@ -6,6 +6,12 @@
 #include "XD_ActionDispatcher_Log.h"
 #include "XD_DebugFunctionLibrary.h"
 
+UXD_ActionDispatcherBase::UXD_ActionDispatcherBase()
+	:bCheckAllSoftReferenceValidate(true)
+{
+
+}
+
 bool UXD_ActionDispatcherBase::ReceiveCanExecuteDispatch_Implementation() const
 {
 	return true;
@@ -13,6 +19,10 @@ bool UXD_ActionDispatcherBase::ReceiveCanExecuteDispatch_Implementation() const
 
 bool UXD_ActionDispatcherBase::CanExecuteDispatch() const
 {
+	if (bCheckAllSoftReferenceValidate)
+	{
+		return ReceiveCanExecuteDispatch() && IsAllSoftReferenceValid();
+	}
 	return ReceiveCanExecuteDispatch();
 }
 
@@ -32,10 +42,7 @@ void UXD_ActionDispatcherBase::StartDispatch()
 void UXD_ActionDispatcherBase::ActiveAction(UXD_DispatchableActionBase* Action)
 {
 	check(Action && !CurrentActions.Contains(Action));
-
-#if WITH_EDITOR
-	check(bIsSubActionDispatcher == false);
-#endif
+	check(IsSubActionDispatcher() == false);
 
 	CurrentActions.Add(Action);
 	Action->ActiveAction();
@@ -81,9 +88,30 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 	}
 }
 
+bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
+{
+	for (TFieldIterator<USoftObjectProperty> It(GetClass()); It; ++It)
+	{
+		USoftObjectProperty* SoftObjectProperty = *It;
+		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
+		if (SoftObjectPtr.Get() == nullptr)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 {
-	ActionDispatcher_Display_Log("结束行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
+	if (IsSubActionDispatcher())
+	{
+		ActionDispatcher_Display_Log("结束子行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
+	}
+	else
+	{
+		ActionDispatcher_Display_Log("结束行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
+	}
 
 	if (UXD_ActionDispatcherManager* Manager = GetManager())
 	{
@@ -136,6 +164,11 @@ bool UXD_ActionDispatcherBase::EnterTogetherFlowControl(FGuid NodeGuid, int32 In
 	}
 }
 
+bool UXD_ActionDispatcherBase::IsSubActionDispatcher() const
+{
+	return GetOuter()->IsA<UXD_ActionDispatcherBase>();
+}
+
 UXD_ActionDispatcherBase* UXD_ActionDispatcherBase::GetMainActionDispatcher()
 {
 	if (UXD_ActionDispatcherBase* ActionDispatcher = GetTypedOuter<UXD_ActionDispatcherBase>())
@@ -147,11 +180,8 @@ UXD_ActionDispatcherBase* UXD_ActionDispatcherBase::GetMainActionDispatcher()
 
 void UXD_ActionDispatcherBase::ActiveSubActionDispatcher(UXD_ActionDispatcherBase* SubActionDispatcher, FGuid NodeGuid)
 {
-#if WITH_EDITOR
-	SubActionDispatcher->bIsSubActionDispatcher = true;
-#endif
 	ActivedSubActionDispatchers.Add(NodeGuid, SubActionDispatcher);
-	ActionDispatcher_Display_Log("创建子行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(SubActionDispatcher));
+	ActionDispatcher_Display_Log("启动子行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(SubActionDispatcher));
 	SubActionDispatcher->WhenDispatchStart();
 }
 

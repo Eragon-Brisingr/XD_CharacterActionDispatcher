@@ -26,11 +26,13 @@ public:
 	FDispatchableActionFinishedEvent TogetherEvent;
 };
 
-UCLASS(abstract, Blueprintable)
+UCLASS(abstract)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
 {
 	GENERATED_BODY()
 public:
+	UXD_ActionDispatcherBase();
+
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	bool CanExecuteDispatch() const;
 	UFUNCTION(BlueprintNativeEvent, Category = "行为")
@@ -49,6 +51,11 @@ public:
 	bool InvokeReactiveDispatch();
 	void ReactiveDispatcher();
 
+	UPROPERTY(EditAnywhere, Category = "行为")
+	uint8 bCheckAllSoftReferenceValidate : 1;
+
+private:
+	bool IsAllSoftReferenceValid() const;
 	//结束调度器
 public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
@@ -93,10 +100,8 @@ public:
 	//子流程，允许逻辑分层
 	//若没有需要储存的状态更推荐使用公共宏代替
 public:
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(SaveGame)
-	uint8 bIsSubActionDispatcher : 1;
-#endif
+	bool IsSubActionDispatcher() const;
+
 	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))
 	UXD_ActionDispatcherBase* GetMainActionDispatcher();
 

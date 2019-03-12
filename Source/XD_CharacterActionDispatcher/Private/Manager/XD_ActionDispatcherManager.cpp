@@ -28,6 +28,14 @@ void UXD_ActionDispatcherManager::BeginPlay()
 }
 
 
+void UXD_ActionDispatcherManager::WhenPreSave_Implementation()
+{
+	for (UXD_ActionDispatcherBase* Dispatcher : ActivedDispatchers)
+	{
+		Dispatcher->AbortDispatch();
+	}
+}
+
 // Called every frame
 void UXD_ActionDispatcherManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {

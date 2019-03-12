@@ -5,6 +5,8 @@
 #include "BpNode_PlayLevelSequencer.h"
 #include "EdGraphUtilities.h"
 #include "DA_RoleSelectionGraphPin.h"
+#include "ActionDispatcherBP_Compiler.h"
+#include "ActionDispatcherBlueprint.h"
 
 #define LOCTEXT_NAMESPACE "FXD_CharacterActionDispatcher_EditorModule"
 
@@ -16,6 +18,8 @@ void FXD_CharacterActionDispatcher_EditorModule::StartupModule()
 	PropertyModule.RegisterCustomPropertyTypeLayout(FSequencerBindingOption::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSequencerBindingOption_Customization::MakeInstance));
 
 	FEdGraphUtilities::RegisterVisualPinFactory(MakeShared<FDA_RoleSelectionGraphPinFactory>());
+
+	FKismetCompilerContext::RegisterCompilerForBP(UActionDispatcherBlueprint::StaticClass(), &FXD_CharacterActionDispatcher_EditorModule::GetCompilerForBP);
 }
 
 void FXD_CharacterActionDispatcher_EditorModule::ShutdownModule()
@@ -23,6 +27,11 @@ void FXD_CharacterActionDispatcher_EditorModule::ShutdownModule()
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
 	
+}
+
+TSharedPtr<FKismetCompilerContext> FXD_CharacterActionDispatcher_EditorModule::GetCompilerForBP(UBlueprint* BP, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompileOptions)
+{
+	return TSharedPtr<FKismetCompilerContext>(new FActionDispatcherBP_Compiler(CastChecked<UActionDispatcherBlueprint>(BP), InMessageLog, InCompileOptions, nullptr));
 }
 
 #undef LOCTEXT_NAMESPACE
