@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ActionDispatcherBP_Compiler.h"
 #include "ActionDispatcherGeneratedClass.h"
@@ -9,7 +9,7 @@
 FActionDispatcherBP_Compiler::FActionDispatcherBP_Compiler(UActionDispatcherBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions, TArray<UObject*>* InObjLoaded)
 	: FKismetCompilerContext(SourceSketch, InMessageLog, InCompilerOptions, InObjLoaded)
 {
-
+	ActionDispatcherBlueprint = SourceSketch;
 }
 
 FActionDispatcherBP_Compiler::~FActionDispatcherBP_Compiler()
@@ -42,22 +42,40 @@ void FActionDispatcherBP_Compiler::FinishCompilingClass(UClass* Class)
 {
 	Super::FinishCompilingClass(Class);
 
-	UXD_ActionDispatcherBase* CDO = Class->GetDefaultObject<UXD_ActionDispatcherBase>();
-	for (TFieldIterator<UProperty> It(Class); It; ++It)
+	if (CompileOptions.CompileType != EKismetCompileType::SkeletonOnly)
 	{
-		UProperty* Property = *It;
-		if (Property->HasAnyPropertyFlags(CPF_Edit) && Property->HasAnyPropertyFlags(CPF_Protected) == false)
+		UXD_ActionDispatcherBase* CDO = Class->GetDefaultObject<UXD_ActionDispatcherBase>();
+		for (TFieldIterator<UProperty> It(Class, EFieldIteratorFlags::ExcludeSuper); It; ++It)
 		{
-			if (Property->HasAllPropertyFlags(CPF_ExposeOnSpawn | CPF_SaveGame) == false)
+			UProperty* Property = *It;
+			if (Property->HasAnyPropertyFlags(CPF_Edit) == false)
 			{
-				MessageLog.Error(TEXT("[%s]£¬·ÇPrivate±äÁ¿ÐèÌí¼Ó±ê¼ÇSaveGameÓëExposeOnSpawn"), *Property->GetName());
+				continue;
+			}
+
+			if (Property->HasAnyPropertyFlags(CPF_DisableEditOnInstance) == false)
+			{
+				Property->SetPropertyFlags(CPF_ExposeOnSpawn);
+				if (Property->HasAllPropertyFlags(CPF_SaveGame) == false)
+				{
+					MessageLog.Error(TEXT("@@ ExposeOnSpawnå˜é‡éœ€æ·»åŠ æ ‡è®°SaveGame"), Property);
+				}
+			}
+			else
+			{
+				if (Property->HasAllPropertyFlags(CPF_BlueprintReadOnly) == false)
+				{
+					if (Property->HasAllPropertyFlags(CPF_SaveGame) == false)
+					{
+						MessageLog.Error(TEXT("@@ éžæš´éœ²å˜é‡éœ€æ·»åŠ æ ‡è®°SaveGameæˆ–æ ‡è®°ä¸ºBlueprintReadOnly"), Property);
+					}
+				}
 			}
 		}
 
-// 		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(CDO));
-// 		if (SoftObjectPtr.Get() == nullptr)
-// 		{
-// 
-// 		}
+		if (UK2Node_Event* WhenDispatchStartNode = Cast<UK2Node_Event>(ActionDispatcherBlueprint->WhenDispatchStartNode))
+		{
+			
+		}
 	}
 }

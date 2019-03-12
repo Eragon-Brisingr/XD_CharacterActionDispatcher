@@ -17,13 +17,7 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_DispatchableActionBase : public UObje
 {
 	GENERATED_BODY()
 public:
-	UXD_DispatchableActionBase()
-	{
-#if WITH_EDITORONLY_DATA
-		bIsPluginAction = false;
-		bShowInExecuteActionNode = false;
-#endif
-	}
+	UXD_DispatchableActionBase();
 
 	UWorld* GetWorld() const override;
 

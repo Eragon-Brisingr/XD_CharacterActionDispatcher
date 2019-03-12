@@ -6,6 +6,14 @@
 #include "XD_DebugFunctionLibrary.h"
 #include "XD_ActionDispatcher_Log.h"
 
+UXD_DispatchableActionBase::UXD_DispatchableActionBase()
+{
+#if WITH_EDITORONLY_DATA
+	bIsPluginAction = false;
+	bShowInExecuteActionNode = true;
+#endif
+}
+
 UWorld* UXD_DispatchableActionBase::GetWorld() const
 {
 	return GetOwner() ? GetOwner()->GetWorld() : nullptr;
