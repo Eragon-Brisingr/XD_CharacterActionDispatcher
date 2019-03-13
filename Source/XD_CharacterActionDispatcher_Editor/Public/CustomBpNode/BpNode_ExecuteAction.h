@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "K2Node_ConstructObjectFromClass.h"
+#include "DA_BpNodeInterface.h"
 #include "BpNode_ExecuteAction.generated.h"
 
 class UXD_DispatchableActionBase;
@@ -12,7 +13,7 @@ class UXD_DispatchableActionBase;
  * 
  */
 UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_ExecuteAction : public UK2Node_ConstructObjectFromClass
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_ExecuteAction : public UK2Node_ConstructObjectFromClass, public IDA_BpNodeInterface
 {
 	GENERATED_BODY()
 public:

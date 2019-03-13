@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "K2Node.h"
+#include "DA_BpNodeInterface.h"
 #include "BpNode_FlowControl_Together.generated.h"
 
 class UEdGraphPin;
@@ -12,7 +13,7 @@ class UEdGraphPin;
  * 
  */
 UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_FlowControl_Together : public UK2Node
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_FlowControl_Together : public UK2Node, public IDA_BpNodeInterface
 {
 	GENERATED_BODY()
 public:

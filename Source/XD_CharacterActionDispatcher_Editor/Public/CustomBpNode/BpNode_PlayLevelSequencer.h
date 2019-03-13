@@ -6,6 +6,7 @@
 #include "K2Node.h"
 #include "MovieSceneObjectBindingID.h"
 #include "IPropertyTypeCustomization.h"
+#include "DA_BpNodeInterface.h"
 #include "BpNode_PlayLevelSequencer.generated.h"
 
 class ULevelSequence;
@@ -58,7 +59,7 @@ struct FSequencerBindingOption_Customization : public IPropertyTypeCustomization
 };
 
 UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_PlayLevelSequencer : public UK2Node
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_PlayLevelSequencer : public UK2Node, public IDA_BpNodeInterface
 {
 	GENERATED_BODY()
 public:

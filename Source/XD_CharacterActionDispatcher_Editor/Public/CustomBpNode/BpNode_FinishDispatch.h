@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "K2Node.h"
 #include "GameplayTagContainer.h"
+#include "DA_BpNodeInterface.h"
 #include "BpNode_FinishDispatch.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_FinishDispatch : public UK2Node
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_FinishDispatch : public UK2Node, public IDA_BpNodeInterface
 {
 	GENERATED_BODY()
 public:

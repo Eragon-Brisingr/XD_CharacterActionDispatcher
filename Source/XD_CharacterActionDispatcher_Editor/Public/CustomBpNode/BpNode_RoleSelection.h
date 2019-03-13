@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "K2Node.h"
+#include "DA_BpNodeInterface.h"
 #include "BpNode_RoleSelection.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_RoleSelection : public UK2Node
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_RoleSelection : public UK2Node, public IDA_BpNodeInterface
 {
 	GENERATED_BODY()
 public:
