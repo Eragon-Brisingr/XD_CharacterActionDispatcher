@@ -27,26 +27,27 @@ void FActionDispatcherBP_Compiler::PreCompile()
 		for (const FBPVariableDescription& BPVariableDescription : Blueprint->NewVariables)
 		{
 			EPropertyFlags Flags = (EPropertyFlags)BPVariableDescription.PropertyFlags;
-			if ((Flags & CPF_Edit) == CPF_Edit)
+			if ((Flags & CPF_Edit) != CPF_Edit)
 			{
 				continue;
 			}
 
-			if ((Flags & CPF_DisableEditOnInstance) == CPF_DisableEditOnInstance)
+			bool isMarkSaveGame = (Flags & CPF_SaveGame) == CPF_SaveGame;
+			if ((Flags & CPF_DisableEditOnInstance) != CPF_DisableEditOnInstance)
 			{
-				EPropertyFlags CheckFlag = CPF_ExposeOnSpawn | CPF_SaveGame;
-				if ((Flags & CheckFlag) == CheckFlag)
+				if (!(isMarkSaveGame && BPVariableDescription.HasMetaData(FBlueprintMetadata::MD_ExposeOnSpawn)))
 				{
-					MessageLog.Error(*FString::Printf(TEXT("[%s] 暴露变量需添加标记SaveGame与ExposeOnSpawn"), *BPVariableDescription.VarName.ToString()));
+					MessageLog.Error(*FString::Printf(TEXT("[%s] 暴露变量需添加标记[保存游戏]SaveGame与[在生成时显示]ExposeOnSpawn"), *BPVariableDescription.VarName.ToString()));
 				}
 			}
 			else
 			{
-				if ((Flags & CPF_BlueprintReadOnly) == CPF_BlueprintReadOnly)
+				bool isBlueprintReadOnly = (Flags & CPF_BlueprintReadOnly) == CPF_BlueprintReadOnly;
+				if (!(isBlueprintReadOnly || BPVariableDescription.HasMetaData(FBlueprintMetadata::MD_Private)))
 				{
-					if ((Flags & CPF_SaveGame) == CPF_SaveGame)
+					if (!isMarkSaveGame)
 					{
-						MessageLog.Error(*FString::Printf(TEXT("[%s] 非暴露变量需添加标记SaveGame或标记为BlueprintReadOnly"), *BPVariableDescription.VarName.ToString()));
+						MessageLog.Error(*FString::Printf(TEXT("[%s] 非暴露变量需添加标记SaveGame或标记为[只读蓝图]BlueprintReadOnly或者[私有]Private"), *BPVariableDescription.VarName.ToString()));
 					}
 				}
 			}
@@ -54,7 +55,7 @@ void FActionDispatcherBP_Compiler::PreCompile()
 		
 		if (UK2Node_Event* WhenDispatchStartNode = Cast<UK2Node_Event>(ActionDispatcherBlueprint->WhenDispatchStartNode))
 		{
-			FLinkToFinishNodeChecker::DoCheck(WhenDispatchStartNode, MessageLog);
+			FLinkToFinishNodeChecker::CheckForceConnectFinishNode(WhenDispatchStartNode, MessageLog);
 		}
 	}
 }

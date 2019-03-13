@@ -7,6 +7,7 @@
 #include "DA_BpNodeInterface.generated.h"
 
 struct FLinkToFinishNodeChecker;
+class UEdGraphNode;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)

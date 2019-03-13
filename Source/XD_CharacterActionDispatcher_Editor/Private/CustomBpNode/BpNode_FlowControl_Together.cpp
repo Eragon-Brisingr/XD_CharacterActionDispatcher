@@ -13,6 +13,7 @@
 #include "EdGraph/EdGraphNode.h"
 #include "MultiBoxBuilder.h"
 #include "DA_CustomBpNodeUtils.h"
+#include "LinkToFinishNodeChecker.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -136,6 +137,31 @@ void UBpNode_FlowControl_Together::ExpandNode(class FKismetCompilerContext& Comp
 	}
 
 	BreakAllNodeLinks();
+}
+
+void UBpNode_FlowControl_Together::WhenCheckLinkedFinishNode(FLinkToFinishNodeChecker& Checker) const
+{
+	for (UEdGraphPin* Pin : Pins)
+	{
+		if (Pin->Direction == EGPD_Output && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec)
+		{
+			if (Pin->PinName == TogetherEventPinName)
+			{
+				Checker.CheckPinConnectedFinishNode(Pin);
+			}
+			else
+			{
+				if (Pin->LinkedTo.Num() > 0)
+				{
+					FLinkToFinishNodeChecker::CheckForceNotConnectFinishNode(Pin, Checker.MessageLog);
+				}
+				else
+				{
+					Checker.MessageLog.Warning(TEXT("@@ 推荐添加角色等待行为"), Pin);
+				}
+			}
+		}
+	}
 }
 
 void UBpNode_FlowControl_Together::AddExecPin()

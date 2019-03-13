@@ -171,11 +171,19 @@ bool UXD_ActionDispatcherBase::IsSubActionDispatcher() const
 
 UXD_ActionDispatcherBase* UXD_ActionDispatcherBase::GetMainActionDispatcher()
 {
-	if (UXD_ActionDispatcherBase* ActionDispatcher = GetTypedOuter<UXD_ActionDispatcherBase>())
+	UXD_ActionDispatcherBase* ActionDispatcher = this;
+	for (UObject* NextOuter = GetOuter(); NextOuter != NULL; NextOuter = NextOuter->GetOuter())
 	{
-		return ActionDispatcher;
+		if (UXD_ActionDispatcherBase* OuterActionDispatcher = Cast<UXD_ActionDispatcherBase>(NextOuter))
+		{
+			ActionDispatcher = OuterActionDispatcher;
+		}
+		else
+		{
+			break;
+		}
 	}
-	return this;
+	return ActionDispatcher;
 }
 
 void UXD_ActionDispatcherBase::ActiveSubActionDispatcher(UXD_ActionDispatcherBase* SubActionDispatcher, FGuid NodeGuid)

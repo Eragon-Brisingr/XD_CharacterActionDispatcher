@@ -5,11 +5,31 @@
 #include "EdGraph/EdGraphPin.h"
 #include "EdGraphSchema_K2.h"
 #include "CompilerResultsLog.h"
+#include "BpNode_FinishDispatch.h"
 
-void FLinkToFinishNodeChecker::DoCheck(UEdGraphNode* Node, FCompilerResultsLog& MessageLog)
+void FLinkToFinishNodeChecker::CheckForceConnectFinishNode(UEdGraphNode* Node, FCompilerResultsLog& MessageLog)
 {
-	FLinkToFinishNodeChecker Checker(MessageLog);
+	FLinkToFinishNodeChecker Checker(MessageLog, false);
 	Checker.DoCheckImpl(Node);
+}
+
+void FLinkToFinishNodeChecker::CheckForceNotConnectFinishNode(UEdGraphPin* Pin, FCompilerResultsLog& MessageLog)
+{
+	for (UEdGraphPin* LinkedPin : Pin->LinkedTo)
+	{
+		if (LinkedPin->GetOwningNode()->IsA<UBpNode_FinishDispatch>())
+		{
+			MessageLog.Error(TEXT("从@@ 出发的所有节点不可连接 @@ 节点"), Pin, LinkedPin->GetOwningNode());
+		}
+		else
+		{
+			FLinkToFinishNodeChecker Checker(MessageLog, true);
+			Checker.StartSearchPin = Pin;
+			Checker.VisitedNodes.Add(Pin->GetOwningNode());
+
+			Checker.DoCheckImpl(LinkedPin->GetOwningNode());
+		}
+	}
 }
 
 void FLinkToFinishNodeChecker::DoCheckImpl(UEdGraphNode* Node)
@@ -21,9 +41,9 @@ void FLinkToFinishNodeChecker::DoCheckImpl(UEdGraphNode* Node)
 
 	VisitedNodes.Add(Node);
 
-	if (Node->Implements<UDA_BpNodeInterface>())
+	if (IDA_BpNodeInterface* DA_BpNodeInterface = Cast<IDA_BpNodeInterface>(Node))
 	{
-		((IDA_BpNodeInterface*)Node)->WhenCheckLinkedFinishNode(*this);
+		DA_BpNodeInterface->WhenCheckLinkedFinishNode(*this);
 	}
 	else
 	{
@@ -31,22 +51,28 @@ void FLinkToFinishNodeChecker::DoCheckImpl(UEdGraphNode* Node)
 		{
 			if (Pin->Direction == EGPD_Output && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec)
 			{
-				CheckPin(Pin);
+				CheckPinConnectedFinishNode(Pin);
 			}
 		}
 	}
 }
 
-void FLinkToFinishNodeChecker::CheckPin(UEdGraphPin* Pin)
+void FLinkToFinishNodeChecker::CheckPinConnectedFinishNode(UEdGraphPin* Pin)
 {
 	if (Pin->LinkedTo.Num() > 0)
 	{
 		for (UEdGraphPin* LinkedPin : Pin->LinkedTo)
 		{
+			if (bForceNotConnectFinishedNode && LinkedPin->GetOwningNode()->IsA<UBpNode_FinishDispatch>())
+			{
+				MessageLog.Error(TEXT("从@@ 出发的所有节点不可连接 @@ 节点"), StartSearchPin, Pin->GetOwningNode(), LinkedPin->GetOwningNode());
+				break;
+			}
+
 			DoCheckImpl(LinkedPin->GetOwningNode());
 		}
 	}
-	else
+	else if (bForceNotConnectFinishedNode == false)
 	{
 		MessageLog.Error(TEXT("@@ 需要连接 结束调度器 节点"), Pin);
 	}

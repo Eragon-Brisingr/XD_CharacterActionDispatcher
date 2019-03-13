@@ -100,6 +100,7 @@ public:
 	//子流程，允许逻辑分层
 	//若没有需要储存的状态更推荐使用公共宏代替
 public:
+	UFUNCTION(BlueprintCallable, Category = "行为")
 	bool IsSubActionDispatcher() const;
 
 	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))

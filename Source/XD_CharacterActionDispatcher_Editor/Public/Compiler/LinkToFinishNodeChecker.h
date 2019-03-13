@@ -12,16 +12,20 @@ struct FLinkToFinishNodeChecker
 {
 	FCompilerResultsLog& MessageLog;
 
-	static void DoCheck(UEdGraphNode* Node, FCompilerResultsLog& MessageLog);
+	static void CheckForceConnectFinishNode(UEdGraphNode* Node, FCompilerResultsLog& MessageLog);
+	static void CheckForceNotConnectFinishNode(UEdGraphPin* Pin, FCompilerResultsLog& MessageLog);
 
-	void CheckPin(UEdGraphPin* Pin);
+	void CheckPinConnectedFinishNode(UEdGraphPin* Pin);
 private:
-	FLinkToFinishNodeChecker(FCompilerResultsLog& MessageLog)
-		:MessageLog(MessageLog)
+	FLinkToFinishNodeChecker(FCompilerResultsLog& MessageLog, bool bForceNotConnectFinishedNode)
+		:MessageLog(MessageLog), bForceNotConnectFinishedNode(bForceNotConnectFinishedNode)
 	{}
+
+	uint8 bForceNotConnectFinishedNode : 1;
+	UEdGraphPin* StartSearchPin;
+
 	TSet<UEdGraphNode*> VisitedNodes;
 
 	void DoCheckImpl(UEdGraphNode* Node);
 };
-
 

@@ -13,7 +13,7 @@ void IDA_BpNodeInterface::WhenCheckLinkedFinishNode(FLinkToFinishNodeChecker& Ch
 		{
 			if (Pin->Direction == EGPD_Output && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec && Pin->PinName != UEdGraphSchema_K2::PN_Then)
 			{
-				Checker.CheckPin(Pin);
+				Checker.CheckPinConnectedFinishNode(Pin);
 			}
 		}
 	}

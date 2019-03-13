@@ -26,6 +26,10 @@ public:
 
 	void AllocateDefaultPins() override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
+
+protected:
+	void WhenCheckLinkedFinishNode(FLinkToFinishNodeChecker& Checker) const override;
+
 private:
 	UPROPERTY()
 	int32 TogetherEventCount = 2;
