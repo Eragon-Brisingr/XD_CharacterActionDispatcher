@@ -6,6 +6,8 @@
 #include "EdGraphSchema_K2.h"
 #include "CompilerResultsLog.h"
 #include "BpNode_FinishDispatch.h"
+#include "K2Node_Composite.h"
+#include "K2Node_MacroInstance.h"
 
 void FLinkToFinishNodeChecker::CheckForceConnectFinishNode(UEdGraphNode* Node, FCompilerResultsLog& MessageLog)
 {
@@ -59,13 +61,18 @@ void FLinkToFinishNodeChecker::DoCheckImpl(UEdGraphNode* Node)
 
 void FLinkToFinishNodeChecker::CheckPinConnectedFinishNode(UEdGraphPin* Pin)
 {
-	if (Pin->LinkedTo.Num() > 0)
+	UEdGraphPin* RetargetPin = Pin;
+	bool bShowErrorOnLinkedPin = false;
+	ConvertRetargetPin(RetargetPin, bShowErrorOnLinkedPin);
+	UEdGraphPin* ShowErrorPin = bShowErrorOnLinkedPin ? RetargetPin : Pin;
+
+	if (RetargetPin->LinkedTo.Num() > 0)
 	{
-		for (UEdGraphPin* LinkedPin : Pin->LinkedTo)
+		for (UEdGraphPin* LinkedPin : RetargetPin->LinkedTo)
 		{
 			if (bForceNotConnectFinishedNode && LinkedPin->GetOwningNode()->IsA<UBpNode_FinishDispatch>())
 			{
-				MessageLog.Error(TEXT("从@@ 出发的所有节点不可连接 @@ 节点"), StartSearchPin, Pin->GetOwningNode(), LinkedPin->GetOwningNode());
+				MessageLog.Error(TEXT("从@@ 出发的所有节点不可连接 @@ 节点"), StartSearchPin, ShowErrorPin->GetOwningNode(), LinkedPin->GetOwningNode());
 				break;
 			}
 
@@ -74,6 +81,72 @@ void FLinkToFinishNodeChecker::CheckPinConnectedFinishNode(UEdGraphPin* Pin)
 	}
 	else if (bForceNotConnectFinishedNode == false)
 	{
-		MessageLog.Error(TEXT("@@ 需要连接 结束调度器 节点"), Pin);
+		MessageLog.Error(TEXT("@@ 需要连接 结束调度器 节点"), ShowErrorPin);
+	}
+}
+
+void FLinkToFinishNodeChecker::ConvertRetargetPin(UEdGraphPin*& Pin, bool& bShowErrorOnLinkedPin)
+{
+	for (UEdGraphPin* LinkToPin : Pin->LinkedTo)
+	{
+		if (UK2Node_Tunnel* TunnelNode = Cast<UK2Node_Tunnel>(LinkToPin->GetOwningNode()))
+		{
+			//宏的输入中转
+			if (UK2Node_MacroInstance* MacroInstanceNode = Cast<UK2Node_MacroInstance>(TunnelNode))
+			{
+				UK2Node_Tunnel* InputTunnelNode = nullptr;
+				UK2Node_Tunnel* OutputTunnelNode = nullptr;
+
+				for (UEdGraphNode* Node : MacroInstanceNode->GetMacroGraph()->Nodes)
+				{
+					if (Node && Node->GetClass() == UK2Node_Tunnel::StaticClass())
+					{
+						UK2Node_Tunnel* TunnelNode = (UK2Node_Tunnel*)Node;
+						if (TunnelNode->bCanHaveOutputs)
+						{
+							InputTunnelNode = TunnelNode;
+						}
+						else
+						{
+							OutputTunnelNode = TunnelNode;
+						}
+					}
+				}
+
+				if (OutputTunnelNode)
+				{
+					MacroNodeLinkers.FindOrAdd(OutputTunnelNode) = MacroInstanceNode;
+				}
+
+				if (InputTunnelNode)
+				{
+					Pin = InputTunnelNode->FindPinChecked(LinkToPin->PinName);
+					bShowErrorOnLinkedPin = false;
+					ConvertRetargetPin(Pin, bShowErrorOnLinkedPin);
+					return;
+				}
+			}
+			else
+			{
+				//宏的输出中转
+				if (UK2Node_MacroInstance** P_MacroInstanceNode = MacroNodeLinkers.Find(TunnelNode))
+				{
+					UK2Node_MacroInstance* MacroInstanceNode = *P_MacroInstanceNode;
+					Pin = MacroInstanceNode->FindPinChecked(LinkToPin->PinName);
+					bShowErrorOnLinkedPin = true;
+					ConvertRetargetPin(Pin, bShowErrorOnLinkedPin);
+					return;
+				}
+
+				//合并节点处理
+				if (TunnelNode->InputSinkNode)
+				{
+					Pin = TunnelNode->InputSinkNode->FindPinChecked(LinkToPin->PinName);
+					bShowErrorOnLinkedPin = LinkToPin->Direction == EGPD_Input;
+					ConvertRetargetPin(Pin, bShowErrorOnLinkedPin);
+					return;
+				}
+			}
+		}
 	}
 }

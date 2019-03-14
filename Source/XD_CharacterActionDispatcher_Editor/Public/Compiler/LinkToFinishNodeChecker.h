@@ -6,6 +6,7 @@
 
 class FCompilerResultsLog;
 class UEdGraphNode;
+class UK2Node_MacroInstance;
 
 
 struct FLinkToFinishNodeChecker
@@ -16,6 +17,7 @@ struct FLinkToFinishNodeChecker
 	static void CheckForceNotConnectFinishNode(UEdGraphPin* Pin, FCompilerResultsLog& MessageLog);
 
 	void CheckPinConnectedFinishNode(UEdGraphPin* Pin);
+
 private:
 	FLinkToFinishNodeChecker(FCompilerResultsLog& MessageLog, bool bForceNotConnectFinishedNode)
 		:MessageLog(MessageLog), bForceNotConnectFinishedNode(bForceNotConnectFinishedNode)
@@ -27,5 +29,9 @@ private:
 	TSet<UEdGraphNode*> VisitedNodes;
 
 	void DoCheckImpl(UEdGraphNode* Node);
+	void ConvertRetargetPin(UEdGraphPin*& Pin, bool& bShowErrorOnLinkedPin);
+
+	//Key为结束的Tunnel节点
+	TMap<UK2Node_Tunnel*, UK2Node_MacroInstance*> MacroNodeLinkers;
 };
 
