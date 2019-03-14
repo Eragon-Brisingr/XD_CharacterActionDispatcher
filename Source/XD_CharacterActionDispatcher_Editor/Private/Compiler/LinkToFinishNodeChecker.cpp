@@ -72,7 +72,7 @@ void FLinkToFinishNodeChecker::CheckPinConnectedFinishNode(UEdGraphPin* Pin)
 		{
 			if (bForceNotConnectFinishedNode && LinkedPin->GetOwningNode()->IsA<UBpNode_FinishDispatch>())
 			{
-				MessageLog.Error(TEXT("从@@ 出发的所有节点不可连接 @@ 节点"), StartSearchPin, ShowErrorPin->GetOwningNode(), LinkedPin->GetOwningNode());
+				MessageLog.Error(TEXT("从@@ 出发的所有节点不可连接 @@ 节点，因为可能会执行[结束调度器]节点"), StartSearchPin, ShowErrorPin->GetOwningNode(), LinkedPin->GetOwningNode());
 				break;
 			}
 
@@ -81,7 +81,7 @@ void FLinkToFinishNodeChecker::CheckPinConnectedFinishNode(UEdGraphPin* Pin)
 	}
 	else if (bForceNotConnectFinishedNode == false)
 	{
-		MessageLog.Error(TEXT("@@ 需要连接 结束调度器 节点"), ShowErrorPin);
+		MessageLog.Error(TEXT("@@ 需要连接[结束调度器]节点"), ShowErrorPin);
 	}
 }
 

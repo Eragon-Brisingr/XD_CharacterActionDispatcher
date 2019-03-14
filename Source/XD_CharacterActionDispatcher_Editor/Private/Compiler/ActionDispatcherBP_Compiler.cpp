@@ -53,9 +53,32 @@ void FActionDispatcherBP_Compiler::PreCompile()
 			}
 		}		
 		
-		if (UK2Node_Event* WhenDispatchStartNode = Cast<UK2Node_Event>(ActionDispatcherBlueprint->WhenDispatchStartNode))
+		UK2Node_Event* WhenDispatchStartNode = Cast<UK2Node_Event>(ActionDispatcherBlueprint->WhenDispatchStartNode);
+		if (WhenDispatchStartNode == nullptr)
+		{
+			for (UEdGraph* Ubergraph : Blueprint->UbergraphPages)
+			{
+				for (UEdGraphNode* Node : Ubergraph->Nodes)
+				{
+					if (UK2Node_Event* EventNode = Cast<UK2Node_Event>(Node))
+					{
+						if (EventNode->GetFunctionName() == GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, WhenDispatchStart))
+						{
+							WhenDispatchStartNode = EventNode;
+							goto FindNode;
+						}
+					}
+				}
+			}
+		}
+	FindNode:
+		if (WhenDispatchStartNode)
 		{
 			FLinkToFinishNodeChecker::CheckForceConnectFinishNode(WhenDispatchStartNode, MessageLog);
+		}
+		else
+		{
+			MessageLog.Error(TEXT("需要实现[执行调度]WhenDispatchStart事件"));
 		}
 	}
 }
