@@ -80,7 +80,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	bool CanReactiveDispatcher() const;
 
-	//With Check
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	bool InvokeReactiveDispatcher();
 

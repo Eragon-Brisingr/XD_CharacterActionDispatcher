@@ -73,6 +73,11 @@ bool UXD_ActionDispatcherBase::InvokeReactiveDispatch()
 	return false;
 }
 
+bool UXD_ActionDispatcherBase::CanReactiveDispatcher()
+{
+	return CanExecuteDispatch();
+}
+
 void UXD_ActionDispatcherBase::ReactiveDispatcher()
 {
 	if (bIsActive == false)

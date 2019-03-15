@@ -49,6 +49,7 @@ public:
 	void AbortDispatch();
 	//With Check
 	bool InvokeReactiveDispatch();
+	bool CanReactiveDispatcher();
 	void ReactiveDispatcher();
 
 	UPROPERTY(EditAnywhere, Category = "行为")

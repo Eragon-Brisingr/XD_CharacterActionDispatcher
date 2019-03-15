@@ -159,7 +159,7 @@ void UXD_DispatchableActionBase::AbortDispatcher()
 
 bool UXD_DispatchableActionBase::CanReactiveDispatcher() const
 {
-	return GetOwner()->CanExecuteDispatch();
+	return GetOwner()->CanReactiveDispatcher();
 }
 
 bool UXD_DispatchableActionBase::InvokeReactiveDispatcher()
