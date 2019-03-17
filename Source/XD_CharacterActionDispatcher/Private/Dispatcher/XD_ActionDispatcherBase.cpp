@@ -52,6 +52,7 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 	check(Action && !CurrentActions.Contains(Action));
 	check(IsSubActionDispatcher() == false);
 
+	CurrentActions.Add(Action);
 	if (Action->CanActiveAction())
 	{
 		Action->ActiveAction();
@@ -60,7 +61,6 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 	{
 		AbortDispatch();
 	}
-	CurrentActions.Add(Action);
 }
 
 void UXD_ActionDispatcherBase::AbortDispatch()

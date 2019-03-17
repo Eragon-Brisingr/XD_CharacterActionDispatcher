@@ -55,7 +55,7 @@ void UXD_DispatchableActionBase::WhenActionReactived()
 void UXD_DispatchableActionBase::FinishAction()
 {
 	check(GetOwner()->CurrentActions.Contains(this));
-	check(bIsFinished == false);
+	check(bIsActived && bIsFinished == false);
 
 	bIsFinished = true;
 	UXD_ActionDispatcherBase* ActionDispatcher = GetOwner();
