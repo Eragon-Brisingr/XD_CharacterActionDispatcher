@@ -58,6 +58,7 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_PlaySequenceBase : public UXD_Disp
 public:
 	UXD_DA_PlaySequenceBase();
 
+	bool CanActiveAction() const override;
 	void WhenActionActived() override;
 	void WhenActionDeactived() override;
 	void WhenActionFinished() override;

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -20,6 +20,7 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_MoveTo : public UXD_DispatchableAc
 public:
 	UXD_DA_MoveTo();
 
+	bool CanActiveAction() const override;
 	void WhenActionActived() override;
 	void WhenActionDeactived() override;
 	void WhenActionFinished() override;

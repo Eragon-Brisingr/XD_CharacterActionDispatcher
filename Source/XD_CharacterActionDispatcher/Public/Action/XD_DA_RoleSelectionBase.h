@@ -16,6 +16,7 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_RoleSelectionBase : public UXD_Dis
 public:
 	UXD_DA_RoleSelectionBase();
 
+	bool CanActiveAction() const override;
 	void WhenActionActived() override;
 	void WhenActionDeactived() override;
 	void WhenActionFinished() override;

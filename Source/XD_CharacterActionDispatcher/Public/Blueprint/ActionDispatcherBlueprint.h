@@ -24,5 +24,8 @@ public:
 
 	UPROPERTY()
 	UObject* WhenDispatchStartNode;
+
+	UPROPERTY()
+	TArray<FName> FinishTags;
 #endif
 };

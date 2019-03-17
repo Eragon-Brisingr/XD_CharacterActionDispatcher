@@ -13,6 +13,11 @@ UXD_DA_RoleSelectionBase::UXD_DA_RoleSelectionBase()
 #endif
 }
 
+bool UXD_DA_RoleSelectionBase::CanActiveAction() const
+{
+	return Role.Get() ? true : false;
+}
+
 void UXD_DA_RoleSelectionBase::WhenActionActived()
 {
 	APawn* Pawn = Role.Get();
@@ -98,7 +103,7 @@ UXD_DA_RoleSelectionBase* UXD_DA_RoleSelectionBase::ShowSelection(UXD_ActionDisp
 	UXD_DA_RoleSelectionBase* RoleSelection = NewObject<UXD_DA_RoleSelectionBase>(ActionDispatcher);
 	RoleSelection->Role = InRole;
 	RoleSelection->Selections = InSelections;
-	ActionDispatcher->ActiveAction(RoleSelection);
+	ActionDispatcher->InvokeActiveAction(RoleSelection);
 	return RoleSelection;
 }
 

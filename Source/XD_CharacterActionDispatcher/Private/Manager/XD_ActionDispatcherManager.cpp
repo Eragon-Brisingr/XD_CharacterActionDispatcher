@@ -6,6 +6,8 @@
 #include "XD_ActionDispatcher_Log.h"
 #include "XD_DebugFunctionLibrary.h"
 #include "XD_ActionDispatcherGameStateImpl.h"
+#include "XD_SaveGameSystemBase.h"
+#include "Engine/LevelStreaming.h"
 
 // Sets default values for this component's properties
 UXD_ActionDispatcherManager::UXD_ActionDispatcherManager()
@@ -24,16 +26,27 @@ void UXD_ActionDispatcherManager::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
+	UXD_SaveGameSystemBase::Get(this)->OnLoadLevelCompleted.AddDynamic(this, &UXD_ActionDispatcherManager::WhenLevelLoadCompleted);
+
+	for (ULevelStreaming* LevelStream : GetWorld()->GetStreamingLevels())
+	{
+		LevelStream->OnLevelUnloaded.AddDynamic(this, &UXD_ActionDispatcherManager::WhenPostLevelUnload);
+	}
 }
 
+void UXD_ActionDispatcherManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	UXD_SaveGameSystemBase::Get(this)->OnLoadLevelCompleted.RemoveAll(this);
+}
 
 void UXD_ActionDispatcherManager::WhenPreSave_Implementation()
 {
-// 	for (UXD_ActionDispatcherBase* Dispatcher : ActivedDispatchers)
-// 	{
-// 		Dispatcher->AbortDispatch();
-// 	}
+	for (UXD_ActionDispatcherBase* Dispatcher : ActivedDispatchers)
+	{
+		Dispatcher->SaveDispatchState();
+	}
 }
 
 void UXD_ActionDispatcherManager::WhenPostLoad_Implementation()
@@ -55,6 +68,8 @@ void UXD_ActionDispatcherManager::WhenPostLoad_Implementation()
 				PendingDispatchers.Add(Dispatcher);
 			}
 		}
+
+		bEnableAutoActivePendingAction = true;
 	}), 0.00001f, false);
 }
 
@@ -64,30 +79,72 @@ void UXD_ActionDispatcherManager::TickComponent(float DeltaTime, ELevelTick Tick
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+	if (bEnableAutoActivePendingAction)
+	{
+		double StartTime = FPlatformTime::Seconds();
+		double ActivePendingActionsTimeLimit = 0.001f;
+		while (ActivePendingActionIdx < PendingDispatchers.Num())
+		{
+			UXD_ActionDispatcherBase* PendingDispatcher = PendingDispatchers[ActivePendingActionIdx];
+			if (PendingDispatcher->IsDispatcherStarted())
+			{
+				if (PendingDispatcher->CanReactiveDispatcher())
+				{
+					PendingDispatcher->ReactiveDispatcher();
+					PendingDispatchers.RemoveAt(ActivePendingActionIdx);
+					WhenDispatcherReactived(PendingDispatcher);
+				}
+				else
+				{
+					++ActivePendingActionIdx;
+				}
+			}
+			else
+			{
+				if (PendingDispatcher->CanExecuteDispatch())
+				{
+					PendingDispatcher->StartDispatch();
+					PendingDispatchers.RemoveAt(ActivePendingActionIdx);
+					WhenDispatcherStarted(PendingDispatcher);
+				}
+				else
+				{
+					++ActivePendingActionIdx;
+				}
+			}
+
+			if (FPlatformTime::Seconds() - StartTime > ActivePendingActionsTimeLimit)
+			{
+				break;
+			}
+		}
+		if (ActivePendingActionIdx >= PendingDispatchers.Num())
+		{
+			ActivePendingActionIdx = 0;
+		}
+	}
 }
 
-void UXD_ActionDispatcherManager::InvokeStartDispatcher(UXD_ActionDispatcherBase* Dispatcher)
+void UXD_ActionDispatcherManager::WhenDispatcherStarted(UXD_ActionDispatcherBase* Dispatcher)
 {
-	check(!(ActivedDispatchers.Contains(Dispatcher) && PendingDispatchers.Contains(Dispatcher)));
+	check(!ActivedDispatchers.Contains(Dispatcher));
 
-	if (Dispatcher->CanExecuteDispatch())
-	{
-		ActivedDispatchers.Add(Dispatcher);
-		Dispatcher->StartDispatch();
-	}
-	else
-	{
-		PendingDispatchers.Add(Dispatcher);
-	}
+	ActivedDispatchers.Add(Dispatcher);
 }
 
-void UXD_ActionDispatcherManager::InvokeAbortDispatcher(UXD_ActionDispatcherBase* Dispatcher)
+void UXD_ActionDispatcherManager::WhenDispatcherReactived(UXD_ActionDispatcherBase* Dispatcher)
+{
+	check(!ActivedDispatchers.Contains(Dispatcher));
+
+	ActivedDispatchers.Add(Dispatcher);
+}
+
+void UXD_ActionDispatcherManager::WhenDispatcherAborted(UXD_ActionDispatcherBase* Dispatcher)
 {
 	check(ActivedDispatchers.Contains(Dispatcher));
 
 	ActivedDispatchers.Remove(Dispatcher);
 	PendingDispatchers.Add(Dispatcher);
-	Dispatcher->AbortDispatch();
 }
 
 UXD_ActionDispatcherManager* UXD_ActionDispatcherManager::Get(const UObject* WorldContextObject)
@@ -109,9 +166,93 @@ UXD_ActionDispatcherManager* UXD_ActionDispatcherManager::Get(const UObject* Wor
 	}
 }
 
-void UXD_ActionDispatcherManager::FinishDispatcher(UXD_ActionDispatcherBase* Dispatcher)
+void UXD_ActionDispatcherManager::WhenDispatcherFinished(UXD_ActionDispatcherBase* Dispatcher)
 {
 	check(ActivedDispatchers.Contains(Dispatcher));
 
 	ActivedDispatchers.Remove(Dispatcher);
+
+	InvokeActivePendingActions();
+}
+
+void UXD_ActionDispatcherManager::InvokeStartDispatcher(UXD_ActionDispatcherBase* Dispatcher)
+{
+	if (Dispatcher->CanExecuteDispatch())
+	{
+		WhenDispatcherStarted(Dispatcher);
+		Dispatcher->StartDispatch();
+	}
+	else
+	{
+		check(!PendingDispatchers.Contains(Dispatcher));
+
+		PendingDispatchers.Add(Dispatcher);
+	}
+}
+
+void UXD_ActionDispatcherManager::InvokeActivePendingActions()
+{
+
+}
+
+void UXD_ActionDispatcherManager::WhenLevelLoadCompleted(ULevel* Level)
+{
+	InvokeActivePendingActions();
+}
+
+void UXD_ActionDispatcherManager::WhenPostLevelUnload()
+{
+	for (int32 i = 0; i < ActivedDispatchers.Num();)
+	{
+		UXD_ActionDispatcherBase* Dispatcher = ActivedDispatchers[i];
+		if (Dispatcher->CanExecuteDispatch() == false)
+		{
+			Dispatcher->bIsActive = false;
+			for (UXD_DispatchableActionBase* DispatchableAction : Dispatcher->CurrentActions)
+			{
+				DispatchableAction->bIsActived = false;
+			}
+
+			ActivedDispatchers.RemoveAt(i);
+			PendingDispatchers.Add(Dispatcher);
+		}
+		else
+		{
+			++i;
+		}
+	}
+}
+
+void UXD_ActionDispatcherManager::TryActivePendingDispatcher(UXD_ActionDispatcherBase* Dispatcher)
+{
+	if (Dispatcher == nullptr || Dispatcher->bIsActive)
+	{
+		return;
+	}
+
+	bool bCanActive = Dispatcher->IsDispatcherStarted() ? Dispatcher->CanReactiveDispatcher() : Dispatcher->CanExecuteDispatch();
+	if (bCanActive)
+	{
+		int32 Idx = PendingDispatchers.IndexOfByKey(Dispatcher);
+
+		check(Idx != INDEX_NONE);
+
+		if (Idx < ActivePendingActionIdx)
+		{
+			ActivePendingActionIdx -= 1;
+		}
+
+		if (Dispatcher->IsDispatcherStarted())
+		{
+			Dispatcher->ReactiveDispatcher();
+			PendingDispatchers.RemoveAt(Idx);
+			WhenDispatcherReactived(Dispatcher);
+		}
+		else
+		{
+			Dispatcher->StartDispatch();
+			PendingDispatchers.RemoveAt(Idx);
+			WhenDispatcherStarted(Dispatcher);
+		}
+	}
 }

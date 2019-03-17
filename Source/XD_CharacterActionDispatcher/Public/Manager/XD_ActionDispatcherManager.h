@@ -9,6 +9,7 @@
 #include "XD_ActionDispatcherManager.generated.h"
 
 class UXD_ActionDispatcherBase;
+class ULevel;
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -22,7 +23,8 @@ public:
 
 protected:
 	// Called when the game starts
-	virtual void BeginPlay() override;
+	void BeginPlay() override;
+	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	bool NeedSave_Implementation() const override { return true; }
 	void WhenPreSave_Implementation() override;
@@ -30,13 +32,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 public:
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
-	void InvokeStartDispatcher(UXD_ActionDispatcherBase* Dispatcher);
-
-	void InvokeAbortDispatcher(UXD_ActionDispatcherBase* Dispatcher);
-
 	UPROPERTY(SaveGame)
 	TArray<UXD_ActionDispatcherBase*> ActivedDispatchers;
 
@@ -45,8 +41,31 @@ public:
 
 public:
 	static UXD_ActionDispatcherManager* Get(const UObject* WorldContextObject);
-
+	
+private:
+#if WITH_EDITOR
+	friend class UBpNode_StartDispatcherWithManager;
+#endif
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
+	void InvokeStartDispatcher(UXD_ActionDispatcherBase* Dispatcher);
 protected:
 	friend class UXD_ActionDispatcherBase;
-	void FinishDispatcher(UXD_ActionDispatcherBase* Dispatcher);
+
+	void WhenDispatcherStarted(UXD_ActionDispatcherBase* Dispatcher);
+	void WhenDispatcherReactived(UXD_ActionDispatcherBase* Dispatcher);
+	void WhenDispatcherAborted(UXD_ActionDispatcherBase* Dispatcher);
+	void WhenDispatcherFinished(UXD_ActionDispatcherBase* Dispatcher);
+private:
+	uint8 bEnableAutoActivePendingAction : 1;
+	int32 ActivePendingActionIdx;
+
+	void InvokeActivePendingActions();
+	UFUNCTION()
+	void WhenLevelLoadCompleted(ULevel* Level);
+	UFUNCTION()
+	void WhenPostLevelUnload();
+
+public:
+	//尝试强制激活Pending状态的调度器
+	void TryActivePendingDispatcher(UXD_ActionDispatcherBase* Dispatcher);
 };

@@ -200,7 +200,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 			MakeEventArrayNode->PinConnectionListChanged(MakeEventArrayNode->GetOutputPin());
 
 			UK2Node_CallFunction* ActiveActionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-			ActiveActionNode->SetFromFunction(UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, ActiveAction)));
+			ActiveActionNode->SetFromFunction(UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InvokeActiveAction)));
 			ActiveActionNode->AllocateDefaultPins();
 			GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
 			CallCreateNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(TEXT("Action")));

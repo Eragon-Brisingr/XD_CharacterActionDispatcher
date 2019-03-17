@@ -7,6 +7,7 @@
 #include "XD_ActionDispatcherBase.h"
 
 #include "LinkToFinishNodeChecker.h"
+#include "BpNode_FinishDispatch.h"
 FActionDispatcherBP_Compiler::FActionDispatcherBP_Compiler(UActionDispatcherBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions, TArray<UObject*>* InObjLoaded)
 	: FKismetCompilerContext(SourceSketch, InMessageLog, InCompilerOptions, InObjLoaded)
 {
@@ -74,7 +75,15 @@ void FActionDispatcherBP_Compiler::PreCompile()
 	FindNode:
 		if (WhenDispatchStartNode)
 		{
-			FLinkToFinishNodeChecker::CheckForceConnectFinishNode(WhenDispatchStartNode, MessageLog);
+			FLinkToFinishNodeChecker Checker = FLinkToFinishNodeChecker::CheckForceConnectFinishNode(WhenDispatchStartNode, MessageLog);
+			ActionDispatcherBlueprint->FinishTags.Empty();
+			for (UEdGraphNode* Node : Checker.VisitedNodes)
+			{
+				if (UBpNode_FinishDispatch* FinishDispatchNode = Cast<UBpNode_FinishDispatch>(Node))
+				{
+					ActionDispatcherBlueprint->FinishTags.AddUnique(FinishDispatchNode->Tag.GetTagName());
+				}
+			}
 		}
 		else
 		{

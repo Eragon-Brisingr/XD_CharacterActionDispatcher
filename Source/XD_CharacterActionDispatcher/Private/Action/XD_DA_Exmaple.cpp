@@ -10,6 +10,11 @@ UXD_DA_Exmaple::UXD_DA_Exmaple()
 #endif
 }
 
+bool UXD_DA_Exmaple::CanActiveAction() const
+{
+	return true;
+}
+
 void UXD_DA_Exmaple::WhenActionActived()
 {
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UXD_DA_Exmaple::WhenTimeFinished, DelayTime);

@@ -15,6 +15,25 @@ UXD_DA_PlaySequenceBase::UXD_DA_PlaySequenceBase()
 #endif
 }
 
+bool UXD_DA_PlaySequenceBase::CanActiveAction() const
+{
+	for (const FPlaySequenceActorData& Data : PlaySequenceActorDatas)
+	{
+		if (Data.ActorRef.Get() == false)
+		{
+			return false;
+		}
+	}
+	for (const FPlaySequenceMoveToData& Data : PlaySequenceMoveToDatas)
+	{
+		if (Data.PawnRef.Get() == false)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void UXD_DA_PlaySequenceBase::WhenActionActived()
 {
 	for (const FPlaySequenceActorData& Data : PlaySequenceActorDatas)
@@ -144,7 +163,7 @@ UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::PlaySequence(UXD_ActionDispatc
 	DA_PlaySequence->PlayTransform = InPlayTransform;
 	DA_PlaySequence->WhenPlayCompleted = InWhenPlayEnd;
 	DA_PlaySequence->WhenCanNotPlay = InWhenCanNotPlay;
-	ActionDispatcher->ActiveAction(DA_PlaySequence);
+	ActionDispatcher->InvokeActiveAction(DA_PlaySequence);
 	return DA_PlaySequence;
 }
 

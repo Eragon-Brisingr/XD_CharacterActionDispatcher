@@ -9,10 +9,11 @@
 #include "K2Node_Composite.h"
 #include "K2Node_MacroInstance.h"
 
-void FLinkToFinishNodeChecker::CheckForceConnectFinishNode(UEdGraphNode* Node, FCompilerResultsLog& MessageLog)
+FLinkToFinishNodeChecker FLinkToFinishNodeChecker::CheckForceConnectFinishNode(UEdGraphNode* Node, FCompilerResultsLog& MessageLog)
 {
 	FLinkToFinishNodeChecker Checker(MessageLog, false);
 	Checker.DoCheckImpl(Node);
+	return Checker;
 }
 
 void FLinkToFinishNodeChecker::CheckForceNotConnectFinishNode(UEdGraphPin* Pin, FCompilerResultsLog& MessageLog)

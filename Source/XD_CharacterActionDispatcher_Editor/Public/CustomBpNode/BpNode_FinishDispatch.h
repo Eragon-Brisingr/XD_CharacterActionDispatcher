@@ -27,7 +27,6 @@ public:
 	void AllocateDefaultPins() override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 
-protected:
 	UPROPERTY(EditAnywhere, Category = "行为", meta = (DisplayName = "结束事件标签"))
 	FGameplayTag Tag;
 };

@@ -35,6 +35,8 @@ protected:
 	UFUNCTION()
 	virtual void WhenActionActived(){}
 
+	virtual bool CanActiveAction() const { return false; }
+
 	void DeactiveAction();
 	//当行为被中断时的实现
 	UFUNCTION()
@@ -49,6 +51,11 @@ protected:
 	//当行为成功结束时的实现，一般用作UnregisterEntity
 	UFUNCTION()
 	virtual void WhenActionFinished(){}
+
+	void SaveState();
+	//当请求保存该行为时的实现，行为被中断和保存游戏时会被调用
+	UFUNCTION()
+	virtual void WhenSaveState(){}
 public:
 	UXD_ActionDispatcherBase* GetOwner() const;
 

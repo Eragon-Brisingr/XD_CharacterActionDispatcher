@@ -79,7 +79,14 @@ void UBpNode_ActiveSubActionDispatcher::PinDefaultValueChanged(UEdGraphPin* Chan
 	if (ChangedPin && (ChangedPin->PinName == TEXT("Class")))
 	{
 		ActionDispatcherClass = GetClassToSpawn();
-		FinishedTags = ActionDispatcherClass.GetDefaultObject()->GetAllFinishTags();
+		if (ActionDispatcherClass)
+		{
+			FinishedTags = ActionDispatcherClass.GetDefaultObject()->GetAllFinishTags();
+		}
+		else
+		{
+			FinishedTags.Empty();
+		}
 		ReflushFinishExec();
 	}
 }

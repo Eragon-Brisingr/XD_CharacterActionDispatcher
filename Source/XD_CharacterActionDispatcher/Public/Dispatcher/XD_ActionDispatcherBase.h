@@ -43,18 +43,23 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "执行调度"))
 	void WhenDispatchStart();
 
+	bool IsDispatcherStarted() const { return CurrentActions.Num() > 0; }
+
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	void ActiveAction(UXD_DispatchableActionBase* Action);
+	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
 
 	void AbortDispatch();
-	//With Check
+	void SaveDispatchState();
+
+	bool CanReactiveDispatcher() const;
+protected:
+	friend class UXD_ActionDispatcherManager;
+	friend class UXD_DispatchableActionBase;
 	bool InvokeReactiveDispatch();
-	bool CanReactiveDispatcher();
 	void ReactiveDispatcher();
 
 	UPROPERTY(EditAnywhere, Category = "行为")
 	uint8 bCheckAllSoftReferenceValidate : 1;
-
 private:
 	bool IsAllSoftReferenceValid() const;
 	//结束调度器
@@ -74,8 +79,6 @@ public:
 	void BindWhenDispatchFinished(const FWhenDispatchFinished& DispatchFinishedEvent) { WhenDispatchFinished = DispatchFinishedEvent; }
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Category = "编译")
-	TArray<FName> FinishTags;
 	TArray<FName> GetAllFinishTags() const;
 #endif
 public:

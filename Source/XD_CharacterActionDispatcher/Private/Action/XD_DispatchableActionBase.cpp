@@ -33,6 +33,7 @@ void UXD_DispatchableActionBase::DeactiveAction()
 	check(bIsActived == true && bIsFinished == false);
 
 	bIsActived = false;
+	SaveState();
 	WhenActionDeactived();
 	ActionDispatcher_Display_Log("反激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }
@@ -61,6 +62,11 @@ void UXD_DispatchableActionBase::FinishAction()
 	ActionDispatcher->CurrentActions.Remove(this);
 	WhenActionFinished();
 	ActionDispatcher_Display_Log("结束%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+}
+
+void UXD_DispatchableActionBase::SaveState()
+{
+	WhenSaveState();
 }
 
 UXD_ActionDispatcherBase* UXD_DispatchableActionBase::GetOwner() const

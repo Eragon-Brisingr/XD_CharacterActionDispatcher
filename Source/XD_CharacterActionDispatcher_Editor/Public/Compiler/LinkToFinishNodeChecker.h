@@ -11,13 +11,14 @@ class UK2Node_MacroInstance;
 
 struct FLinkToFinishNodeChecker
 {
+public:
 	FCompilerResultsLog& MessageLog;
+	TSet<UEdGraphNode*> VisitedNodes;
 
-	static void CheckForceConnectFinishNode(UEdGraphNode* Node, FCompilerResultsLog& MessageLog);
+	static FLinkToFinishNodeChecker CheckForceConnectFinishNode(UEdGraphNode* Node, FCompilerResultsLog& MessageLog);
 	static void CheckForceNotConnectFinishNode(UEdGraphPin* Pin, FCompilerResultsLog& MessageLog);
 
 	void CheckPinConnectedFinishNode(UEdGraphPin* Pin);
-
 private:
 	FLinkToFinishNodeChecker(FCompilerResultsLog& MessageLog, bool bForceNotConnectFinishedNode)
 		:MessageLog(MessageLog), bForceNotConnectFinishedNode(bForceNotConnectFinishedNode)
@@ -25,8 +26,6 @@ private:
 
 	uint8 bForceNotConnectFinishedNode : 1;
 	UEdGraphPin* StartSearchPin;
-
-	TSet<UEdGraphNode*> VisitedNodes;
 
 	void DoCheckImpl(UEdGraphNode* Node);
 	void ConvertRetargetPin(UEdGraphPin*& Pin, bool& bShowErrorOnLinkedPin);

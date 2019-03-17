@@ -5,6 +5,12 @@
 #include "XD_ActionDispatcherManager.h"
 #include "XD_ActionDispatcher_Log.h"
 #include "XD_DebugFunctionLibrary.h"
+#include "XD_DispatchableEntityInterface.h"
+
+#if WITH_EDITOR
+#include "Engine/BlueprintGeneratedClass.h"
+#include "ActionDispatcherBlueprint.h"
+#endif
 
 UXD_ActionDispatcherBase::UXD_ActionDispatcherBase()
 	:bCheckAllSoftReferenceValidate(true)
@@ -30,6 +36,8 @@ void UXD_ActionDispatcherBase::StartDispatch()
 {
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
+		check(bIsActive == false);
+
 		bIsActive = true;
 		WhenDispatchStart();
 	}
@@ -39,13 +47,20 @@ void UXD_ActionDispatcherBase::StartDispatch()
 	}
 }
 
-void UXD_ActionDispatcherBase::ActiveAction(UXD_DispatchableActionBase* Action)
+void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Action)
 {
 	check(Action && !CurrentActions.Contains(Action));
 	check(IsSubActionDispatcher() == false);
 
+	if (Action->CanActiveAction())
+	{
+		Action->ActiveAction();
+	}
+	else
+	{
+		AbortDispatch();
+	}
 	CurrentActions.Add(Action);
-	Action->ActiveAction();
 }
 
 void UXD_ActionDispatcherBase::AbortDispatch()
@@ -55,11 +70,20 @@ void UXD_ActionDispatcherBase::AbortDispatch()
 		bIsActive = false;
 		for (UXD_DispatchableActionBase* Action : CurrentActions)
 		{
-			if (Action)
-			{
-				Action->DeactiveAction();
-			}
+			Action->DeactiveAction();
 		}
+		if (UXD_ActionDispatcherManager* Manager = GetManager())
+		{
+			Manager->WhenDispatcherAborted(this);
+		}
+	}
+}
+
+void UXD_ActionDispatcherBase::SaveDispatchState()
+{
+	for (UXD_DispatchableActionBase* Action : CurrentActions)
+	{
+		Action->DeactiveAction();
 	}
 }
 
@@ -73,9 +97,23 @@ bool UXD_ActionDispatcherBase::InvokeReactiveDispatch()
 	return false;
 }
 
-bool UXD_ActionDispatcherBase::CanReactiveDispatcher()
+bool UXD_ActionDispatcherBase::CanReactiveDispatcher() const
 {
-	return CanExecuteDispatch();
+	if (CanExecuteDispatch())
+	{
+		for (UXD_DispatchableActionBase* Action : CurrentActions)
+		{
+			if (Action->CanActiveAction() == false)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void UXD_ActionDispatcherBase::ReactiveDispatcher()
@@ -83,7 +121,7 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 	if (bIsActive == false)
 	{
 		bIsActive = true;
-		for (UXD_DispatchableActionBase* Action : CurrentActions)
+		for (UXD_DispatchableActionBase* Action : TArray<UXD_DispatchableActionBase*>(CurrentActions))
 		{
 			if (Action)
 			{
@@ -99,7 +137,28 @@ bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 	{
 		USoftObjectProperty* SoftObjectProperty = *It;
 		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
-		if (SoftObjectPtr.Get() == nullptr)
+
+#if WITH_EDITOR
+		if (SoftObjectPtr.IsNull())
+		{
+			ActionDispatcher_Error_Log("调度器%s中的软引用[%s]为空，该调度器永远不会触发", *UXD_DebugFunctionLibrary::GetDebugName(this), *SoftObjectProperty->GetDisplayNameText().ToString());
+		}
+#endif
+
+		if (UObject* Obj = SoftObjectPtr.Get())
+		{
+			if (Obj->Implements<UXD_DispatchableEntityInterface>())
+			{
+				if (UXD_DispatchableActionBase* DispatchableAction = IXD_DispatchableEntityInterface::GetCurrentDispatchableAction(Obj))
+				{
+					if (DispatchableAction->GetOwner() != this)
+					{
+						return false;
+					}
+				}
+			}
+		}
+		else
 		{
 			return false;
 		}
@@ -117,22 +176,23 @@ void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 	{
 		ActionDispatcher_Display_Log("结束行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
 	}
-
-	if (UXD_ActionDispatcherManager* Manager = GetManager())
-	{
-		Manager->FinishDispatcher(this);
-	}
 	OnDispatchFinished.Broadcast(Tag);
 	if (WhenDispatchFinished.IsBound())
 	{
 		WhenDispatchFinished.Execute(Tag.GetTagName());
+	}
+
+	if (UXD_ActionDispatcherManager* Manager = GetManager())
+	{
+		Manager->WhenDispatcherFinished(this);
 	}
 }
 
 #if WITH_EDITOR
 TArray<FName> UXD_ActionDispatcherBase::GetAllFinishTags() const
 {
-	return FinishTags;
+	UActionDispatcherBlueprint* AD_Blueprint = CastChecked<UActionDispatcherBlueprint>(CastChecked<UBlueprintGeneratedClass>(GetClass())->ClassGeneratedBy);
+	return AD_Blueprint->FinishTags;
 }
 #endif
 
