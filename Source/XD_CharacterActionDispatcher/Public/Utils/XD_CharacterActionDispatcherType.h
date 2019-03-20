@@ -11,7 +11,7 @@
  */
 DECLARE_DYNAMIC_DELEGATE(FDispatchableActionFinished);
 
-USTRUCT(BlueprintType, BlueprintInternalUseOnly)
+USTRUCT(BlueprintType)
 struct XD_CHARACTERACTIONDISPATCHER_API FDispatchableActionFinishedEvent
 {
 	GENERATED_BODY()

@@ -16,6 +16,7 @@
 #include "BlueprintEditorUtils.h"
 #include "Utils/DA_CustomBpNodeUtils.h"
 #include "Settings/XD_ActionDispatcherSettings.h"
+#include "XD_ObjectFunctionLibrary.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -51,36 +52,28 @@ void UBpNode_ExecuteAction::GetMenuActions(FBlueprintActionDatabaseRegistrar& Ac
 	UClass* ActionKey = GetClass();
 	if (ActionRegistrar.IsOpenForRegistration(ActionKey))
 	{
-		for (UClass* It : TObjectRange<UClass>())
+		for (UClass* It : UXD_ObjectFunctionLibrary::GetAllSubclass<UXD_DispatchableActionBase>())
 		{
-			if (It->IsChildOf(UXD_DispatchableActionBase::StaticClass()))
+			UXD_DispatchableActionBase* Action = It->GetDefaultObject<UXD_DispatchableActionBase>();
+			if (!Action->bShowInExecuteActionNode)
 			{
-				if (It->HasAnyClassFlags(CLASS_Abstract))
-				{
-					continue;
-				}
-
-				UXD_DispatchableActionBase* Action = It->GetDefaultObject<UXD_DispatchableActionBase>();
-				if (!Action->bShowInExecuteActionNode)
-				{
-					continue;
-				}
-
-				if (!ShowPluginNode && Action->bIsPluginAction)
-				{
-					continue;
-				}
-
-				UBlueprintNodeSpawner* NodeSpawner = UBlueprintNodeSpawner::Create(GetClass());
-				check(NodeSpawner != nullptr);
-
-				NodeSpawner->CustomizeNodeDelegate = UBlueprintNodeSpawner::FCustomizeNodeDelegate::CreateLambda([=](UEdGraphNode* NewNode, bool bIsTemplateNode)
-				{
-					UBpNode_ExecuteAction* ExecuteActionNode = CastChecked<UBpNode_ExecuteAction>(NewNode);
-					ExecuteActionNode->ActionClass = It;
-				});
-				ActionRegistrar.AddBlueprintAction(ActionKey, NodeSpawner);
+				continue;
 			}
+
+			if (!ShowPluginNode && Action->bIsPluginAction)
+			{
+				continue;
+			}
+
+			UBlueprintNodeSpawner* NodeSpawner = UBlueprintNodeSpawner::Create(GetClass());
+			check(NodeSpawner != nullptr);
+
+			NodeSpawner->CustomizeNodeDelegate = UBlueprintNodeSpawner::FCustomizeNodeDelegate::CreateLambda([=](UEdGraphNode* NewNode, bool bIsTemplateNode)
+			{
+				UBpNode_ExecuteAction* ExecuteActionNode = CastChecked<UBpNode_ExecuteAction>(NewNode);
+				ExecuteActionNode->ActionClass = It;
+			});
+			ActionRegistrar.AddBlueprintAction(ActionKey, NodeSpawner);
 		}
 	}
 }

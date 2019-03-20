@@ -47,6 +47,7 @@ protected:
 	UFUNCTION()
 	virtual void WhenActionReactived();
 
+	UFUNCTION(BlueprintCallable, Category = "行为")
 	void FinishAction();
 	//当行为成功结束时的实现，一般用作UnregisterEntity
 	UFUNCTION()
@@ -57,11 +58,12 @@ protected:
 	UFUNCTION()
 	virtual void WhenSaveState(){}
 public:
+	UFUNCTION(BlueprintCallable, Category = "行为")
 	UXD_ActionDispatcherBase* GetOwner() const;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "行为")
 	uint8 bIsActived : 1;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "行为")
 	uint8 bIsFinished : 1;
 public:
 	struct FPinNameData
@@ -76,10 +78,14 @@ public:
 
 protected:
 	//所有执行Action的实体在Active时注册
+	UFUNCTION(BlueprintCallable, Category = "行为")
 	void RegisterEntity(AActor* Actor);
 	//所有执行Action的实体在Finish时反注册
+	UFUNCTION(BlueprintCallable, Category = "行为")
 	void UnregisterEntity(AActor* Actor);
-
+	//执行下一个事件
+	UFUNCTION(BlueprintCallable, Category = "行为")
+	void ExecuteEventAndFinishAction(const FDispatchableActionFinishedEvent& Event);
 public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void AbortDispatcher();
@@ -92,4 +98,32 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void ReactiveDispatcher();
+};
+
+UCLASS(abstract, Blueprintable)
+class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_BlueprintBase : public UXD_DispatchableActionBase
+{
+	GENERATED_BODY()
+public:
+	UXD_DA_BlueprintBase(){}
+
+	void WhenActionActived() override { ReceiveWhenActionActived(); }
+	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "WhenActionActived"))
+	void ReceiveWhenActionActived();
+
+	bool CanActiveAction() const override { return ReceiveCanActiveAction(); }
+	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "CanActiveAction"))
+	bool ReceiveCanActiveAction() const;
+
+	void WhenActionDeactived() override { ReceiveWhenActionDeactived(); }
+	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "WhenActionDeactived"))
+	void ReceiveWhenActionDeactived();
+
+	void WhenActionFinished() override { ReceiveWhenActionFinished(); }
+	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "WhenActionFinished"))
+	void ReceiveWhenActionFinished();
+
+	void WhenSaveState() override { ReceiveWhenSaveState(); }
+	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "WhenSaveState"))
+	void ReceiveWhenSaveState();
 };

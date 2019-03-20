@@ -16,6 +16,12 @@ UXD_DispatchableActionBase::UXD_DispatchableActionBase()
 
 UWorld* UXD_DispatchableActionBase::GetWorld() const
 {
+#if WITH_EDITOR
+	if (HasAnyFlags(RF_ClassDefaultObject))
+	{
+		return nullptr;
+	}
+#endif
 	return GetOwner() ? GetOwner()->GetWorld() : nullptr;
 }
 
@@ -156,6 +162,12 @@ void UXD_DispatchableActionBase::UnregisterEntity(AActor* Actor)
 		IXD_DispatchableEntityInterface::SetCurrentDispatchableAction(Actor, nullptr);
 	}
 	ActionDispatcher_Display_Log("--%s停止执行行为%s", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+}
+
+void UXD_DispatchableActionBase::ExecuteEventAndFinishAction(const FDispatchableActionFinishedEvent& Event)
+{
+	FinishAction();
+	Event.ExecuteIfBound();
 }
 
 void UXD_DispatchableActionBase::AbortDispatcher()

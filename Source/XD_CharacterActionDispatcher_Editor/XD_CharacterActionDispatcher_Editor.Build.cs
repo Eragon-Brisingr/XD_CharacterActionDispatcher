@@ -53,6 +53,7 @@ public class XD_CharacterActionDispatcher_Editor : ModuleRules
                 "GameplayTags",
 				// ... add private dependencies that you statically link with here ...	
 
+                "XD_UnrealLibraryEx",
                 "XD_CharacterActionDispatcher",
                 "XD_SaveGameSystem",
             }
