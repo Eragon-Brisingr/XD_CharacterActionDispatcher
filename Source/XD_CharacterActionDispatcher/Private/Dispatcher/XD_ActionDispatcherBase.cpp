@@ -11,6 +11,7 @@
 #include "Engine/BlueprintGeneratedClass.h"
 #include "ActionDispatcherBlueprint.h"
 #endif
+#include "XD_SaveGameSystemBase.h"
 
 UXD_ActionDispatcherBase::UXD_ActionDispatcherBase()
 	:bCheckAllSoftReferenceValidate(true)
@@ -50,6 +51,22 @@ void UXD_ActionDispatcherBase::StartDispatch()
 	else
 	{
 		ActionDispatcher_Error_Log("只能在服务端执行行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
+	}
+}
+
+void UXD_ActionDispatcherBase::InitDispatcher(AActor * Leader)
+{
+	if (Leader)
+	{
+		APawn* Pawn = Cast<APawn>(Leader);
+		if (Pawn && Pawn->IsPlayerControlled())
+		{
+			DispatcherLeader = Leader;
+		}
+		else
+		{
+			DispatcherLeader = Leader->GetLevel();
+		}
 	}
 }
 
@@ -122,16 +139,33 @@ bool UXD_ActionDispatcherBase::CanReactiveDispatcher() const
 	}
 }
 
-void UXD_ActionDispatcherBase::WhenDispatcherLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason)
+void UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason)
 {
 	AbortDispatch();
 }
 
+void UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed(ULevel* Level)
+{
+	ULevel* CurLevel = Cast<ULevel>(DispatcherLeader.Get());
+	if (CurLevel == Level)
+	{
+		AbortDispatch();
+		UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
+	}
+}
+
 void UXD_ActionDispatcherBase::PreDispatchActived()
 {
-	if (AActor* Leader = DispatcherLeader.Get())
+	if (UObject* Leader = DispatcherLeader.Get())
 	{
-		Leader->OnEndPlay.AddDynamic(this, &UXD_ActionDispatcherBase::WhenDispatcherLeaderDestroyed);
+		if (APawn* Pawn = Cast<APawn>(Leader))
+		{
+			Pawn->OnEndPlay.AddDynamic(this, &UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed);
+		}
+		else
+		{
+			UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.AddUObject(this, &UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed);
+		}
 	}
 }
 

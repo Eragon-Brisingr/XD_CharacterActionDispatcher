@@ -40,6 +40,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void StartDispatch();
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
+	void InitDispatcher(AActor * Leader);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "执行调度"))
 	void WhenDispatchStart();
@@ -55,13 +57,13 @@ public:
 	bool CanReactiveDispatcher() const;
 
 public:
-	//全局调度器环境下一般为玩家
-	//存在Owner的调度器环境就为该Owner
+	//调度器的主导者，为所在关卡或者玩家的角色
 	UPROPERTY(BlueprintReadOnly, SaveGame, meta = (ExposeOnSpawn = true))
-	TSoftObjectPtr<AActor> DispatcherLeader;
+	TSoftObjectPtr<UObject> DispatcherLeader;
 
 	UFUNCTION()
-	void WhenDispatcherLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason);
+	void WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason);
+	void WhenLevelLeaderDestroyed(ULevel* Level);
 
 	void PreDispatchActived();
 protected:
