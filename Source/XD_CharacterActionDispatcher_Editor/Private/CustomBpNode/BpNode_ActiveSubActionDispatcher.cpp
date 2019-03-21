@@ -87,7 +87,7 @@ void UBpNode_ActiveSubActionDispatcher::PinDefaultValueChanged(UEdGraphPin* Chan
 		{
 			FinishedTags.Empty();
 		}
-		ReflushFinishExec();
+		ReconstructNode();
 	}
 }
 

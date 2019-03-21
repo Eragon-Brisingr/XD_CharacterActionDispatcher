@@ -39,12 +39,8 @@ private:
 
 	void RemoveExecPin(const UEdGraphPin* Pin);
 
-	void ReflushExecPinName();
-
 	FName GetExecPinName(int32 Idx);
 	FName GetWaitPinName(int32 Idx);
 
 	TMap<UEdGraphPin*, UEdGraphPin*> TogetherPins;
-
-	void ReflushNode();
 };

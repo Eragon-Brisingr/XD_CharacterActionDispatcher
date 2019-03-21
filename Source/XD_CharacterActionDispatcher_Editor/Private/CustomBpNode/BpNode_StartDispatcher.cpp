@@ -39,7 +39,7 @@ void UBpNode_StartDispatcherBase::PinDefaultValueChanged(UEdGraphPin* ChangedPin
 		{
 			FinishedTags.Empty();
 		}
-		ReflushFinishExec();
+		ReconstructNode();
 	}
 }
 

@@ -90,4 +90,8 @@ private:
 	static FName WhenPlayCompletedPinName;
 	static FName WhenCanNotPlayPinName;
 	static FName RetureValuePinName;
+
+	//刷新Seqeuence可绑定的数据
+	UFUNCTION(Category = "Sequence", meta = (DisplayName = "刷新Sequence数据", CallInEditor = true))
+	void RefreshSequenceData();
 };

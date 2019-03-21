@@ -61,6 +61,84 @@ FName UBpNode_PlayLevelSequencer::WhenPlayCompletedPinName = TEXT("WhenPlayCompl
 FName UBpNode_PlayLevelSequencer::WhenCanNotPlayPinName = TEXT("WhenCanNotPlay");
 FName UBpNode_PlayLevelSequencer::RetureValuePinName = TEXT("ReturnValue");
 
+void UBpNode_PlayLevelSequencer::RefreshSequenceData()
+{
+	if (ULevelSequence* LevelSequenceRef = LevelSequence.LoadSynchronous())
+	{
+		TArray<FSequencerBindingOption> PreBindingOptions = BindingOptions;
+		BindingOptions.Empty();
+
+		//只处理了MovieSceneSequenceID::Root的可绑定信息，若需要拓展参考FSequenceBindingTree
+		UMovieScene* MovieScene = LevelSequenceRef->GetMovieScene();
+		for (int32 i = 0; i < MovieScene->GetPossessableCount(); ++i)
+		{
+			const FMovieScenePossessable& Binding = MovieScene->GetPossessable(i);
+			if (UClass* Class = const_cast<UClass*>(Binding.GetPossessedObjectClass()))
+			{
+				FSequencerBindingOption BindingOption;
+				BindingOption.PinName = Binding.GetName();
+				BindingOption.Binding = FMovieSceneObjectBindingID(Binding.GetGuid(), MovieSceneSequenceID::Root);
+				BindingOption.BindingClass = Class;
+
+				if (FSequencerBindingOption* Option = PreBindingOptions.FindByPredicate([&](const FSequencerBindingOption& E) {return E.Binding == BindingOption.Binding; }))
+				{
+					BindingOption.bIsPin = Option->bIsPin;
+				}
+
+				if (const FMovieSceneBinding* SceneBinding = MovieScene->GetBindings().FindByPredicate([&](const FMovieSceneBinding& E) {return E.GetObjectGuid() == Binding.GetGuid(); }))
+				{
+					if (UMovieScene3DTransformTrack*const* P_TransformTrack = (UMovieScene3DTransformTrack*const*)SceneBinding->GetTracks().FindByPredicate([&](UMovieSceneTrack* E) {return E->IsA<UMovieScene3DTransformTrack>(); }))
+					{
+						const UMovieScene3DTransformTrack* TransformTrack = *P_TransformTrack;
+						const TArray<UMovieSceneSection*>& Sections = TransformTrack->GetAllSections();
+						if (Sections.Num() > 0)
+						{
+							UMovieScene3DTransformSection* Section = Cast<UMovieScene3DTransformSection>(Sections[0]);
+							TArrayView<FMovieSceneFloatChannel*> FloatChannels = Section->GetChannelProxy().GetChannels<FMovieSceneFloatChannel>();
+
+							if (!FloatChannels.Slice(0, 6).ContainsByPredicate([](FMovieSceneFloatChannel* E) {return E->GetDefault().IsSet() == false; }))
+							{
+								BindingOption.Location = FVector(FloatChannels[0]->GetDefault().GetValue(), FloatChannels[1]->GetDefault().GetValue(), FloatChannels[2]->GetDefault().GetValue());
+								BindingOption.Rotation = FRotator(FloatChannels[3]->GetDefault().GetValue(), FloatChannels[4]->GetDefault().GetValue(), FloatChannels[5]->GetDefault().GetValue());
+							}
+						}
+					}
+				}
+
+				BindingOptions.Add(BindingOption);
+			}
+		}
+		for (int32 Index = 0; Index < MovieScene->GetSpawnableCount(); ++Index)
+		{
+			const FMovieSceneSpawnable& Spawnable = MovieScene->GetSpawnable(Index);
+			if (const UObject* Template = Spawnable.GetObjectTemplate())
+			{
+				FSequencerBindingOption BindingOption;
+				BindingOption.PinName = TEXT("[生成模板]") + Spawnable.GetName();
+				BindingOption.Binding = FMovieSceneObjectBindingID(Spawnable.GetGuid(), MovieSceneSequenceID::Root);
+				BindingOption.BindingClass = Template->GetClass();
+
+				if (FSequencerBindingOption* Option = PreBindingOptions.FindByPredicate([&](const FSequencerBindingOption& E) {return E.Binding == BindingOption.Binding; }))
+				{
+					BindingOption.bIsPin = Option->bIsPin;
+				}
+
+				BindingOptions.Add(BindingOption);
+			}
+		}
+
+		for (FSequencerBindingOption& PreOption : PreBindingOptions)
+		{
+			if (PreOption.bIsPin && !BindingOptions.ContainsByPredicate([&](const FSequencerBindingOption& E) {return E.Binding == PreOption.Binding; }))
+			{
+				PreOption.bIsPin = false;
+				UpdatePinInfo(PreOption);
+			}
+		}
+		ReflushNode();
+	}
+}
+
 void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
 {
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Execute);
@@ -86,80 +164,7 @@ void UBpNode_PlayLevelSequencer::PostEditChangeProperty(FPropertyChangedEvent& P
 	FName PropertyName = (PropertyChangedEvent.Property != NULL) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(UBpNode_PlayLevelSequencer, LevelSequence))
 	{
-		if (ULevelSequence* LevelSequenceRef = LevelSequence.LoadSynchronous())
-		{
-			TArray<FSequencerBindingOption> PreBindingOptions = BindingOptions;
-			BindingOptions.Empty();
-
-			//只处理了MovieSceneSequenceID::Root的可绑定信息，若需要拓展参考FSequenceBindingTree
- 			UMovieScene* MovieScene = LevelSequenceRef->GetMovieScene();
- 			for (int32 i = 0; i < MovieScene->GetPossessableCount(); ++i)
- 			{
- 				const FMovieScenePossessable& Binding = MovieScene->GetPossessable(i);
-				if (UClass* Class = const_cast<UClass*>(Binding.GetPossessedObjectClass()))
-				{
-					FSequencerBindingOption BindingOption;
-					BindingOption.PinName = Binding.GetName();
-					BindingOption.Binding = FMovieSceneObjectBindingID(Binding.GetGuid(), MovieSceneSequenceID::Root);
-					BindingOption.BindingClass = Class;
-
-					if (FSequencerBindingOption* Option = PreBindingOptions.FindByPredicate([&](const FSequencerBindingOption& E) {return E.Binding == BindingOption.Binding; }))
-					{
-						BindingOption.bIsPin = Option->bIsPin;
-					}
-
-					if (const FMovieSceneBinding* SceneBinding = MovieScene->GetBindings().FindByPredicate([&](const FMovieSceneBinding& E) {return E.GetObjectGuid() == Binding.GetGuid(); }))
-					{
-						if (UMovieScene3DTransformTrack*const* P_TransformTrack = (UMovieScene3DTransformTrack*const*)SceneBinding->GetTracks().FindByPredicate([&](UMovieSceneTrack* E) {return E->IsA<UMovieScene3DTransformTrack>();}))
-						{
-							const UMovieScene3DTransformTrack* TransformTrack = *P_TransformTrack;
-							const TArray<UMovieSceneSection*>& Sections = TransformTrack->GetAllSections();
-							if (Sections.Num() > 0)
-							{
-								UMovieScene3DTransformSection* Section = Cast<UMovieScene3DTransformSection>(Sections[0]);
-								TArrayView<FMovieSceneFloatChannel*> FloatChannels = Section->GetChannelProxy().GetChannels<FMovieSceneFloatChannel>();
-
-								if (!FloatChannels.Slice(0, 6).ContainsByPredicate([](FMovieSceneFloatChannel* E) {return E->GetDefault().IsSet() == false;}))
-								{
-									BindingOption.Location = FVector(FloatChannels[0]->GetDefault().GetValue(), FloatChannels[1]->GetDefault().GetValue(), FloatChannels[2]->GetDefault().GetValue());
-									BindingOption.Rotation = FRotator(FloatChannels[3]->GetDefault().GetValue(), FloatChannels[4]->GetDefault().GetValue(), FloatChannels[5]->GetDefault().GetValue());
-								}
-							}
-						}
-					}
-
-					BindingOptions.Add(BindingOption);
-				}
- 			}
-			for (int32 Index = 0; Index < MovieScene->GetSpawnableCount(); ++Index)
-			{
-				const FMovieSceneSpawnable& Spawnable = MovieScene->GetSpawnable(Index);
-				if (const UObject* Template = Spawnable.GetObjectTemplate())
-				{
-					FSequencerBindingOption BindingOption;
-					BindingOption.PinName = TEXT("[生成模板]") + Spawnable.GetName();
-					BindingOption.Binding = FMovieSceneObjectBindingID(Spawnable.GetGuid(), MovieSceneSequenceID::Root);
-					BindingOption.BindingClass = Template->GetClass();
-
-					if (FSequencerBindingOption* Option = PreBindingOptions.FindByPredicate([&](const FSequencerBindingOption& E) {return E.Binding == BindingOption.Binding; }))
-					{
-						BindingOption.bIsPin = Option->bIsPin;
-					}
-
-					BindingOptions.Add(BindingOption);
-				}
-			}
-
-			for (FSequencerBindingOption& PreOption : PreBindingOptions)
-			{
-				if (PreOption.bIsPin && !BindingOptions.ContainsByPredicate([&](const FSequencerBindingOption& E) {return E.Binding == PreOption.Binding; }))
-				{
-					PreOption.bIsPin = false;
-					UpdatePinInfo(PreOption);
-				}
-			}
-			ReflushNode();
-		}
+		RefreshSequenceData();
 	}
 }
 

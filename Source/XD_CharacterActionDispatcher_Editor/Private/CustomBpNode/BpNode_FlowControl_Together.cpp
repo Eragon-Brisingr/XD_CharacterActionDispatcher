@@ -167,9 +167,8 @@ void UBpNode_FlowControl_Together::WhenCheckLinkedFinishNode(FLinkToFinishNodeCh
 void UBpNode_FlowControl_Together::AddExecPin()
 {
 	AddExecPinImpl(TogetherEventCount);
-	TogetherEventCount += 1;
-
-	ReflushNode();
+	TogetherEventCount += 1; 
+	DA_NodeUtils::UpdateNode(GetBlueprint());
 }
 
 void UBpNode_FlowControl_Together::AddExecPinImpl(int32 Idx)
@@ -188,21 +187,8 @@ void UBpNode_FlowControl_Together::RemoveExecPin(const UEdGraphPin* Pin)
 		RemovePin(ThenPin);
 		TogetherPins.Remove(Pin);
 		TogetherEventCount -= 1;
-		ReflushExecPinName();
-		ReflushNode();
-	}
-}
-
-void UBpNode_FlowControl_Together::ReflushExecPinName()
-{
-	int32 Idx = 0;
-	for (const TPair<UEdGraphPin*, UEdGraphPin*>& PinCollection : TogetherPins)
-	{
-		UEdGraphPin* ExecPin = PinCollection.Key;
-		UEdGraphPin* ThenPin = PinCollection.Value;
-		ExecPin->PinName = GetExecPinName(Idx);
-		ThenPin->PinName = GetWaitPinName(Idx);
-		Idx += 1;
+		ReconstructNode();
+		DA_NodeUtils::UpdateNode(GetBlueprint());
 	}
 }
 
@@ -214,15 +200,6 @@ FName UBpNode_FlowControl_Together::GetExecPinName(int32 Idx)
 FName UBpNode_FlowControl_Together::GetWaitPinName(int32 Idx)
 {
 	return *FString::Printf(TEXT("[%d]等待状态"), Idx + 1);
-}
-
-void UBpNode_FlowControl_Together::ReflushNode()
-{
-	UBlueprint* Blueprint = GetBlueprint();
-	if (!Blueprint->bBeingCompiled)
-	{
-		DA_NodeUtils::UpdateNode(GetBlueprint());
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

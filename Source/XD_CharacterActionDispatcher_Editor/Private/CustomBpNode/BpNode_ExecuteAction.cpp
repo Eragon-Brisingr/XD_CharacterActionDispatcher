@@ -115,7 +115,7 @@ void UBpNode_ExecuteAction::PinDefaultValueChanged(UEdGraphPin* ChangedPin)
 	if (ChangedPin && (ChangedPin->PinName == TEXT("Class")))
 	{
 		ActionClass = GetClassToSpawn();
-		ReflushFinishExec();
+		ReconstructNode();
 	}
 }
 

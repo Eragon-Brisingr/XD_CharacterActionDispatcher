@@ -48,8 +48,6 @@ protected:
 
 	FName GetExecPinName(int32 Idx);
 
-	void UpdateSelectionPins();
-
 	static FName RetureValuePinName;
 	static FName RolePinName;
 };

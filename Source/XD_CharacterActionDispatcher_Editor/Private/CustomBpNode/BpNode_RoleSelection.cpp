@@ -107,6 +107,7 @@ void UBpNode_RoleSelection::AllocateDefaultPins()
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Execute);
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_SoftObject, APawn::StaticClass(), RolePinName, CreatePinParams);
 
+	SelectionPins.Empty();
 	for (int32 i = 0; i < SelectionNum; ++i)
 	{
 		AddSelectionImpl(i);
@@ -169,8 +170,8 @@ void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerCon
 
 void UBpNode_RoleSelection::AddSelection()
 {
-	AddSelectionImpl(SelectionNum);
 	SelectionNum += 1;
+	ReconstructNode();
 	DA_NodeUtils::UpdateNode(GetBlueprint());
 }
 
@@ -190,11 +191,8 @@ void UBpNode_RoleSelection::RemoveSelection(const UEdGraphPin* SelectionPin)
 	int32 Index = SelectionPins.IndexOfByPredicate([&](const FSelectionPin& E) {return E.SelectionPin == SelectionPin; });
 	if (Index != INDEX_NONE)
 	{
-		RemovePin(SelectionPins[Index].SelectionPin);
-		RemovePin(SelectionPins[Index].ExecPin);
-		SelectionPins.RemoveAt(Index);
 		SelectionNum -= 1;
-		UpdateSelectionPins();
+		ReconstructNode();
 		DA_NodeUtils::UpdateNode(GetBlueprint());
 	}
 }
@@ -207,15 +205,6 @@ FName UBpNode_RoleSelection::GetSelectionPinName(int32 Idx)
 FName UBpNode_RoleSelection::GetExecPinName(int32 Idx)
 {
 	return *FString::Printf(TEXT("选择了[%d]"), Idx + 1);
-}
-
-void UBpNode_RoleSelection::UpdateSelectionPins()
-{
-	for (int32 i = 0; i < SelectionPins.Num(); ++i)
-	{
-		SelectionPins[i].SelectionPin->PinName = GetSelectionPinName(i);
-		SelectionPins[i].ExecPin->PinName = GetExecPinName(i);
-	}
 }
 
 #undef LOCTEXT_NAMESPACE
