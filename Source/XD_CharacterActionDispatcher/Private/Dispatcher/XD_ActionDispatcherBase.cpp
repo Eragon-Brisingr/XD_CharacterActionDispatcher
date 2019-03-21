@@ -25,11 +25,15 @@ bool UXD_ActionDispatcherBase::ReceiveCanExecuteDispatch_Implementation() const
 
 bool UXD_ActionDispatcherBase::CanExecuteDispatch() const
 {
-	if (bCheckAllSoftReferenceValidate)
+	if (DispatcherLeader.IsNull() || DispatcherLeader.IsValid())
 	{
-		return ReceiveCanExecuteDispatch() && IsAllSoftReferenceValid();
+		if (bCheckAllSoftReferenceValidate)
+		{
+			return ReceiveCanExecuteDispatch() && IsAllSoftReferenceValid();
+		}
+		return ReceiveCanExecuteDispatch();
 	}
-	return ReceiveCanExecuteDispatch();
+	return false;
 }
 
 void UXD_ActionDispatcherBase::StartDispatch()
@@ -39,6 +43,8 @@ void UXD_ActionDispatcherBase::StartDispatch()
 		check(bIsActive == false);
 
 		bIsActive = true;
+
+		PreDispatchActived();
 		WhenDispatchStart();
 	}
 	else
@@ -116,11 +122,26 @@ bool UXD_ActionDispatcherBase::CanReactiveDispatcher() const
 	}
 }
 
+void UXD_ActionDispatcherBase::WhenDispatcherLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason)
+{
+	AbortDispatch();
+}
+
+void UXD_ActionDispatcherBase::PreDispatchActived()
+{
+	if (AActor* Leader = DispatcherLeader.Get())
+	{
+		Leader->OnEndPlay.AddDynamic(this, &UXD_ActionDispatcherBase::WhenDispatcherLeaderDestroyed);
+	}
+}
+
 void UXD_ActionDispatcherBase::ReactiveDispatcher()
 {
 	if (bIsActive == false)
 	{
 		bIsActive = true;
+		PreDispatchActived();
+
 		for (UXD_DispatchableActionBase* Action : TArray<UXD_DispatchableActionBase*>(CurrentActions))
 		{
 			if (Action)
@@ -133,7 +154,7 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 
 bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 {
-	for (TFieldIterator<USoftObjectProperty> It(GetClass()); It; ++It)
+	for (TFieldIterator<USoftObjectProperty> It(GetClass(), EFieldIteratorFlags::ExcludeSuper); It; ++It)
 	{
 		USoftObjectProperty* SoftObjectProperty = *It;
 		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));

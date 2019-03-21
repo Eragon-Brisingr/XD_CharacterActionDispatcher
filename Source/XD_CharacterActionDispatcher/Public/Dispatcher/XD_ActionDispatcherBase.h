@@ -40,6 +40,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void StartDispatch();
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "执行调度"))
 	void WhenDispatchStart();
 
@@ -52,13 +53,24 @@ public:
 	void SaveDispatchState();
 
 	bool CanReactiveDispatcher() const;
+
+public:
+	//全局调度器环境下一般为玩家
+	//存在Owner的调度器环境就为该Owner
+	UPROPERTY(BlueprintReadOnly, SaveGame, meta = (ExposeOnSpawn = true))
+	TSoftObjectPtr<AActor> DispatcherLeader;
+
+	UFUNCTION()
+	void WhenDispatcherLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason);
+
+	void PreDispatchActived();
 protected:
 	friend class UXD_ActionDispatcherManager;
 	friend class UXD_DispatchableActionBase;
 	bool InvokeReactiveDispatch();
 	void ReactiveDispatcher();
 
-	UPROPERTY(EditAnywhere, Category = "行为")
+	UPROPERTY(EditAnywhere, Category = "行为", meta = (DisplayName = "检查所有软引用的有效性"))
 	uint8 bCheckAllSoftReferenceValidate : 1;
 private:
 	bool IsAllSoftReferenceValid() const;
