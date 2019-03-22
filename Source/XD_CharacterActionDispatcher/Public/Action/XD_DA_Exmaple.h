@@ -19,7 +19,7 @@ public:
 	UPROPERTY(SaveGame, meta = (DisplayName = "当结束时"))
 	FDispatchableActionFinishedEvent OnFinished;
 
-	bool CanActiveAction() const override;
+	bool IsActionValid() const override;
 	void WhenActionActived() override;
 	void WhenActionDeactived() override;
 public:

@@ -10,7 +10,7 @@ UXD_DA_Exmaple::UXD_DA_Exmaple()
 #endif
 }
 
-bool UXD_DA_Exmaple::CanActiveAction() const
+bool UXD_DA_Exmaple::IsActionValid() const
 {
 	return true;
 }

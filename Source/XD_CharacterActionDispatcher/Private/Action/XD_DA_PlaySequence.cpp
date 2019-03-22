@@ -15,7 +15,7 @@ UXD_DA_PlaySequenceBase::UXD_DA_PlaySequenceBase()
 #endif
 }
 
-bool UXD_DA_PlaySequenceBase::CanActiveAction() const
+bool UXD_DA_PlaySequenceBase::IsActionValid() const
 {
 	for (const FPlaySequenceActorData& Data : PlaySequenceActorDatas)
 	{
@@ -134,7 +134,7 @@ void UXD_DA_PlaySequenceBase::WhenMoveReached(int32 MoverIdx)
 
 void UXD_DA_PlaySequenceBase::WhenMoveCanNotReached(int32 MoverIdx)
 {
-	if (bIsFinished)
+	if (State != EDispatchableActionState::Finished)
 	{
 		FinishAction();
 		WhenCanNotPlay.ExecuteIfBound();

@@ -34,6 +34,7 @@ protected:
 	void GenerateFinishEvent(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph, UEdGraphPin* DispatchFinishedEventPin, const FString& EventName);
 
 	static FName DefaultPinName;
+	static FName LeaderPinName;
 };
 
 UCLASS()

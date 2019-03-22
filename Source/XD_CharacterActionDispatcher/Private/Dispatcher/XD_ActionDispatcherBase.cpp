@@ -19,22 +19,31 @@ UXD_ActionDispatcherBase::UXD_ActionDispatcherBase()
 
 }
 
-bool UXD_ActionDispatcherBase::ReceiveCanExecuteDispatch_Implementation() const
+bool UXD_ActionDispatcherBase::CanStartDispatcher() const
+{
+	return IsDispatcherValid() && CanStartDispatcher();
+}
+
+bool UXD_ActionDispatcherBase::ReceiveCanStartDispatcher_Implementation() const
 {
 	return true;
 }
 
-bool UXD_ActionDispatcherBase::CanExecuteDispatch() const
+bool UXD_ActionDispatcherBase::IsDispatcherValid() const
 {
-	if (DispatcherLeader.IsNull() || DispatcherLeader.IsValid())
+	if (IsSubActionDispatcher() || DispatcherLeader.IsNull() || DispatcherLeader.IsValid())
 	{
 		if (bCheckAllSoftReferenceValidate)
 		{
-			return ReceiveCanExecuteDispatch() && IsAllSoftReferenceValid();
+			return ReceiveIsDispatcherValid() && IsAllSoftReferenceValid();
 		}
-		return ReceiveCanExecuteDispatch();
 	}
-	return false;
+	return ReceiveIsDispatcherValid();
+}
+
+bool UXD_ActionDispatcherBase::ReceiveIsDispatcherValid_Implementation() const
+{
+	return true;
 }
 
 void UXD_ActionDispatcherBase::StartDispatch()
@@ -54,7 +63,7 @@ void UXD_ActionDispatcherBase::StartDispatch()
 	}
 }
 
-void UXD_ActionDispatcherBase::InitDispatcher(AActor * Leader)
+void UXD_ActionDispatcherBase::InitLeader(AActor * Leader)
 {
 	if (Leader)
 	{
@@ -76,7 +85,7 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 	check(IsSubActionDispatcher() == false);
 
 	CurrentActions.Add(Action);
-	if (Action->CanActiveAction())
+	if (Action->IsActionValid())
 	{
 		Action->ActiveAction();
 	}
@@ -93,7 +102,10 @@ void UXD_ActionDispatcherBase::AbortDispatch()
 		bIsActive = false;
 		for (UXD_DispatchableActionBase* Action : CurrentActions)
 		{
-			Action->DeactiveAction();
+			if (Action->IsActionValid())
+			{
+				Action->DeactiveAction();
+			}
 		}
 		if (UXD_ActionDispatcherManager* Manager = GetManager())
 		{
@@ -112,7 +124,7 @@ void UXD_ActionDispatcherBase::SaveDispatchState()
 
 bool UXD_ActionDispatcherBase::InvokeReactiveDispatch()
 {
-	if (CanExecuteDispatch())
+	if (CanStartDispatcher())
 	{
 		ReactiveDispatcher();
 		return true;
@@ -122,11 +134,11 @@ bool UXD_ActionDispatcherBase::InvokeReactiveDispatch()
 
 bool UXD_ActionDispatcherBase::CanReactiveDispatcher() const
 {
-	if (CanExecuteDispatch())
+	if (CanStartDispatcher())
 	{
 		for (UXD_DispatchableActionBase* Action : CurrentActions)
 		{
-			if (Action->CanActiveAction() == false)
+			if (Action->IsActionValid() == false)
 			{
 				return false;
 			}

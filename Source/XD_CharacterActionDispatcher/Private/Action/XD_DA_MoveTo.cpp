@@ -12,7 +12,7 @@ UXD_DA_MoveTo::UXD_DA_MoveTo()
 #endif
 }
 
-bool UXD_DA_MoveTo::CanActiveAction() const
+bool UXD_DA_MoveTo::IsActionValid() const
 {
 	return Pawn.Get() ? true : false;
 }

@@ -27,18 +27,18 @@ UWorld* UXD_DispatchableActionBase::GetWorld() const
 
 void UXD_DispatchableActionBase::ActiveAction()
 {
-	check(bIsActived == false && bIsFinished == false);
+	check(State != EDispatchableActionState::Active);
 
 	ActionDispatcher_Display_Log("激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
-	bIsActived = true;
+	State = EDispatchableActionState::Active;
 	WhenActionActived();
 }
 
 void UXD_DispatchableActionBase::DeactiveAction()
 {
-	check(bIsActived == true && bIsFinished == false);
+	check(State != EDispatchableActionState::Deactive);
 
-	bIsActived = false;
+	State = EDispatchableActionState::Deactive;
 	SaveState();
 	WhenActionDeactived();
 	ActionDispatcher_Display_Log("反激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
@@ -46,10 +46,10 @@ void UXD_DispatchableActionBase::DeactiveAction()
 
 void UXD_DispatchableActionBase::ReactiveAction()
 {
-	check(bIsActived == false && bIsFinished == false);
+	check(State != EDispatchableActionState::Active);
 
 	ActionDispatcher_Display_Log("再次激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
-	bIsActived = true;
+	State = EDispatchableActionState::Active;
 	WhenActionReactived();
 }
 
@@ -61,9 +61,9 @@ void UXD_DispatchableActionBase::WhenActionReactived()
 void UXD_DispatchableActionBase::FinishAction()
 {
 	check(GetOwner()->CurrentActions.Contains(this));
-	check(bIsActived && bIsFinished == false);
+	check(State == EDispatchableActionState::Active);
 
-	bIsFinished = true;
+	State = EDispatchableActionState::Finished;
 	UXD_ActionDispatcherBase* ActionDispatcher = GetOwner();
 	ActionDispatcher->CurrentActions.Remove(this);
 	WhenActionFinished();
@@ -168,6 +168,11 @@ void UXD_DispatchableActionBase::ExecuteEventAndFinishAction(const FDispatchable
 {
 	FinishAction();
 	Event.ExecuteIfBound();
+}
+
+bool UXD_DispatchableActionBase::IsActionValid() const
+{
+	return false;
 }
 
 void UXD_DispatchableActionBase::AbortDispatcher()

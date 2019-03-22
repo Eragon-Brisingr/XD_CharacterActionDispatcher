@@ -101,7 +101,7 @@ void UXD_ActionDispatcherManager::TickComponent(float DeltaTime, ELevelTick Tick
 			}
 			else
 			{
-				if (PendingDispatcher->CanExecuteDispatch())
+				if (PendingDispatcher->CanStartDispatcher())
 				{
 					PendingDispatcher->StartDispatch();
 					PendingDispatchers.RemoveAt(ActivePendingActionIdx);
@@ -177,7 +177,7 @@ void UXD_ActionDispatcherManager::WhenDispatcherFinished(UXD_ActionDispatcherBas
 
 void UXD_ActionDispatcherManager::InvokeStartDispatcher(UXD_ActionDispatcherBase* Dispatcher)
 {
-	if (Dispatcher->CanExecuteDispatch())
+	if (Dispatcher->CanStartDispatcher())
 	{
 		WhenDispatcherStarted(Dispatcher);
 		Dispatcher->StartDispatch();
@@ -205,12 +205,13 @@ void UXD_ActionDispatcherManager::WhenPostLevelUnload()
 	for (int32 i = 0; i < ActivedDispatchers.Num();)
 	{
 		UXD_ActionDispatcherBase* Dispatcher = ActivedDispatchers[i];
-		if (Dispatcher->CanExecuteDispatch() == false)
+		if (Dispatcher->IsDispatcherValid() == false)
 		{
+			//太Hack了，想办法修正调用时序修改这个
 			Dispatcher->bIsActive = false;
 			for (UXD_DispatchableActionBase* DispatchableAction : Dispatcher->CurrentActions)
 			{
-				DispatchableAction->bIsActived = false;
+				DispatchableAction->State = EDispatchableActionState::Deactive;
 			}
 
 			ActivedDispatchers.RemoveAt(i);
@@ -230,7 +231,7 @@ void UXD_ActionDispatcherManager::TryActivePendingDispatcher(UXD_ActionDispatche
 		return;
 	}
 
-	bool bCanActive = Dispatcher->IsDispatcherStarted() ? Dispatcher->CanReactiveDispatcher() : Dispatcher->CanExecuteDispatch();
+	bool bCanActive = Dispatcher->IsDispatcherStarted() ? Dispatcher->CanReactiveDispatcher() : Dispatcher->CanStartDispatcher();
 	if (bCanActive)
 	{
 		int32 Idx = PendingDispatchers.IndexOfByKey(Dispatcher);

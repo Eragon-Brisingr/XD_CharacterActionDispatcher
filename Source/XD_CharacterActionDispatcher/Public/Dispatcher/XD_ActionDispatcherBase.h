@@ -34,14 +34,19 @@ public:
 	UXD_ActionDispatcherBase();
 
 	UFUNCTION(BlueprintCallable, Category = "行为")
-	bool CanExecuteDispatch() const;
-	UFUNCTION(BlueprintNativeEvent, Category = "行为")
-	bool ReceiveCanExecuteDispatch() const;
+	bool CanStartDispatcher() const;
+	UFUNCTION(BlueprintNativeEvent, Category = "行为", meta = (DisplayName = "CanStartDispatcher"))
+	bool ReceiveCanStartDispatcher() const;
+
+	bool IsDispatcherValid() const;
+	//用于确保调度器里调度的所有对象有效性
+	UFUNCTION(BlueprintNativeEvent, Category = "行为", meta = (DisplayName = "IsDispatcherValid"))
+	bool ReceiveIsDispatcherValid() const;
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void StartDispatch();
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
-	void InitDispatcher(AActor * Leader);
+	void InitLeader(AActor * Leader);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "执行调度"))
 	void WhenDispatchStart();
@@ -55,10 +60,9 @@ public:
 	void SaveDispatchState();
 
 	bool CanReactiveDispatcher() const;
-
 public:
 	//调度器的主导者，为所在关卡或者玩家的角色
-	UPROPERTY(BlueprintReadOnly, SaveGame, meta = (ExposeOnSpawn = true))
+	UPROPERTY(SaveGame)
 	TSoftObjectPtr<UObject> DispatcherLeader;
 
 	UFUNCTION()

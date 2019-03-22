@@ -35,7 +35,7 @@ protected:
 	UFUNCTION()
 	virtual void WhenActionActived(){}
 
-	virtual bool CanActiveAction() const { return false; }
+	virtual bool CanActiveAction() const { return IsActionValid(); }
 
 	void DeactiveAction();
 	//当行为被中断时的实现
@@ -61,10 +61,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	UXD_ActionDispatcherBase* GetOwner() const;
 
-	UPROPERTY(BlueprintReadOnly, Category = "行为")
-	uint8 bIsActived : 1;
-	UPROPERTY(BlueprintReadOnly, Category = "行为")
-	uint8 bIsFinished : 1;
+	UPROPERTY(BlueprintReadOnly, Category = "行为", SaveGame)
+	EDispatchableActionState State;
 public:
 	struct FPinNameData
 	{
@@ -75,7 +73,6 @@ public:
 	// TODO 可以不为运行时行为，ExpandNode时根据类型绑定上回调，这样还可以支持参数
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	virtual void BindAllFinishedEvent(const TArray<FDispatchableActionFinishedEvent>& FinishedEvents);
-
 protected:
 	//所有执行Action的实体在Active时注册
 	UFUNCTION(BlueprintCallable, Category = "行为")
@@ -86,6 +83,8 @@ protected:
 	//执行下一个事件
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void ExecuteEventAndFinishAction(const FDispatchableActionFinishedEvent& Event);
+
+	virtual bool IsActionValid() const;
 public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void AbortDispatcher();
@@ -111,7 +110,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "WhenActionActived"))
 	void ReceiveWhenActionActived();
 
-	bool CanActiveAction() const override { return ReceiveCanActiveAction(); }
+	bool IsActionValid() const override { return ReceiveIsActionValid(); }
+	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "IsActionValid"))
+	bool ReceiveIsActionValid() const;
+
+	bool CanActiveAction() const override { return IsActionValid() && ReceiveCanActiveAction(); }
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "CanActiveAction"))
 	bool ReceiveCanActiveAction() const;
 

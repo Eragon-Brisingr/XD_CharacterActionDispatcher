@@ -13,7 +13,7 @@ UXD_DA_RoleSelectionBase::UXD_DA_RoleSelectionBase()
 #endif
 }
 
-bool UXD_DA_RoleSelectionBase::CanActiveAction() const
+bool UXD_DA_RoleSelectionBase::IsActionValid() const
 {
 	return Role.Get() ? true : false;
 }

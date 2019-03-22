@@ -58,3 +58,11 @@ public:
 	UPROPERTY()
 	int32 SelectionIdx;
 };
+
+UENUM()
+enum class EDispatchableActionState : uint8
+{
+	Deactive = 0,
+	Active = 1,
+	Finished = 2
+};
