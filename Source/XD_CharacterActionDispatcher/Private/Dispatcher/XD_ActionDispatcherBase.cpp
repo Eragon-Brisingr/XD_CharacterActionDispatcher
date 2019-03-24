@@ -81,6 +81,7 @@ void UXD_ActionDispatcherBase::InitLeader(AActor * Leader)
 		{
 			DispatcherLeader = Leader->GetLevel();
 		}
+		ActionDispatcher_Display_Log("调度器%s领导者设置为%s", *UXD_DebugFunctionLibrary::GetDebugName(this), *UXD_DebugFunctionLibrary::GetDebugName(DispatcherLeader.Get()));
 	}
 	else
 	{

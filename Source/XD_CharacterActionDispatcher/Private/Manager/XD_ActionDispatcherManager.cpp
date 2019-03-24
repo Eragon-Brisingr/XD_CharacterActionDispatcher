@@ -210,7 +210,7 @@ void UXD_ActionDispatcherManager::WhenPostLevelUnload()
 	for (int32 i = 0; i < ActivedDispatchers.Num();)
 	{
 		UXD_ActionDispatcherBase* Dispatcher = ActivedDispatchers[i];
-		if (Dispatcher->IsDispatcherValid() == false)
+		if (Dispatcher->DispatcherLeader.IsNull() && Dispatcher->IsDispatcherValid() == false)
 		{
 			//太Hack了，想办法修正调用时序修改这个
 			Dispatcher->bIsActive = false;
