@@ -21,7 +21,7 @@ UXD_ActionDispatcherBase::UXD_ActionDispatcherBase()
 
 bool UXD_ActionDispatcherBase::CanStartDispatcher() const
 {
-	return IsDispatcherValid() && CanStartDispatcher();
+	return IsDispatcherValid() && ReceiveCanStartDispatcher();
 }
 
 bool UXD_ActionDispatcherBase::ReceiveCanStartDispatcher_Implementation() const
@@ -31,14 +31,20 @@ bool UXD_ActionDispatcherBase::ReceiveCanStartDispatcher_Implementation() const
 
 bool UXD_ActionDispatcherBase::IsDispatcherValid() const
 {
-	if (IsSubActionDispatcher() || DispatcherLeader.IsNull() || DispatcherLeader.IsValid())
+	check(IsSubActionDispatcher() == false);
+
+	if (DispatcherLeader.IsNull() || DispatcherLeader.IsValid())
 	{
 		if (bCheckAllSoftReferenceValidate)
 		{
 			return ReceiveIsDispatcherValid() && IsAllSoftReferenceValid();
 		}
+		else
+		{
+			return ReceiveIsDispatcherValid();
+		}
 	}
-	return ReceiveIsDispatcherValid();
+	return false;
 }
 
 bool UXD_ActionDispatcherBase::ReceiveIsDispatcherValid_Implementation() const
@@ -53,7 +59,6 @@ void UXD_ActionDispatcherBase::StartDispatch()
 		check(bIsActive == false);
 
 		bIsActive = true;
-
 		PreDispatchActived();
 		WhenDispatchStart();
 	}
@@ -77,6 +82,10 @@ void UXD_ActionDispatcherBase::InitLeader(AActor * Leader)
 			DispatcherLeader = Leader->GetLevel();
 		}
 	}
+	else
+	{
+		DispatcherLeader = nullptr;
+	}
 }
 
 void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Action)
@@ -85,31 +94,49 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 	check(IsSubActionDispatcher() == false);
 
 	CurrentActions.Add(Action);
-	if (Action->IsActionValid())
+	if (bIsActive)
 	{
-		Action->ActiveAction();
-	}
-	else
-	{
-		AbortDispatch();
+		if (Action->IsActionValid())
+		{
+			Action->ActiveAction();
+		}
+		else
+		{
+			AbortDispatch();
+		}
 	}
 }
 
 void UXD_ActionDispatcherBase::AbortDispatch()
 {
-	if (bIsActive == true)
+	check(bIsActive == true);
+
+	bIsActive = false;
+	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
-		bIsActive = false;
-		for (UXD_DispatchableActionBase* Action : CurrentActions)
+		if (Action->IsActionValid())
 		{
-			if (Action->IsActionValid())
-			{
-				Action->DeactiveAction();
-			}
+			Action->DeactiveAction();
 		}
-		if (UXD_ActionDispatcherManager* Manager = GetManager())
+		else
 		{
-			Manager->WhenDispatcherAborted(this);
+			Action->State = EDispatchableActionState::Deactive;
+		}
+	}
+	if (UXD_ActionDispatcherManager* Manager = GetManager())
+	{
+		Manager->WhenDispatcherAborted(this);
+	}
+
+	if (UObject* Leader = DispatcherLeader.Get())
+	{
+		if (APawn* Pawn = Cast<APawn>(Leader))
+		{
+			Pawn->OnEndPlay.RemoveDynamic(this, &UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed);
+		}
+		else
+		{
+			UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
 		}
 	}
 }
@@ -118,7 +145,7 @@ void UXD_ActionDispatcherBase::SaveDispatchState()
 {
 	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
-		Action->DeactiveAction();
+		Action->SaveState();
 	}
 }
 
@@ -153,16 +180,22 @@ bool UXD_ActionDispatcherBase::CanReactiveDispatcher() const
 
 void UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason)
 {
-	AbortDispatch();
+	if (bIsActive)
+	{
+		AbortDispatch();
+	}
 }
 
 void UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed(ULevel* Level)
 {
-	ULevel* CurLevel = Cast<ULevel>(DispatcherLeader.Get());
-	if (CurLevel == Level)
+	if (bIsActive)
 	{
-		AbortDispatch();
-		UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
+		ULevel* CurLevel = Cast<ULevel>(DispatcherLeader.Get());
+		if (CurLevel == Level)
+		{
+			AbortDispatch();
+			UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
+		}
 	}
 }
 
@@ -172,7 +205,7 @@ void UXD_ActionDispatcherBase::PreDispatchActived()
 	{
 		if (APawn* Pawn = Cast<APawn>(Leader))
 		{
-			Pawn->OnEndPlay.AddDynamic(this, &UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed);
+			Pawn->OnEndPlay.AddUniqueDynamic(this, &UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed);
 		}
 		else
 		{

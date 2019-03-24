@@ -27,6 +27,7 @@ protected:
 	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	bool NeedSave_Implementation() const override { return true; }
+	void WhenGameInit_Implementation() override;
 	void WhenPreSave_Implementation() override;
 	void WhenPostLoad_Implementation() override;
 public:	

@@ -63,6 +63,11 @@ UClass* UBpNode_StartDispatcherBase::GetClassPinBaseClass() const
 	return UXD_ActionDispatcherBase::StaticClass();
 }
 
+bool UBpNode_StartDispatcherBase::IsSpawnVarPin(UEdGraphPin* Pin) const
+{
+	return Super::IsSpawnVarPin(Pin) && Pin->PinName != LeaderPinName;
+}
+
 void UBpNode_StartDispatcherBase::ReflushFinishExec()
 {
 	for (const FName& Tag : FinishedTags)
@@ -160,7 +165,6 @@ void UBpNode_StartDispatcherWithManager::ExpandNode(class FKismetCompilerContext
 	UK2Node_CallFunction* CallCreateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 	CallCreateNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UGameplayStatics, SpawnObject), UGameplayStatics::StaticClass());
 	CallCreateNode->AllocateDefaultPins();
-	bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *CallCreateNode->GetExecPin()).CanSafeConnect();
 
 	UK2Node_CallFunction* GetActionDispatcherManagerNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 	GetActionDispatcherManagerNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherLibrary, GetActionDispatcherManager), UXD_ActionDispatcherLibrary::StaticClass());
@@ -203,7 +207,19 @@ void UBpNode_StartDispatcherWithManager::ExpandNode(class FKismetCompilerContext
 		bSucceeded &= SpawnResultPin && CallResultPin && CompilerContext.MovePinLinksToIntermediate(*SpawnResultPin, *CallResultPin).CanSafeConnect();
 	}
 
-	UEdGraphPin* LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallResultPin, ClassToSpawn);
+	UEdGraphPin* LastThen = CallCreateNode->GetThenPin();
+	//GenerateAssignmentNodes执行之后节点的LinkTo被清空，MovePinLinksToIntermediate无效
+	UK2Node_CallFunction* InitLeaderNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	{
+		InitLeaderNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InitLeader), UXD_ActionDispatcherBase::StaticClass());
+		InitLeaderNode->AllocateDefaultPins();
+		CallCreateNode->GetReturnValuePin()->MakeLinkTo(InitLeaderNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
+		bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(LeaderPinName), *InitLeaderNode->FindPinChecked(TEXT("Leader"))).CanSafeConnect();
+		LastThen->MakeLinkTo(InitLeaderNode->GetExecPin());
+		LastThen = InitLeaderNode->GetThenPin();
+	}
+
+	LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, InitLeaderNode, this, CallResultPin, ClassToSpawn);
 	{
 		{
 			UK2Node_CallFunction* BindWhenDispatchFinishedNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
@@ -215,16 +231,6 @@ void UBpNode_StartDispatcherWithManager::ExpandNode(class FKismetCompilerContext
 
 			UEdGraphPin* DispatchFinishedEventPin = BindWhenDispatchFinishedNode->FindPinChecked(TEXT("DispatchFinishedEvent"));
 			GenerateFinishEvent(CompilerContext, SourceGraph, DispatchFinishedEventPin, TEXT("WhenDispatcherFinished"));
-		}
-
-		{
-			UK2Node_CallFunction* InitDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-			InitDispatcherNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InitLeader), UXD_ActionDispatcherBase::StaticClass());
-			InitDispatcherNode->AllocateDefaultPins();
-			LastThen->MakeLinkTo(InitDispatcherNode->GetExecPin());
-			LastThen = InitDispatcherNode->GetThenPin();
-			CallCreateNode->GetReturnValuePin()->MakeLinkTo(InitDispatcherNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
-			bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(LeaderPinName), *InitDispatcherNode->FindPinChecked(TEXT("Leader"))).CanSafeConnect();
 		}
 
 		{
@@ -370,7 +376,19 @@ void UBpNode_StartDispatcherWithOwner::ExpandNode(class FKismetCompilerContext& 
 		bSucceeded &= SpawnResultPin && CallResultPin && CompilerContext.MovePinLinksToIntermediate(*SpawnResultPin, *CallResultPin).CanSafeConnect();
 	}
 
-	UEdGraphPin* LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, GetOrCreateDispatcherWithOwnerNode, this, CallResultPin, ClassToSpawn);
+	UEdGraphPin* LastThen = GetOrCreateDispatcherWithOwnerNode->GetThenPin();
+	//GenerateAssignmentNodes执行之后节点的LinkTo被清空，MovePinLinksToIntermediate无效
+	UK2Node_CallFunction* InitLeaderNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	{
+		InitLeaderNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InitLeader), UXD_ActionDispatcherBase::StaticClass());
+		InitLeaderNode->AllocateDefaultPins();
+		GetOrCreateDispatcherWithOwnerNode->GetReturnValuePin()->MakeLinkTo(InitLeaderNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
+		bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(LeaderPinName), *InitLeaderNode->FindPinChecked(TEXT("Leader"))).CanSafeConnect();
+		LastThen->MakeLinkTo(InitLeaderNode->GetExecPin());
+		LastThen = InitLeaderNode->GetThenPin();
+	}
+
+	LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, InitLeaderNode, this, CallResultPin, ClassToSpawn);
 	{
 		{
 			UK2Node_CallFunction* BindWhenDispatchFinishedNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
@@ -382,16 +400,6 @@ void UBpNode_StartDispatcherWithOwner::ExpandNode(class FKismetCompilerContext& 
 
 			UEdGraphPin* DispatchFinishedEventPin = BindWhenDispatchFinishedNode->FindPinChecked(TEXT("DispatchFinishedEvent"));
 			GenerateFinishEvent(CompilerContext, SourceGraph, DispatchFinishedEventPin, TEXT("WhenDispatcherFinished"));
-		}
-
-		{
-			UK2Node_CallFunction* InitDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-			InitDispatcherNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InitLeader), UXD_ActionDispatcherBase::StaticClass());
-			InitDispatcherNode->AllocateDefaultPins();
-			LastThen->MakeLinkTo(InitDispatcherNode->GetExecPin());
-			LastThen = InitDispatcherNode->GetThenPin();
-			GetOrCreateDispatcherWithOwnerNode->GetReturnValuePin()->MakeLinkTo(InitDispatcherNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
-			bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(LeaderPinName), *InitDispatcherNode->FindPinChecked(TEXT("Leader"))).CanSafeConnect();
 		}
 
 		{

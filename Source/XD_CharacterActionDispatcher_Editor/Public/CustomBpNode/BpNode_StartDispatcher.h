@@ -22,6 +22,7 @@ public:
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 protected:
 	UClass* GetClassPinBaseClass() const override;
+	bool IsSpawnVarPin(UEdGraphPin* Pin) const override;
 
 	UPROPERTY()
 	TSubclassOf<UXD_ActionDispatcherBase> ActionDispatcherClass;

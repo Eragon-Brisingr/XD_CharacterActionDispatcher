@@ -41,6 +41,11 @@ void UXD_ActionDispatcherManager::EndPlay(const EEndPlayReason::Type EndPlayReas
 	UXD_SaveGameSystemBase::Get(this)->OnLoadLevelCompleted.RemoveAll(this);
 }
 
+void UXD_ActionDispatcherManager::WhenGameInit_Implementation()
+{
+	bEnableAutoActivePendingAction = true;
+}
+
 void UXD_ActionDispatcherManager::WhenPreSave_Implementation()
 {
 	for (UXD_ActionDispatcherBase* Dispatcher : ActivedDispatchers)
@@ -64,8 +69,8 @@ void UXD_ActionDispatcherManager::WhenPostLoad_Implementation()
 			}
 			else
 			{
-				ActivedDispatchers.Remove(Dispatcher);
-				PendingDispatchers.Add(Dispatcher);
+				Dispatcher->bIsActive = true;
+				Dispatcher->AbortDispatch();
 			}
 		}
 
