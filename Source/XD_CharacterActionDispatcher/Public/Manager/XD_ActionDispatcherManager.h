@@ -54,7 +54,7 @@ protected:
 
 	void WhenDispatcherStarted(UXD_ActionDispatcherBase* Dispatcher);
 	void WhenDispatcherReactived(UXD_ActionDispatcherBase* Dispatcher);
-	void WhenDispatcherAborted(UXD_ActionDispatcherBase* Dispatcher);
+	void WhenDispatcherDeactived(UXD_ActionDispatcherBase* Dispatcher);
 	void WhenDispatcherFinished(UXD_ActionDispatcherBase* Dispatcher);
 private:
 	uint8 bEnableAutoActivePendingAction : 1;

@@ -56,9 +56,9 @@ void UXD_ActionDispatcherBase::StartDispatch()
 {
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		check(bIsActive == false);
+		check(State == EActionDispatcherState::Deactive);
 
-		bIsActive = true;
+		State = EActionDispatcherState::Active;
 		PreDispatchActived();
 		WhenDispatchStart();
 	}
@@ -95,7 +95,7 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 	check(IsSubActionDispatcher() == false);
 
 	CurrentActions.Add(Action);
-	if (bIsActive)
+	if (State == EActionDispatcherState::Active)
 	{
 		if (Action->IsActionValid())
 		{
@@ -103,30 +103,54 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 		}
 		else
 		{
-			AbortDispatch();
+			AbortDispatch({});
 		}
 	}
 }
 
-void UXD_ActionDispatcherBase::AbortDispatch()
+void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& Event)
 {
-	check(bIsActive == true);
+	check(State == EActionDispatcherState::Active);
 
-	bIsActive = false;
+	State = EActionDispatcherState::Aborting;
+	FOnActionDispatcherAbortedEvent OnActionDispatcherAbortedEvent;
+	OnActionDispatcherAbortedEvent.Event = Event;
+	OnActionDispatcherAbortedEvent.OnDispatchableActionAborted.BindUObject(this, &UXD_ActionDispatcherBase::WhenActionAborted);
+
+	OnActionDispatcherAborted = Event;
 	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
 		if (Action->IsActionValid())
 		{
-			Action->DeactiveAction();
+			Action->AbortAction(OnActionDispatcherAbortedEvent);
 		}
 		else
 		{
 			Action->State = EDispatchableActionState::Deactive;
 		}
 	}
+}
+
+void UXD_ActionDispatcherBase::WhenActionAborted(const FOnActionDispatcherAborted& Event)
+{
+	if (State != EActionDispatcherState::Deactive)
+	{
+		if (CurrentActions.ContainsByPredicate([](UXD_DispatchableActionBase* Action) {return Action->State != EDispatchableActionState::Deactive; }) == false)
+		{
+			DeactiveDispatcher();
+			Event.ExecuteIfBound();
+		}
+	}
+}
+
+void UXD_ActionDispatcherBase::DeactiveDispatcher()
+{
+	check(State != EActionDispatcherState::Deactive);
+
+	State = EActionDispatcherState::Deactive;
 	if (UXD_ActionDispatcherManager* Manager = GetManager())
 	{
-		Manager->WhenDispatcherAborted(this);
+		Manager->WhenDispatcherDeactived(this);
 	}
 
 	if (UObject* Leader = DispatcherLeader.Get())
@@ -181,20 +205,24 @@ bool UXD_ActionDispatcherBase::CanReactiveDispatcher() const
 
 void UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason)
 {
-	if (bIsActive)
+	if (State != EActionDispatcherState::Deactive)
 	{
-		AbortDispatch();
+		ActionDispatcher_Display_Log("因玩家%s离开导至%s终止", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(this));
+		DeactiveDispatcher();
+		OnActionDispatcherAborted.ExecuteIfBound();
 	}
 }
 
 void UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed(ULevel* Level)
 {
-	if (bIsActive)
+	if (State != EActionDispatcherState::Deactive)
 	{
 		ULevel* CurLevel = Cast<ULevel>(DispatcherLeader.Get());
 		if (CurLevel == Level)
 		{
-			AbortDispatch();
+			ActionDispatcher_Display_Log("因关卡%s卸载导至%s终止", *UXD_DebugFunctionLibrary::GetDebugName(Level), *UXD_DebugFunctionLibrary::GetDebugName(this));
+			DeactiveDispatcher();
+			OnActionDispatcherAborted.ExecuteIfBound();
 			UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
 		}
 	}
@@ -217,17 +245,16 @@ void UXD_ActionDispatcherBase::PreDispatchActived()
 
 void UXD_ActionDispatcherBase::ReactiveDispatcher()
 {
-	if (bIsActive == false)
-	{
-		bIsActive = true;
-		PreDispatchActived();
+	check(State == EActionDispatcherState::Deactive);
 
-		for (UXD_DispatchableActionBase* Action : TArray<UXD_DispatchableActionBase*>(CurrentActions))
+	State = EActionDispatcherState::Active;
+	PreDispatchActived();
+
+	for (UXD_DispatchableActionBase* Action : TArray<UXD_DispatchableActionBase*>(CurrentActions))
+	{
+		if (Action)
 		{
-			if (Action)
-			{
-				Action->ReactiveAction();
-			}
+			Action->ReactiveAction();
 		}
 	}
 }
@@ -338,7 +365,7 @@ bool UXD_ActionDispatcherBase::IsSubActionDispatcher() const
 UXD_ActionDispatcherBase* UXD_ActionDispatcherBase::GetMainActionDispatcher()
 {
 	UXD_ActionDispatcherBase* ActionDispatcher = this;
-	for (UObject* NextOuter = GetOuter(); NextOuter != NULL; NextOuter = NextOuter->GetOuter())
+	for (UObject* NextOuter = GetOuter(); NextOuter != nullptr; NextOuter = NextOuter->GetOuter())
 	{
 		if (UXD_ActionDispatcherBase* OuterActionDispatcher = Cast<UXD_ActionDispatcherBase>(NextOuter))
 		{

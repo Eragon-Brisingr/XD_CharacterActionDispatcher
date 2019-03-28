@@ -69,8 +69,8 @@ void UXD_ActionDispatcherManager::WhenPostLoad_Implementation()
 			}
 			else
 			{
-				Dispatcher->bIsActive = true;
-				Dispatcher->AbortDispatch();
+				Dispatcher->State = EActionDispatcherState::Active;
+				Dispatcher->AbortDispatch({});
 			}
 		}
 
@@ -144,7 +144,7 @@ void UXD_ActionDispatcherManager::WhenDispatcherReactived(UXD_ActionDispatcherBa
 	ActivedDispatchers.Add(Dispatcher);
 }
 
-void UXD_ActionDispatcherManager::WhenDispatcherAborted(UXD_ActionDispatcherBase* Dispatcher)
+void UXD_ActionDispatcherManager::WhenDispatcherDeactived(UXD_ActionDispatcherBase* Dispatcher)
 {
 	check(ActivedDispatchers.Contains(Dispatcher));
 
@@ -213,7 +213,7 @@ void UXD_ActionDispatcherManager::WhenPostLevelUnload()
 		if (Dispatcher->DispatcherLeader.IsNull() && Dispatcher->IsDispatcherValid() == false)
 		{
 			//太Hack了，想办法修正调用时序修改这个
-			Dispatcher->bIsActive = false;
+			Dispatcher->State = EActionDispatcherState::Deactive;
 			for (UXD_DispatchableActionBase* DispatchableAction : Dispatcher->CurrentActions)
 			{
 				DispatchableAction->State = EDispatchableActionState::Deactive;
@@ -231,7 +231,7 @@ void UXD_ActionDispatcherManager::WhenPostLevelUnload()
 
 void UXD_ActionDispatcherManager::TryActivePendingDispatcher(UXD_ActionDispatcherBase* Dispatcher)
 {
-	if (Dispatcher == nullptr || Dispatcher->bIsActive)
+	if (Dispatcher == nullptr || Dispatcher->State == EActionDispatcherState::Active)
 	{
 		return;
 	}

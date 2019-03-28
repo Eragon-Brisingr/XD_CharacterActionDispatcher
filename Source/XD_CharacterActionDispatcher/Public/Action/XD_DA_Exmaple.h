@@ -17,7 +17,7 @@ public:
 	UXD_DA_Exmaple();
 
 	UPROPERTY(SaveGame, meta = (DisplayName = "当结束时"))
-	FDispatchableActionFinishedEvent OnFinished;
+	FOnDispatchableActionFinishedEvent OnFinished;
 
 	bool IsActionValid() const override;
 	void WhenActionActived() override;

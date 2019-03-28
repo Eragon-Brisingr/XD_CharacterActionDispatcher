@@ -9,17 +9,32 @@
 /**
  * 
  */
-DECLARE_DYNAMIC_DELEGATE(FDispatchableActionFinished);
+DECLARE_DYNAMIC_DELEGATE(FOnDispatchableActionFinished);
 
 USTRUCT(BlueprintType)
-struct XD_CHARACTERACTIONDISPATCHER_API FDispatchableActionFinishedEvent
+struct XD_CHARACTERACTIONDISPATCHER_API FOnDispatchableActionFinishedEvent
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(SaveGame)
-	FDispatchableActionFinished Event;
+	FOnDispatchableActionFinished Event;
 
 	void ExecuteIfBound() const { Event.ExecuteIfBound(); }
+};
+
+DECLARE_DYNAMIC_DELEGATE(FOnActionDispatcherAborted);
+USTRUCT(BlueprintType)
+struct XD_CHARACTERACTIONDISPATCHER_API FOnActionDispatcherAbortedEvent
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(SaveGame)
+	FOnActionDispatcherAborted Event;
+
+	DECLARE_DELEGATE_OneParam(FOnDispatchableActionAborted, const FOnActionDispatcherAborted&);
+	FOnDispatchableActionAborted OnDispatchableActionAborted;
+
+	void ExecuteIfBound() const { OnDispatchableActionAborted.ExecuteIfBound(Event); }
 };
 
 USTRUCT(BlueprintType, BlueprintInternalUseOnly)
@@ -37,7 +52,7 @@ struct XD_CHARACTERACTIONDISPATCHER_API FDA_RoleSelection : public FDA_RoleSelec
 	GENERATED_BODY()
 public:
 	UPROPERTY(SaveGame)
-	FDispatchableActionFinishedEvent WhenSelected;
+	FOnDispatchableActionFinishedEvent WhenSelected;
 
 	DECLARE_DELEGATE(FNativeOnSelected);
 	FNativeOnSelected NativeOnSelected;
@@ -64,5 +79,14 @@ enum class EDispatchableActionState : uint8
 {
 	Deactive = 0,
 	Active = 1,
-	Finished = 2
+	Finished = 2,
+	Aborting = 3
+};
+
+UENUM()
+enum class EActionDispatcherState : uint8
+{
+	Deactive = 0,
+	Active = 1,
+	Aborting = 2
 };

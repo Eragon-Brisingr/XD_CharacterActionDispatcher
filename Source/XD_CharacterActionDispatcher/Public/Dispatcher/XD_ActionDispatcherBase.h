@@ -23,10 +23,10 @@ public:
 	TArray<bool> CheckList;
 
 	UPROPERTY(SaveGame)
-	FDispatchableActionFinishedEvent TogetherEvent;
+	FOnDispatchableActionFinishedEvent TogetherEvent;
 };
 
-UCLASS(abstract)
+UCLASS(abstract, editinlinenew)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
 {
 	GENERATED_BODY()
@@ -56,7 +56,11 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
 
-	void AbortDispatch();
+	void AbortDispatch(const FOnActionDispatcherAborted& Event);
+	FOnActionDispatcherAborted OnActionDispatcherAborted;
+	void WhenActionAborted(const FOnActionDispatcherAborted& Event);
+
+	void DeactiveDispatcher();
 	void SaveDispatchState();
 
 	bool CanReactiveDispatcher() const;
@@ -76,13 +80,14 @@ protected:
 	bool InvokeReactiveDispatch();
 	void ReactiveDispatcher();
 
+private:
 	UPROPERTY(EditAnywhere, Category = "行为", meta = (DisplayName = "检查所有软引用的有效性"))
 	uint8 bCheckAllSoftReferenceValidate : 1;
-private:
+
 	bool IsAllSoftReferenceValid() const;
 	//结束调度器
 public:
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void FinishDispatch(FGameplayTag Tag);
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDispatchFinished, const FGameplayTag&, Tag);
@@ -93,7 +98,7 @@ public:
 	UPROPERTY(SaveGame)
 	FWhenDispatchFinished WhenDispatchFinished;
 
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void BindWhenDispatchFinished(const FWhenDispatchFinished& DispatchFinishedEvent) { WhenDispatchFinished = DispatchFinishedEvent; }
 
 #if WITH_EDITORONLY_DATA
@@ -104,7 +109,7 @@ public:
 	TArray<UXD_DispatchableActionBase*> CurrentActions;
 
 	UPROPERTY(BlueprintReadOnly, Category = "行为调度器")
-	uint8 bIsActive : 1;
+	EActionDispatcherState State;
 
 	// 调度器可能不存在管理器
 	// e.g. 玩家开机关的行为，调度器直接交给机关管理

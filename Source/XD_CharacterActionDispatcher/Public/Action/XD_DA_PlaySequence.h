@@ -64,10 +64,10 @@ public:
 	void WhenActionFinished() override;
 
 	UPROPERTY(SaveGame)
-	FDispatchableActionFinishedEvent WhenPlayCompleted;
+	FOnDispatchableActionFinishedEvent WhenPlayCompleted;
 
 	UPROPERTY(SaveGame)
-	FDispatchableActionFinishedEvent WhenCanNotPlay;
+	FOnDispatchableActionFinishedEvent WhenCanNotPlay;
 
 	UFUNCTION()
 	void WhenPlayFinished();
@@ -96,5 +96,5 @@ public:
 	FTransform PlayTransform;
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	static UXD_DA_PlaySequenceBase* PlaySequence(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform, const FDispatchableActionFinishedEvent& InWhenPlayEnd, const FDispatchableActionFinishedEvent& InWhenCanNotPlay);
+	static UXD_DA_PlaySequenceBase* PlaySequence(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform, const FOnDispatchableActionFinishedEvent& InWhenPlayEnd, const FOnDispatchableActionFinishedEvent& InWhenCanNotPlay);
 };

@@ -154,7 +154,7 @@ void UXD_DA_PlaySequenceBase::WhenMoveFinished(FAIRequestID RequestID, const FPa
 	}
 }
 
-UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::PlaySequence(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform, const FDispatchableActionFinishedEvent& InWhenPlayEnd, const FDispatchableActionFinishedEvent& InWhenCanNotPlay)
+UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::PlaySequence(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform, const FOnDispatchableActionFinishedEvent& InWhenPlayEnd, const FOnDispatchableActionFinishedEvent& InWhenCanNotPlay)
 {
 	UXD_DA_PlaySequenceBase* DA_PlaySequence = NewObject<UXD_DA_PlaySequenceBase>(ActionDispatcher, GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass);
 	DA_PlaySequence->LevelSequence = Sequence;

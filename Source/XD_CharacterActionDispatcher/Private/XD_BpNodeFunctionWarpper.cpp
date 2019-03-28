@@ -10,9 +10,9 @@ void UXD_BpNodeFunctionWarpper::PlayLevelSequence(ALevelSequenceActor* LevelSequ
 	LevelSequenceActor->SequencePlayer->Play();
 }
 
-FDispatchableActionFinishedEvent UXD_BpNodeFunctionWarpper::MakeDispatchableActionFinishedEvent(const FDispatchableActionFinished& Event)
+FOnDispatchableActionFinishedEvent UXD_BpNodeFunctionWarpper::MakeDispatchableActionFinishedEvent(const FOnDispatchableActionFinished& Event)
 {
-	FDispatchableActionFinishedEvent DispatchableActionFinishedEvent;
+	FOnDispatchableActionFinishedEvent DispatchableActionFinishedEvent;
 	DispatchableActionFinishedEvent.Event = Event;
 	return DispatchableActionFinishedEvent;
 }

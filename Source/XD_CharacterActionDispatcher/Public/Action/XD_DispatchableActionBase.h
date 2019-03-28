@@ -37,8 +37,14 @@ protected:
 
 	virtual bool CanActiveAction() const { return IsActionValid(); }
 
+	void AbortAction(const FOnActionDispatcherAbortedEvent& Event);
+	//当行为被中断时的实现，一般为NPC主动想中断该行为
+	virtual void WhenAbortAction(const FOnActionDispatcherAbortedEvent& Event);
+	UFUNCTION(BlueprintCallable, Category = "行为")
+	void ExecuteAbortedEvent(const FOnActionDispatcherAbortedEvent& Event);
+
 	void DeactiveAction();
-	//当行为被中断时的实现
+	//当行为反激活时的实现，一般用作清理委托
 	UFUNCTION()
 	virtual void WhenActionDeactived(){}
 
@@ -72,7 +78,7 @@ public:
 	virtual TArray<FPinNameData> GetAllFinishedEventName() const;
 	// TODO 可以不为运行时行为，ExpandNode时根据类型绑定上回调，这样还可以支持参数
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	virtual void BindAllFinishedEvent(const TArray<FDispatchableActionFinishedEvent>& FinishedEvents);
+	virtual void BindAllFinishedEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents);
 protected:
 	//所有执行Action的实体在Active时注册
 	UFUNCTION(BlueprintCallable, Category = "行为")
@@ -82,12 +88,12 @@ protected:
 	void UnregisterEntity(AActor* Actor);
 	//执行下一个事件
 	UFUNCTION(BlueprintCallable, Category = "行为")
-	void ExecuteEventAndFinishAction(const FDispatchableActionFinishedEvent& Event);
+	void ExecuteEventAndFinishAction(const FOnDispatchableActionFinishedEvent& Event);
 
 	virtual bool IsActionValid() const;
 public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
-	void AbortDispatcher();
+	void AbortDispatcher(const FOnActionDispatcherAborted& Event);
 
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	bool CanReactiveDispatcher() const;

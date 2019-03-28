@@ -27,10 +27,10 @@ public:
 
 protected:
 	UPROPERTY(SaveGame)
-	FDispatchableActionFinishedEvent WhenReached;
+	FOnDispatchableActionFinishedEvent WhenReached;
 
 	UPROPERTY(SaveGame)
-	FDispatchableActionFinishedEvent WhenCanNotReached;
+	FOnDispatchableActionFinishedEvent WhenCanNotReached;
 
 	void WhenRequestFinished(FAIRequestID RequestID, const FPathFollowingResult& Result);
 public:

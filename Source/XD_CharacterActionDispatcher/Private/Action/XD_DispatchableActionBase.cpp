@@ -34,14 +34,34 @@ void UXD_DispatchableActionBase::ActiveAction()
 	WhenActionActived();
 }
 
+void UXD_DispatchableActionBase::AbortAction(const FOnActionDispatcherAbortedEvent& Event)
+{
+	check(State != EDispatchableActionState::Aborting);
+
+	ActionDispatcher_Display_Log("中断%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+	State = EDispatchableActionState::Aborting;
+	WhenAbortAction(Event);
+}
+
+void UXD_DispatchableActionBase::WhenAbortAction(const FOnActionDispatcherAbortedEvent& Event)
+{
+	ExecuteAbortedEvent(Event);
+}
+
+void UXD_DispatchableActionBase::ExecuteAbortedEvent(const FOnActionDispatcherAbortedEvent& Event)
+{
+	DeactiveAction();
+	Event.ExecuteIfBound();
+}
+
 void UXD_DispatchableActionBase::DeactiveAction()
 {
 	check(State != EDispatchableActionState::Deactive);
 
+	ActionDispatcher_Display_Log("反激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 	State = EDispatchableActionState::Deactive;
 	SaveState();
 	WhenActionDeactived();
-	ActionDispatcher_Display_Log("反激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }
 
 void UXD_DispatchableActionBase::ReactiveAction()
@@ -87,7 +107,7 @@ TArray<UXD_DispatchableActionBase::FPinNameData> UXD_DispatchableActionBase::Get
 	for (TFieldIterator<UStructProperty> It(GetClass()); It; ++It)
 	{
 		UStructProperty* Struct = *It;
-		if (Struct->Struct->IsChildOf(FDispatchableActionFinishedEvent::StaticStruct()))
+		if (Struct->Struct->IsChildOf(FOnDispatchableActionFinishedEvent::StaticStruct()))
 		{
 			FPinNameData Data;
 			Data.PinName = *Struct->GetName();
@@ -99,7 +119,7 @@ TArray<UXD_DispatchableActionBase::FPinNameData> UXD_DispatchableActionBase::Get
 	return Res;
 }
 
-void UXD_DispatchableActionBase::BindAllFinishedEvent(const TArray<FDispatchableActionFinishedEvent>& FinishedEvents)
+void UXD_DispatchableActionBase::BindAllFinishedEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents)
 {
 	if (FinishedEvents.Num() == 0)
 	{
@@ -110,9 +130,9 @@ void UXD_DispatchableActionBase::BindAllFinishedEvent(const TArray<FDispatchable
 	for (TFieldIterator<UStructProperty> It(GetClass()); It; ++It)
 	{
 		UStructProperty* Struct = *It;
-		if (Struct->Struct->IsChildOf(FDispatchableActionFinishedEvent::StaticStruct()))
+		if (Struct->Struct->IsChildOf(FOnDispatchableActionFinishedEvent::StaticStruct()))
 		{
-			FDispatchableActionFinishedEvent* Value = Struct->ContainerPtrToValuePtr<FDispatchableActionFinishedEvent>(this);
+			FOnDispatchableActionFinishedEvent* Value = Struct->ContainerPtrToValuePtr<FOnDispatchableActionFinishedEvent>(this);
 			*Value = FinishedEvents[BindIdx++];
 
 			if (FinishedEvents.Num() >= BindIdx)
@@ -140,7 +160,7 @@ void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 				else
 				{
 					//非同一调度器先将另一个调度器中断
-					PreAction->GetOwner()->AbortDispatch();
+					PreAction->GetOwner()->AbortDispatch({});
 				}
 				IXD_DispatchableEntityInterface::SetCurrentDispatchableAction(Actor, this);
 			}
@@ -164,7 +184,7 @@ void UXD_DispatchableActionBase::UnregisterEntity(AActor* Actor)
 	ActionDispatcher_Display_Log("--%s停止执行行为%s", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }
 
-void UXD_DispatchableActionBase::ExecuteEventAndFinishAction(const FDispatchableActionFinishedEvent& Event)
+void UXD_DispatchableActionBase::ExecuteEventAndFinishAction(const FOnDispatchableActionFinishedEvent& Event)
 {
 	FinishAction();
 	Event.ExecuteIfBound();
@@ -175,9 +195,13 @@ bool UXD_DispatchableActionBase::IsActionValid() const
 	return false;
 }
 
-void UXD_DispatchableActionBase::AbortDispatcher()
+void UXD_DispatchableActionBase::AbortDispatcher(const FOnActionDispatcherAborted& Event)
 {
-	GetOwner()->AbortDispatch();
+	UXD_ActionDispatcherBase* Owner = GetOwner();
+	if (Owner->State == EActionDispatcherState::Active)
+	{
+		Owner->AbortDispatch(Event);
+	}
 }
 
 bool UXD_DispatchableActionBase::CanReactiveDispatcher() const
