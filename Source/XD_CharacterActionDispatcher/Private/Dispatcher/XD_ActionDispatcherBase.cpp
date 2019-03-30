@@ -14,7 +14,6 @@
 #include "XD_SaveGameSystemBase.h"
 
 UXD_ActionDispatcherBase::UXD_ActionDispatcherBase()
-	:bCheckAllSoftReferenceValidate(true)
 {
 
 }
@@ -35,14 +34,7 @@ bool UXD_ActionDispatcherBase::IsDispatcherValid() const
 
 	if (DispatcherLeader.IsNull() || DispatcherLeader.IsValid())
 	{
-		if (bCheckAllSoftReferenceValidate)
-		{
-			return ReceiveIsDispatcherValid() && IsAllSoftReferenceValid();
-		}
-		else
-		{
-			return ReceiveIsDispatcherValid();
-		}
+		return ReceiveIsDispatcherValid() && IsAllSoftReferenceValid();
 	}
 	return false;
 }
@@ -201,6 +193,15 @@ bool UXD_ActionDispatcherBase::CanReactiveDispatcher() const
 	}
 }
 
+void UXD_ActionDispatcherBase::PostInitProperties()
+{
+	Super::PostInitProperties();
+	for (TFieldIterator<USoftObjectProperty> It(GetClass(), EFieldIteratorFlags::ExcludeSuper); It; ++It)
+	{
+		SoftObjectPropertys.Add(*It);
+	}
+}
+
 void UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason)
 {
 	if (State != EActionDispatcherState::Deactive)
@@ -259,22 +260,23 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 
 bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 {
-	for (TFieldIterator<USoftObjectProperty> It(GetClass(), EFieldIteratorFlags::ExcludeSuper); It; ++It)
+	for (USoftObjectProperty* SoftObjectProperty : SoftObjectPropertys)
 	{
-		USoftObjectProperty* SoftObjectProperty = *It;
 		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
-
 #if WITH_EDITOR
 		if (SoftObjectPtr.IsNull())
 		{
 			ActionDispatcher_Error_Log("调度器%s中的软引用[%s]为空，该调度器永远不会触发", *UXD_DebugFunctionLibrary::GetDebugName(this), *SoftObjectProperty->GetDisplayNameText().ToString());
 		}
 #endif
-
 		if (UObject* Obj = SoftObjectPtr.Get())
 		{
 			if (Obj->Implements<UXD_DispatchableEntityInterface>())
 			{
+				if (IXD_DispatchableEntityInterface::CanExecuteDispatchableAction(Obj) == false)
+				{
+					return false;
+				}
 				if (UXD_DispatchableActionBase* DispatchableAction = IXD_DispatchableEntityInterface::GetCurrentDispatchableAction(Obj))
 				{
 					if (DispatchableAction->GetOwner() != this)

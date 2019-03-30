@@ -44,6 +44,7 @@ public class XD_CharacterActionDispatcher : ModuleRules
                 "AIModule",
 
                 "GameplayTags",
+                "GameplayTasks",
 
                 "XD_UnrealLibraryEx",
                 "XD_SaveGameSystem",

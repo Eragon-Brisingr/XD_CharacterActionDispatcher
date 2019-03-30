@@ -33,4 +33,9 @@ public:
 	void SetCurrentDispatchableAction(UXD_DispatchableActionBase* Action);
 	virtual void SetCurrentDispatchableAction_Implementation(UXD_DispatchableActionBase* Action) {}
 	static void SetCurrentDispatchableAction(UObject* Obj, UXD_DispatchableActionBase* Action) { IXD_DispatchableEntityInterface::Execute_SetCurrentDispatchableAction(Obj, Action); }
+
+	UFUNCTION(BlueprintNativeEvent, Category = "行为")
+	bool CanExecuteDispatchableAction() const;
+	virtual bool CanExecuteDispatchableAction_Implementation() const { return true; }
+	static bool CanExecuteDispatchableAction(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_CanExecuteDispatchableAction(Obj); }
 };

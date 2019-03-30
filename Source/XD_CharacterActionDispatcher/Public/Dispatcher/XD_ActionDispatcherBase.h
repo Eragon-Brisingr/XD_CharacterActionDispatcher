@@ -64,6 +64,11 @@ public:
 	void SaveDispatchState();
 
 	bool CanReactiveDispatcher() const;
+
+protected:
+	TArray<USoftObjectProperty*> SoftObjectPropertys;
+	void PostInitProperties() override;
+
 public:
 	//调度器的主导者，为所在关卡或者玩家的角色
 	UPROPERTY(SaveGame)
@@ -81,9 +86,6 @@ protected:
 	void ReactiveDispatcher();
 
 private:
-	UPROPERTY(EditAnywhere, Category = "行为", meta = (DisplayName = "检查所有软引用的有效性"))
-	uint8 bCheckAllSoftReferenceValidate : 1;
-
 	bool IsAllSoftReferenceValid() const;
 	//结束调度器
 public:
