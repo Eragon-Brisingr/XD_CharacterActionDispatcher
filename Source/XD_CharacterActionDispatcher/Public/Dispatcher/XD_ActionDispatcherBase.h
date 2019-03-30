@@ -46,7 +46,7 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void StartDispatch();
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
-	void InitLeader(AActor * Leader);
+	void InitLeader(AActor* InDispatcherLeader);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "执行调度"))
 	void WhenDispatchStart();
@@ -58,7 +58,7 @@ public:
 
 	void AbortDispatch(const FOnActionDispatcherAborted& Event);
 	FOnActionDispatcherAborted OnActionDispatcherAborted;
-	void WhenActionAborted(const FOnActionDispatcherAborted& Event);
+	void WhenActionAborted();
 
 	void DeactiveDispatcher();
 	void SaveDispatchState();

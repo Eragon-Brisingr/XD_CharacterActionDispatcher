@@ -61,6 +61,7 @@ public:
 	bool IsActionValid() const override;
 	void WhenActionActived() override;
 	void WhenActionDeactived() override;
+
 	void WhenActionFinished() override;
 
 	UPROPERTY(SaveGame)
@@ -77,6 +78,8 @@ protected:
 	void WhenMoveReached(int32 MoverIdx);
 
 	void WhenMoveCanNotReached(int32 MoverIdx);
+
+	void StopSequencePlayer();
 private:
 	void WhenMoveFinished(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 MoverIdx);
 public:

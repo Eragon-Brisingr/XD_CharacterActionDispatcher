@@ -23,19 +23,6 @@ public:
 };
 
 DECLARE_DYNAMIC_DELEGATE(FOnActionDispatcherAborted);
-USTRUCT(BlueprintType)
-struct XD_CHARACTERACTIONDISPATCHER_API FOnActionDispatcherAbortedEvent
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(SaveGame)
-	FOnActionDispatcherAborted Event;
-
-	DECLARE_DELEGATE_OneParam(FOnDispatchableActionAborted, const FOnActionDispatcherAborted&);
-	FOnDispatchableActionAborted OnDispatchableActionAborted;
-
-	void ExecuteIfBound() const { OnDispatchableActionAborted.ExecuteIfBound(Event); }
-};
 
 USTRUCT(BlueprintType, BlueprintInternalUseOnly)
 struct XD_CHARACTERACTIONDISPATCHER_API FDA_RoleSelectionBase

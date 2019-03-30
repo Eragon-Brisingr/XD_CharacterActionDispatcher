@@ -214,7 +214,7 @@ void UBpNode_StartDispatcherWithManager::ExpandNode(class FKismetCompilerContext
 		InitLeaderNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InitLeader), UXD_ActionDispatcherBase::StaticClass());
 		InitLeaderNode->AllocateDefaultPins();
 		CallCreateNode->GetReturnValuePin()->MakeLinkTo(InitLeaderNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
-		bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(LeaderPinName), *InitLeaderNode->FindPinChecked(TEXT("Leader"))).CanSafeConnect();
+		bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(LeaderPinName), *InitLeaderNode->FindPinChecked(TEXT("InDispatcherLeader"))).CanSafeConnect();
 		LastThen->MakeLinkTo(InitLeaderNode->GetExecPin());
 		LastThen = InitLeaderNode->GetThenPin();
 	}
@@ -383,7 +383,7 @@ void UBpNode_StartDispatcherWithOwner::ExpandNode(class FKismetCompilerContext& 
 		InitLeaderNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InitLeader), UXD_ActionDispatcherBase::StaticClass());
 		InitLeaderNode->AllocateDefaultPins();
 		GetOrCreateDispatcherWithOwnerNode->GetReturnValuePin()->MakeLinkTo(InitLeaderNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
-		bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(LeaderPinName), *InitLeaderNode->FindPinChecked(TEXT("Leader"))).CanSafeConnect();
+		bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(LeaderPinName), *InitLeaderNode->FindPinChecked(TEXT("InDispatcherLeader"))).CanSafeConnect();
 		LastThen->MakeLinkTo(InitLeaderNode->GetExecPin());
 		LastThen = InitLeaderNode->GetThenPin();
 	}

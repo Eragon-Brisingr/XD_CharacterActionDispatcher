@@ -37,11 +37,9 @@ protected:
 
 	virtual bool CanActiveAction() const { return IsActionValid(); }
 
-	void AbortAction(const FOnActionDispatcherAbortedEvent& Event);
+	void AbortAction();
 	//当行为被中断时的实现，一般为NPC主动想中断该行为
-	virtual void WhenAbortAction(const FOnActionDispatcherAbortedEvent& Event);
-	UFUNCTION(BlueprintCallable, Category = "行为")
-	void ExecuteAbortedEvent(const FOnActionDispatcherAbortedEvent& Event);
+	virtual void WhenActionAborted();
 
 	void DeactiveAction();
 	//当行为反激活时的实现，一般用作清理委托

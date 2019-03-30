@@ -34,32 +34,34 @@ void UXD_DispatchableActionBase::ActiveAction()
 	WhenActionActived();
 }
 
-void UXD_DispatchableActionBase::AbortAction(const FOnActionDispatcherAbortedEvent& Event)
+void UXD_DispatchableActionBase::AbortAction()
 {
 	check(State != EDispatchableActionState::Aborting);
 
 	ActionDispatcher_Display_Log("中断%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 	State = EDispatchableActionState::Aborting;
-	WhenAbortAction(Event);
+	WhenActionAborted();
 }
 
-void UXD_DispatchableActionBase::WhenAbortAction(const FOnActionDispatcherAbortedEvent& Event)
-{
-	ExecuteAbortedEvent(Event);
-}
-
-void UXD_DispatchableActionBase::ExecuteAbortedEvent(const FOnActionDispatcherAbortedEvent& Event)
+void UXD_DispatchableActionBase::WhenActionAborted()
 {
 	DeactiveAction();
-	Event.ExecuteIfBound();
 }
 
 void UXD_DispatchableActionBase::DeactiveAction()
 {
 	check(State != EDispatchableActionState::Deactive);
 
-	ActionDispatcher_Display_Log("反激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+	bool isFromAbort = State == EDispatchableActionState::Aborting;
+
 	State = EDispatchableActionState::Deactive;
+	ActionDispatcher_Display_Log("反激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+
+	if (isFromAbort)
+	{
+		GetOwner()->WhenActionAborted();
+	}
+
 	SaveState();
 	WhenActionDeactived();
 }

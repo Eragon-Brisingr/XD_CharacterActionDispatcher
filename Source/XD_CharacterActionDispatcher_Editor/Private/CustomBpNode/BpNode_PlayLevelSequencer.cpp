@@ -99,7 +99,7 @@ void UBpNode_PlayLevelSequencer::RefreshSequenceData()
 							if (!FloatChannels.Slice(0, 6).ContainsByPredicate([](FMovieSceneFloatChannel* E) {return E->GetDefault().IsSet() == false; }))
 							{
 								BindingOption.Location = FVector(FloatChannels[0]->GetDefault().GetValue(), FloatChannels[1]->GetDefault().GetValue(), FloatChannels[2]->GetDefault().GetValue());
-								BindingOption.Rotation = FRotator(FloatChannels[3]->GetDefault().GetValue(), FloatChannels[4]->GetDefault().GetValue(), FloatChannels[5]->GetDefault().GetValue());
+								BindingOption.Rotation = FRotator(FloatChannels[3]->GetDefault().GetValue(), FloatChannels[5]->GetDefault().GetValue(), FloatChannels[4]->GetDefault().GetValue());
 							}
 						}
 					}

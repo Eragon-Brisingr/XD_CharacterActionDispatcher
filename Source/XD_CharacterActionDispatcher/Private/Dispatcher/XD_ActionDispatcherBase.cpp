@@ -68,18 +68,18 @@ void UXD_ActionDispatcherBase::StartDispatch()
 	}
 }
 
-void UXD_ActionDispatcherBase::InitLeader(AActor * Leader)
+void UXD_ActionDispatcherBase::InitLeader(AActor* InDispatcherLeader)
 {
-	if (Leader)
+	if (InDispatcherLeader)
 	{
-		APawn* Pawn = Cast<APawn>(Leader);
+		APawn* Pawn = Cast<APawn>(InDispatcherLeader);
 		if (Pawn && Pawn->IsPlayerControlled())
 		{
-			DispatcherLeader = Leader;
+			DispatcherLeader = InDispatcherLeader;
 		}
 		else
 		{
-			DispatcherLeader = Leader->GetLevel();
+			DispatcherLeader = InDispatcherLeader->GetLevel();
 		}
 		ActionDispatcher_Display_Log("调度器%s领导者设置为%s", *UXD_DebugFunctionLibrary::GetDebugName(this), *UXD_DebugFunctionLibrary::GetDebugName(DispatcherLeader.Get()));
 	}
@@ -113,16 +113,13 @@ void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& E
 	check(State == EActionDispatcherState::Active);
 
 	State = EActionDispatcherState::Aborting;
-	FOnActionDispatcherAbortedEvent OnActionDispatcherAbortedEvent;
-	OnActionDispatcherAbortedEvent.Event = Event;
-	OnActionDispatcherAbortedEvent.OnDispatchableActionAborted.BindUObject(this, &UXD_ActionDispatcherBase::WhenActionAborted);
-
 	OnActionDispatcherAborted = Event;
+
 	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
 		if (Action->IsActionValid())
 		{
-			Action->AbortAction(OnActionDispatcherAbortedEvent);
+			Action->AbortAction();
 		}
 		else
 		{
@@ -131,14 +128,15 @@ void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& E
 	}
 }
 
-void UXD_ActionDispatcherBase::WhenActionAborted(const FOnActionDispatcherAborted& Event)
+void UXD_ActionDispatcherBase::WhenActionAborted()
 {
 	if (State != EActionDispatcherState::Deactive)
 	{
 		if (CurrentActions.ContainsByPredicate([](UXD_DispatchableActionBase* Action) {return Action->State != EDispatchableActionState::Deactive; }) == false)
 		{
 			DeactiveDispatcher();
-			Event.ExecuteIfBound();
+			OnActionDispatcherAborted.ExecuteIfBound();
+			OnActionDispatcherAborted.Clear();
 		}
 	}
 }

@@ -54,12 +54,7 @@ void UXD_DA_PlaySequenceBase::WhenActionActived()
 
 void UXD_DA_PlaySequenceBase::WhenActionDeactived()
 {
-	if (SequencePlayer)
-	{
-		ULevelSequencePlayer* Player = SequencePlayer->SequencePlayer;
-		Player->OnStop.RemoveDynamic(this, &UXD_DA_PlaySequenceBase::WhenPlayFinished);
-		Player->Stop();
-	}
+	StopSequencePlayer();
 
 	for (const FPlaySequenceMoveToData& Data : PlaySequenceMoveToDatas)
 	{
@@ -141,6 +136,19 @@ void UXD_DA_PlaySequenceBase::WhenMoveCanNotReached(int32 MoverIdx)
 	}
 }
 
+void UXD_DA_PlaySequenceBase::StopSequencePlayer()
+{
+	if (SequencePlayer)
+	{
+		ULevelSequencePlayer* Player = SequencePlayer->SequencePlayer;
+		if (Player->IsPlaying())
+		{
+			Player->OnStop.RemoveDynamic(this, &UXD_DA_PlaySequenceBase::WhenPlayFinished);
+			Player->Stop();
+		}
+	}
+}
+
 void UXD_DA_PlaySequenceBase::WhenMoveFinished(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 MoverIdx)
 {
 	const FPlaySequenceMoveToData& MoveData = PlaySequenceMoveToDatas[MoverIdx];
@@ -151,6 +159,10 @@ void UXD_DA_PlaySequenceBase::WhenMoveFinished(FAIRequestID RequestID, const FPa
 	if (Result.Code == EPathFollowingResult::Success)
 	{
 		WhenMoveReached(MoverIdx);
+	}
+	else
+	{
+		WhenMoveCanNotReached(MoverIdx);
 	}
 }
 
