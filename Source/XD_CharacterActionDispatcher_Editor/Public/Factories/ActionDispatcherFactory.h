@@ -5,6 +5,8 @@
 #include "Factories/Factory.h"
 #include "ActionDispatcherFactory.generated.h"
 
+class UXD_ActionDispatcherBase;
+
 /**
  * 
  */
@@ -32,4 +34,7 @@ public:
 	FText GetDisplayName() const override;
 	uint32 GetMenuCategories() const override;
 	
+	TSubclassOf<UXD_ActionDispatcherBase> ActionDispatcherClass;
+
+	bool ConfigureProperties() override;
 };

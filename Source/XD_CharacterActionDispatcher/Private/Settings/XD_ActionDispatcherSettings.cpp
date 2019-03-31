@@ -10,5 +10,6 @@ UXD_ActionDispatcherSettings::UXD_ActionDispatcherSettings()
 {
 #if WITH_EDITORONLY_DATA
 	bShowPluginNode = true;
+	bShowPluginClass = true;
 #endif
 }

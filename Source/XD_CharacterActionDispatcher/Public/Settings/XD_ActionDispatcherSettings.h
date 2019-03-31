@@ -29,5 +29,8 @@ public:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = "设置", Config)
 	uint8 bShowPluginNode : 1;
+
+	UPROPERTY(EditAnywhere, Category = "设置", Config)
+	uint8 bShowPluginClass : 1;
 #endif
 };

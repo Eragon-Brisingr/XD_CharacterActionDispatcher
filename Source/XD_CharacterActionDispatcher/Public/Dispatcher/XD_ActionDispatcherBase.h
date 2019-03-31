@@ -6,6 +6,7 @@
 #include "UObject/NoExportTypes.h"
 #include "XD_CharacterActionDispatcherType.h"
 #include "GameplayTagContainer.h"
+#include "Engine/EngineTypes.h"
 #include "XD_ActionDispatcherBase.generated.h"
 
 class UXD_DispatchableActionBase;
@@ -26,7 +27,7 @@ public:
 	FOnDispatchableActionFinishedEvent TogetherEvent;
 };
 
-UCLASS(abstract, editinlinenew)
+UCLASS(abstract)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
 {
 	GENERATED_BODY()
@@ -67,7 +68,8 @@ public:
 
 protected:
 	TArray<USoftObjectProperty*> SoftObjectPropertys;
-	void PostInitProperties() override;
+	const TArray<USoftObjectProperty*>& GetSoftObjectPropertys() const;
+	void PostCDOContruct() override;
 
 public:
 	//调度器的主导者，为所在关卡或者玩家的角色

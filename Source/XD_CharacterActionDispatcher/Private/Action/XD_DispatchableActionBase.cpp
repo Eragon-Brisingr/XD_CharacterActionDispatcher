@@ -60,6 +60,9 @@ void UXD_DispatchableActionBase::DeactiveAction()
 	if (isFromAbort)
 	{
 		GetOwner()->WhenActionAborted();
+		OnActionAborted.ExecuteIfBound();
+		OnActionAborted.Unbind();
+//		OnActionAbortedEvent.ExecuteIfBound();
 	}
 
 	SaveState();

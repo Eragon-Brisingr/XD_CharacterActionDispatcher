@@ -193,9 +193,14 @@ bool UXD_ActionDispatcherBase::CanReactiveDispatcher() const
 	}
 }
 
-void UXD_ActionDispatcherBase::PostInitProperties()
+const TArray<USoftObjectProperty*>& UXD_ActionDispatcherBase::GetSoftObjectPropertys() const
 {
-	Super::PostInitProperties();
+	return GetClass()->GetDefaultObject<UXD_ActionDispatcherBase>()->SoftObjectPropertys;
+}
+
+void UXD_ActionDispatcherBase::PostCDOContruct()
+{
+	Super::PostCDOContruct();
 	for (TFieldIterator<USoftObjectProperty> It(GetClass(), EFieldIteratorFlags::ExcludeSuper); It; ++It)
 	{
 		SoftObjectPropertys.Add(*It);
@@ -260,7 +265,7 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 
 bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 {
-	for (USoftObjectProperty* SoftObjectProperty : SoftObjectPropertys)
+	for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
 	{
 		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
 #if WITH_EDITOR
