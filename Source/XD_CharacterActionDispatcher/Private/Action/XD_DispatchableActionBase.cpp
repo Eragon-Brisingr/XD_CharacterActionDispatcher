@@ -159,13 +159,19 @@ void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 				//调度器内的行为抢占式跳转移除前一个进行时节点
 				if (PreAction->GetOwner() == GetOwner())
 				{
-					PreAction->DeactiveAction();
-					GetOwner()->CurrentActions.Remove(PreAction);
+					if (PreAction->State == EDispatchableActionState::Active)
+					{
+						PreAction->DeactiveAction();
+						GetOwner()->CurrentActions.Remove(PreAction);
+					}
 				}
 				else
 				{
-					//非同一调度器先将另一个调度器中断
-					PreAction->GetOwner()->AbortDispatch({});
+					if (PreAction->GetOwner()->State == EActionDispatcherState::Active)
+					{
+						//非同一调度器先将另一个调度器中断
+						PreAction->GetOwner()->AbortDispatch({});
+					}
 				}
 				IXD_DispatchableEntityInterface::SetCurrentDispatchableAction(Actor, this);
 			}
