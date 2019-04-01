@@ -62,6 +62,8 @@ void UXD_ActionDispatcherBase::StartDispatch()
 
 void UXD_ActionDispatcherBase::InitLeader(AActor* InDispatcherLeader)
 {
+	check(DispatcherLeader == nullptr);
+
 	if (InDispatcherLeader)
 	{
 		APawn* Pawn = Cast<APawn>(InDispatcherLeader);
@@ -100,6 +102,14 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 	}
 }
 
+void UXD_ActionDispatcherBase::ExecuteAbortedDelegate()
+{
+	OnActionDispatcherAborted.ExecuteIfBound();
+	OnActionDispatcherAborted.Clear();
+	OnActionDispatcherAbortedNative.Broadcast();
+	OnActionDispatcherAbortedNative.Clear();
+}
+
 void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& Event)
 {
 	check(State == EActionDispatcherState::Active);
@@ -127,8 +137,7 @@ void UXD_ActionDispatcherBase::WhenActionAborted()
 		if (CurrentActions.ContainsByPredicate([](UXD_DispatchableActionBase* Action) {return Action->State != EDispatchableActionState::Deactive; }) == false)
 		{
 			DeactiveDispatcher();
-			OnActionDispatcherAborted.ExecuteIfBound();
-			OnActionDispatcherAborted.Clear();
+			ExecuteAbortedDelegate();
 		}
 	}
 }
@@ -213,7 +222,7 @@ void UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlay
 	{
 		ActionDispatcher_Display_Log("因玩家%s离开导至%s终止", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(this));
 		DeactiveDispatcher();
-		OnActionDispatcherAborted.ExecuteIfBound();
+		ExecuteAbortedDelegate();
 	}
 }
 
@@ -226,7 +235,7 @@ void UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed(ULevel* Level)
 		{
 			ActionDispatcher_Display_Log("因关卡%s卸载导至%s终止", *UXD_DebugFunctionLibrary::GetDebugName(Level), *UXD_DebugFunctionLibrary::GetDebugName(this));
 			DeactiveDispatcher();
-			OnActionDispatcherAborted.ExecuteIfBound();
+			ExecuteAbortedDelegate();
 			UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
 		}
 	}
@@ -310,10 +319,8 @@ void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 		ActionDispatcher_Display_Log("结束行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
 	}
 	OnDispatchFinished.Broadcast(Tag);
-	if (WhenDispatchFinished.IsBound())
-	{
-		WhenDispatchFinished.Execute(Tag.GetTagName());
-	}
+	WhenDispatchFinished.ExecuteIfBound(Tag.GetTagName());
+	WhenDispatchFinishedNative.ExecuteIfBound(Tag.GetTagName());
 
 	if (UXD_ActionDispatcherManager* Manager = GetManager())
 	{

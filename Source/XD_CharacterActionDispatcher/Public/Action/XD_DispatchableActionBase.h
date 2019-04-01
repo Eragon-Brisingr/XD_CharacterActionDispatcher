@@ -27,6 +27,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "设置")
 	uint8 bShowInExecuteActionNode : 1;
 #endif
+	DECLARE_DELEGATE(FOnActionAborted);
+	FOnActionAborted OnActionAborted;
 protected:
 	friend class UXD_ActionDispatcherBase;
 
@@ -40,10 +42,6 @@ protected:
 	void AbortAction();
 	//当行为被中断时的实现，一般为NPC主动想中断该行为
 	virtual void WhenActionAborted();
-
-	friend class UBTT_ActionDispatcher;
-	DECLARE_DELEGATE(FOnActionAborted);
-	FOnActionAborted OnActionAborted;
 
 // 	UPROPERTY(SaveGame, meta = (DisplayName = "当被中断后"))
 // 	FOnDispatchableActionFinishedEvent OnActionAbortedEvent;

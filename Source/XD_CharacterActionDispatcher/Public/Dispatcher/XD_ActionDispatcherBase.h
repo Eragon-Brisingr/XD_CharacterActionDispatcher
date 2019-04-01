@@ -27,6 +27,9 @@ public:
 	FOnDispatchableActionFinishedEvent TogetherEvent;
 };
 
+DECLARE_DELEGATE_OneParam(FWhenDispatchFinishedNative, const FName& /*Tag*/);
+DECLARE_MULTICAST_DELEGATE(FOnActionDispatcherAbortedNative);
+
 UCLASS(abstract)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
 {
@@ -57,8 +60,13 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
 
-	void AbortDispatch(const FOnActionDispatcherAborted& Event);
+public:
 	FOnActionDispatcherAborted OnActionDispatcherAborted;
+	FOnActionDispatcherAbortedNative OnActionDispatcherAbortedNative;
+
+	void AbortDispatch(const FOnActionDispatcherAborted& Event);
+protected:
+	void ExecuteAbortedDelegate();
 	void WhenActionAborted();
 
 	void DeactiveDispatcher();
@@ -101,6 +109,8 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FWhenDispatchFinished, const FName&, Tag);
 	UPROPERTY(SaveGame)
 	FWhenDispatchFinished WhenDispatchFinished;
+
+	FWhenDispatchFinishedNative WhenDispatchFinishedNative;
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void BindWhenDispatchFinished(const FWhenDispatchFinished& DispatchFinishedEvent) { WhenDispatchFinished = DispatchFinishedEvent; }
