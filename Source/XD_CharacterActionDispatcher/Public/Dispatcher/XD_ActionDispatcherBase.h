@@ -30,7 +30,7 @@ public:
 DECLARE_DELEGATE_OneParam(FWhenDispatchFinishedNative, const FName& /*Tag*/);
 DECLARE_MULTICAST_DELEGATE(FOnActionDispatcherAbortedNative);
 
-UCLASS(abstract)
+UCLASS(abstract, BlueprintType)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
 {
 	GENERATED_BODY()

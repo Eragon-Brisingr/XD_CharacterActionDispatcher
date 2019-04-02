@@ -35,7 +35,6 @@ protected:
 	void GenerateFinishEvent(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph, UEdGraphPin* DispatchFinishedEventPin, const FString& EventName);
 
 	static FName DefaultPinName;
-	static FName LeaderPinName;
 };
 
 UCLASS()
@@ -51,6 +50,10 @@ public:
 
 	void AllocateDefaultPins() override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
+
+protected:
+	bool IsSpawnVarPin(UEdGraphPin* Pin) const override;
+	static FName LeaderPinName;
 };
 
 UCLASS()

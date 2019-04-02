@@ -18,16 +18,11 @@
 
 FName UBpNode_StartDispatcherBase::DefaultPinName = TEXT("Default");
 
-FName UBpNode_StartDispatcherBase::LeaderPinName = TEXT("DispatcherLeader");
-
 void UBpNode_StartDispatcherBase::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
 	GetClassPin()->DefaultObject = ActionDispatcherClass;
 	ReflushFinishExec();
-
-	UEdGraphPin* LeaderPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, AActor::StaticClass(), LeaderPinName);
-	LeaderPin->PinToolTip = *LOCTEXT("Leader Pin Desc", "调度器的主导者，当主导者无效时则停止调度，输入的Actor为玩家时默认为玩家，输入非玩家时则为Level").ToString();
 }
 
 void UBpNode_StartDispatcherBase::PinDefaultValueChanged(UEdGraphPin* ChangedPin)
@@ -65,7 +60,7 @@ UClass* UBpNode_StartDispatcherBase::GetClassPinBaseClass() const
 
 bool UBpNode_StartDispatcherBase::IsSpawnVarPin(UEdGraphPin* Pin) const
 {
-	return Super::IsSpawnVarPin(Pin) && Pin->PinName != LeaderPinName;
+	return Super::IsSpawnVarPin(Pin);
 }
 
 void UBpNode_StartDispatcherBase::ReflushFinishExec()
@@ -111,6 +106,8 @@ void UBpNode_StartDispatcherBase::GenerateFinishEvent(class FKismetCompilerConte
 
 //UBpNode_StartDispatcherWithManager
 
+FName UBpNode_StartDispatcherWithManager::LeaderPinName = TEXT("DispatcherLeader");
+
 FText UBpNode_StartDispatcherWithManager::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
@@ -155,6 +152,9 @@ bool UBpNode_StartDispatcherWithManager::IsCompatibleWithGraph(const UEdGraph* T
 void UBpNode_StartDispatcherWithManager::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
+
+	UEdGraphPin* LeaderPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, AActor::StaticClass(), LeaderPinName);
+	LeaderPin->PinToolTip = *LOCTEXT("Leader Pin Desc", "调度器的主导者，当主导者无效时则停止调度，输入的Actor为玩家时默认为玩家，输入非玩家时则为Level").ToString();
 }
 
 void UBpNode_StartDispatcherWithManager::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
@@ -258,6 +258,11 @@ void UBpNode_StartDispatcherWithManager::ExpandNode(class FKismetCompilerContext
 }
 
 
+bool UBpNode_StartDispatcherWithManager::IsSpawnVarPin(UEdGraphPin* Pin) const
+{
+	return Super::IsSpawnVarPin(Pin) && Pin->PinName != LeaderPinName;
+}
+
 //UBpNode_StartDispatcherWithOwner
 
 FName UBpNode_StartDispatcherWithOwner::Dispatcher_MemberVarPinName = TEXT("Dispatcher_MemberVar");
@@ -319,7 +324,7 @@ void UBpNode_StartDispatcherWithOwner::AllocateDefaultPins()
 	FCreatePinParams CreatePinParams;
 	CreatePinParams.bIsReference = true;
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, UObject::StaticClass(), OwnerPinName);
-	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, UXD_ActionDispatcherBase::StaticClass(), Dispatcher_MemberVarPinName, CreatePinParams);
+	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, ActionDispatcherClass ? *ActionDispatcherClass : UXD_ActionDispatcherBase::StaticClass(), Dispatcher_MemberVarPinName, CreatePinParams);
 }
 
 void UBpNode_StartDispatcherWithOwner::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
@@ -383,7 +388,7 @@ void UBpNode_StartDispatcherWithOwner::ExpandNode(class FKismetCompilerContext& 
 		InitLeaderNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InitLeader), UXD_ActionDispatcherBase::StaticClass());
 		InitLeaderNode->AllocateDefaultPins();
 		GetOrCreateDispatcherWithOwnerNode->GetReturnValuePin()->MakeLinkTo(InitLeaderNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
-		bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(LeaderPinName), *InitLeaderNode->FindPinChecked(TEXT("InDispatcherLeader"))).CanSafeConnect();
+		bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(OwnerPinName), *InitLeaderNode->FindPinChecked(TEXT("InDispatcherLeader"))).CanSafeConnect();
 		LastThen->MakeLinkTo(InitLeaderNode->GetExecPin());
 		LastThen = InitLeaderNode->GetThenPin();
 	}
