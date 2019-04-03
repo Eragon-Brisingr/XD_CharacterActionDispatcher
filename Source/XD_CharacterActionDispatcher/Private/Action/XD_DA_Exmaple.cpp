@@ -27,6 +27,5 @@ void UXD_DA_Exmaple::WhenActionDeactived()
 
 void UXD_DA_Exmaple::WhenTimeFinished()
 {
-	FinishAction();
-	OnFinished.ExecuteIfBound();
+	ExecuteEventAndFinishAction(OnFinished);
 }

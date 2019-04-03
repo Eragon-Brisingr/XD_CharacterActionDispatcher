@@ -56,8 +56,9 @@ protected:
 	UFUNCTION()
 	virtual void WhenActionReactived();
 
-	UFUNCTION(BlueprintCallable, Category = "行为")
+private:
 	void FinishAction();
+public:
 	//当行为成功结束时的实现，一般用作UnregisterEntity
 	UFUNCTION()
 	virtual void WhenActionFinished(){}
@@ -96,7 +97,7 @@ protected:
 	virtual bool IsActionValid() const;
 public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
-	void AbortDispatcher(const FOnActionDispatcherAborted& Event);
+	void AbortDispatcher(const FOnActionDispatcherAborted& Event, bool DeactiveRequestAction = false);
 
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	bool CanReactiveDispatcher() const;

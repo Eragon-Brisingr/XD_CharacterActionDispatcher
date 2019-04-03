@@ -19,6 +19,8 @@ public:
 	UPROPERTY(SaveGame)
 	FOnDispatchableActionFinished Event;
 
+private:
+	friend class UXD_DispatchableActionBase;
 	void ExecuteIfBound() const { Event.ExecuteIfBound(); }
 };
 
@@ -40,11 +42,6 @@ struct XD_CHARACTERACTIONDISPATCHER_API FDA_RoleSelection : public FDA_RoleSelec
 public:
 	UPROPERTY(SaveGame)
 	FOnDispatchableActionFinishedEvent WhenSelected;
-
-	DECLARE_DELEGATE(FNativeOnSelected);
-	FNativeOnSelected NativeOnSelected;
-
-	void ExecuteIfBound() const;
 };
 
 USTRUCT(BlueprintType)

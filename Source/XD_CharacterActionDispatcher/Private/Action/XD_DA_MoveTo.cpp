@@ -36,15 +36,13 @@ void UXD_DA_MoveTo::WhenActionActived()
 		switch (Result)
 		{
 		case EPathFollowingRequestResult::AlreadyAtGoal:
-			FinishAction();
-			WhenReached.ExecuteIfBound();
+			ExecuteEventAndFinishAction(WhenReached);
 			break;
 		case EPathFollowingRequestResult::RequestSuccessful:
 			AIController->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &UXD_DA_MoveTo::WhenRequestFinished);
 			break;
 		case EPathFollowingRequestResult::Failed:
-			FinishAction();
-			WhenCanNotReached.ExecuteIfBound();
+			ExecuteEventAndFinishAction(WhenCanNotReached);
 			break;
 		}
 	}
@@ -74,12 +72,10 @@ void UXD_DA_MoveTo::WhenRequestFinished(FAIRequestID RequestID, const FPathFollo
 	}
 	if (Result.Code == EPathFollowingResult::Success)
 	{
-		FinishAction();
-		WhenReached.ExecuteIfBound();
+		ExecuteEventAndFinishAction(WhenReached);
 	}
 	else if (Result.Code != EPathFollowingResult::Aborted)
 	{
-		FinishAction();
-		WhenCanNotReached.ExecuteIfBound();
+		ExecuteEventAndFinishAction(WhenCanNotReached);
 	}
 }

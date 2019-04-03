@@ -110,7 +110,7 @@ void UXD_ActionDispatcherBase::ExecuteAbortedDelegate()
 	OnActionDispatcherAbortedNative.Clear();
 }
 
-void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& Event)
+void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction)
 {
 	check(State == EActionDispatcherState::Active);
 
@@ -119,7 +119,7 @@ void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& E
 
 	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
-		if (Action->IsActionValid())
+		if (DeactiveRequestAction != Action && Action->IsActionValid())
 		{
 			Action->AbortAction();
 		}

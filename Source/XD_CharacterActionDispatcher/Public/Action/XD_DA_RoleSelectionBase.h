@@ -43,5 +43,5 @@ public:
 private:
 	void AddSelections(const TArray<FDA_RoleSelection>& InSelections);
 
-	void WhenSelected();
+	void ExecuteSelection(const FDA_RoleSelection& RoleSelection);
 };

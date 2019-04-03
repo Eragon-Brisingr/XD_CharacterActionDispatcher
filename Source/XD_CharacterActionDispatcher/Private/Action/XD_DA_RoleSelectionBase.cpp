@@ -23,11 +23,6 @@ void UXD_DA_RoleSelectionBase::WhenActionActived()
 	APawn* Pawn = Role.Get();
 	RegisterEntity(Pawn);
 
-	for (FDA_RoleSelection& Selection : Selections)
-	{
-		Selection.NativeOnSelected.BindUObject(this, &UXD_DA_RoleSelectionBase::WhenSelected);
-	}
-
 	if (Pawn->Implements<UXD_DA_RoleSelectionInterface>())
 	{
 		TArray<FDA_DisplaySelection> RoleSelectionDisplays;
@@ -44,7 +39,7 @@ void UXD_DA_RoleSelectionBase::WhenActionActived()
 	{
 		int32 SelectIdx = FMath::RandHelper(Selections.Num());
 		ActionDispatcher_Display_Log("%s未实现XD_DA_RoleSelectionInterface，随机选择了选项[%s]", *UXD_DebugFunctionLibrary::GetDebugName(Pawn), *Selections[SelectIdx].Selection.ToString());
-		Selections[SelectIdx].ExecuteIfBound();
+		ExecuteSelection(Selections[SelectIdx]);
 	}
 }
 
@@ -70,7 +65,7 @@ void UXD_DA_RoleSelectionBase::ExecuteSelection(const FDA_DisplaySelection& Sele
 		const FDA_RoleSelection& CurSelection = Selections[Selection.SelectionIdx];
 		if (CurSelection.Selection.EqualTo(Selection.Selection))
 		{
-			CurSelection.ExecuteIfBound();
+			ExecuteSelection(CurSelection);
 			return;
 		}
 	}
@@ -131,7 +126,7 @@ void UXD_DA_RoleSelectionBase::AddSelections(const TArray<FDA_RoleSelection>& In
 	}
 }
 
-void UXD_DA_RoleSelectionBase::WhenSelected()
+void UXD_DA_RoleSelectionBase::ExecuteSelection(const FDA_RoleSelection& RoleSelection)
 {
-	FinishAction();
+	ExecuteEventAndFinishAction(RoleSelection.WhenSelected);
 }

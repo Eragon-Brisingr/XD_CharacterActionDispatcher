@@ -84,8 +84,7 @@ void UXD_DA_PlaySequenceBase::WhenPlayFinished()
 	SequencePlayer->SequencePlayer->OnStop.RemoveDynamic(this, &UXD_DA_PlaySequenceBase::WhenPlayFinished);
 	SequencePlayer->Destroy();
 
-	FinishAction();
-	WhenPlayCompleted.ExecuteIfBound();
+	ExecuteEventAndFinishAction(WhenPlayCompleted);
 }
 
 bool UXD_DA_PlaySequenceBase::MoveToSequencePlayLocation(APawn* Mover, const FVector& PlayLocation, const FRotator& PlayRotation, int32 MoverIdx)
@@ -131,8 +130,7 @@ void UXD_DA_PlaySequenceBase::WhenMoveCanNotReached(int32 MoverIdx)
 {
 	if (State != EDispatchableActionState::Finished)
 	{
-		FinishAction();
-		WhenCanNotPlay.ExecuteIfBound();
+		ExecuteEventAndFinishAction(WhenCanNotPlay);
 	}
 }
 
