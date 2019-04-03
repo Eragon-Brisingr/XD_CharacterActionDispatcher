@@ -18,7 +18,7 @@ protected:
 	typedef FKismetCompilerContext Super;
 
 public:
-	FActionDispatcherBP_Compiler(UActionDispatcherBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions, TArray<UObject*>* InObjLoaded);
+	FActionDispatcherBP_Compiler(UActionDispatcherBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions);
 	~FActionDispatcherBP_Compiler() override;
 
 	// FKismetCompilerContext

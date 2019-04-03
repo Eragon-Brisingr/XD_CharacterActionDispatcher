@@ -102,14 +102,14 @@ void FLinkToFinishNodeChecker::ConvertRetargetPin(UEdGraphPin*& Pin, bool& bShow
 				{
 					if (Node && Node->GetClass() == UK2Node_Tunnel::StaticClass())
 					{
-						UK2Node_Tunnel* TunnelNode = (UK2Node_Tunnel*)Node;
-						if (TunnelNode->bCanHaveOutputs)
+						UK2Node_Tunnel* SubTunnelNode = (UK2Node_Tunnel*)Node;
+						if (SubTunnelNode->bCanHaveOutputs)
 						{
-							InputTunnelNode = TunnelNode;
+							InputTunnelNode = SubTunnelNode;
 						}
 						else
 						{
-							OutputTunnelNode = TunnelNode;
+							OutputTunnelNode = SubTunnelNode;
 						}
 					}
 				}
@@ -132,7 +132,7 @@ void FLinkToFinishNodeChecker::ConvertRetargetPin(UEdGraphPin*& Pin, bool& bShow
 				//宏的输出中转
 				if (UK2Node_MacroInstance** P_MacroInstanceNode = MacroNodeLinkers.Find(TunnelNode))
 				{
-					UK2Node_MacroInstance* MacroInstanceNode = *P_MacroInstanceNode;
+					MacroInstanceNode = *P_MacroInstanceNode;
 					Pin = MacroInstanceNode->FindPinChecked(LinkToPin->PinName);
 					bShowErrorOnLinkedPin = true;
 					ConvertRetargetPin(Pin, bShowErrorOnLinkedPin);

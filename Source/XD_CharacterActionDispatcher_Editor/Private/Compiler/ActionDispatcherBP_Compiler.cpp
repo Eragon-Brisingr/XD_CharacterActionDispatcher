@@ -8,8 +8,8 @@
 
 #include "LinkToFinishNodeChecker.h"
 #include "BpNode_FinishDispatch.h"
-FActionDispatcherBP_Compiler::FActionDispatcherBP_Compiler(UActionDispatcherBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions, TArray<UObject*>* InObjLoaded)
-	: FKismetCompilerContext(SourceSketch, InMessageLog, InCompilerOptions, InObjLoaded)
+FActionDispatcherBP_Compiler::FActionDispatcherBP_Compiler(UActionDispatcherBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions)
+	: FKismetCompilerContext(SourceSketch, InMessageLog, InCompilerOptions)
 {
 	ActionDispatcherBlueprint = SourceSketch;
 }

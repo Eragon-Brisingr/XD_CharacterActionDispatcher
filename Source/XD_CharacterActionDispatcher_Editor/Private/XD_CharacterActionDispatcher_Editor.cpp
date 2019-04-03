@@ -31,7 +31,7 @@ void FXD_CharacterActionDispatcher_EditorModule::ShutdownModule()
 
 TSharedPtr<FKismetCompilerContext> FXD_CharacterActionDispatcher_EditorModule::GetCompilerForBP(UBlueprint* BP, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompileOptions)
 {
-	return TSharedPtr<FKismetCompilerContext>(new FActionDispatcherBP_Compiler(CastChecked<UActionDispatcherBlueprint>(BP), InMessageLog, InCompileOptions, nullptr));
+	return TSharedPtr<FKismetCompilerContext>(new FActionDispatcherBP_Compiler(CastChecked<UActionDispatcherBlueprint>(BP), InMessageLog, InCompileOptions));
 }
 
 #undef LOCTEXT_NAMESPACE
