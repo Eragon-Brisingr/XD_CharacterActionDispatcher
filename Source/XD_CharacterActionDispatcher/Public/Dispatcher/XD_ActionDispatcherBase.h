@@ -65,6 +65,7 @@ public:
 	FOnActionDispatcherAbortedNative OnActionDispatcherAbortedNative;
 
 	void AbortDispatch(const FOnActionDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction = nullptr);
+
 protected:
 	void ExecuteAbortedDelegate();
 	void WhenActionAborted();
