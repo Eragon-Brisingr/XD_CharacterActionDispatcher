@@ -19,7 +19,7 @@ bool UBTD_IsInActionDispatcherState::CalculateRawConditionValue(UBehaviorTreeCom
 	{
 		if (UXD_DispatchableActionBase* Action = IXD_DispatchableEntityInterface::GetCurrentDispatchableAction(Pawn))
 		{
-			if (Action->GetOwner()->State != EActionDispatcherState::Deactive)
+			if (Action->GetOwner()->State == EActionDispatcherState::Active)
 			{
 				return true;
 			}

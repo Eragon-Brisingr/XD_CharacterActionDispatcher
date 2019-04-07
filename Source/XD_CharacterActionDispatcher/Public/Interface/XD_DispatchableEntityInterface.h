@@ -35,6 +35,16 @@ public:
 	static void SetCurrentDispatchableAction(UObject* Obj, UXD_DispatchableActionBase* Action) { IXD_DispatchableEntityInterface::Execute_SetCurrentDispatchableAction(Obj, Action); }
 
 	UFUNCTION(BlueprintNativeEvent, Category = "行为")
+	UXD_ActionDispatcherBase* GetCurrentDispatcher() const;
+	virtual UXD_ActionDispatcherBase* GetCurrentDispatcher_Implementation() const { return nullptr; }
+	static UXD_ActionDispatcherBase* GetCurrentDispatcher(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_GetCurrentDispatcher(Obj); }
+
+	UFUNCTION(BlueprintNativeEvent, Category = "行为")
+	void SetCurrentDispatcher(UXD_ActionDispatcherBase* Dispatcher);
+	virtual void SetCurrentDispatcher_Implementation(UXD_ActionDispatcherBase* Dispatcher) {}
+	static void SetCurrentDispatcher(UObject* Obj, UXD_ActionDispatcherBase* Dispatcher) { IXD_DispatchableEntityInterface::Execute_SetCurrentDispatcher(Obj, Dispatcher); }
+
+	UFUNCTION(BlueprintNativeEvent, Category = "行为")
 	bool CanExecuteDispatchableAction() const;
 	virtual bool CanExecuteDispatchableAction_Implementation() const { return true; }
 	static bool CanExecuteDispatchableAction(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_CanExecuteDispatchableAction(Obj); }

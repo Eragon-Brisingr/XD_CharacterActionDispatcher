@@ -150,6 +150,8 @@ void UXD_DispatchableActionBase::BindAllFinishedEvent(const TArray<FOnDispatchab
 
 void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 {
+	check((Actor->GetWorld()->AreActorsInitialized()));
+
 	if (Actor && Actor->Implements<UXD_DispatchableEntityInterface>())
 	{
 		if (UXD_DispatchableActionBase* PreAction = IXD_DispatchableEntityInterface::GetCurrentDispatchableAction(Actor))

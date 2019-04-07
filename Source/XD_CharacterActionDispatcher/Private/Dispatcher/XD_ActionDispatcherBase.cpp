@@ -148,6 +148,17 @@ void UXD_ActionDispatcherBase::DeactiveDispatcher()
 	check(State != EActionDispatcherState::Deactive);
 
 	State = EActionDispatcherState::Deactive;
+
+	for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
+	{
+		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
+		UObject* Obj = SoftObjectPtr.Get();
+		if (Obj->Implements<UXD_DispatchableEntityInterface>())
+		{
+			IXD_DispatchableEntityInterface::SetCurrentDispatcher(Obj, nullptr);
+		}
+	}
+
 	if (UXD_ActionDispatcherManager* Manager = GetManager())
 	{
 		Manager->WhenDispatcherDeactived(this);
@@ -211,7 +222,7 @@ const TArray<USoftObjectProperty*>& UXD_ActionDispatcherBase::GetSoftObjectPrope
 void UXD_ActionDispatcherBase::PostCDOContruct()
 {
 	Super::PostCDOContruct();
-	for (TFieldIterator<USoftObjectProperty> It(GetClass(), EFieldIteratorFlags::ExcludeSuper); It; ++It)
+	for (TFieldIterator<USoftObjectProperty> It(GetClass(), EFieldIteratorFlags::IncludeSuper); It; ++It)
 	{
 		SoftObjectPropertys.Add(*It);
 	}
@@ -242,6 +253,16 @@ void UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed(ULevel* Level)
 
 void UXD_ActionDispatcherBase::PreDispatchActived()
 {
+	for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
+	{
+		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
+		UObject* Obj = SoftObjectPtr.Get();
+		if (Obj->Implements<UXD_DispatchableEntityInterface>())
+		{
+			IXD_DispatchableEntityInterface::SetCurrentDispatcher(Obj, this);
+		}
+	}
+
 	if (UObject* Leader = DispatcherLeader.Get())
 	{
 		if (APawn* Pawn = Cast<APawn>(Leader))
@@ -290,9 +311,9 @@ bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 				{
 					return false;
 				}
-				if (UXD_DispatchableActionBase* DispatchableAction = IXD_DispatchableEntityInterface::GetCurrentDispatchableAction(Obj))
+				if (UXD_ActionDispatcherBase* Dispatcher = IXD_DispatchableEntityInterface::GetCurrentDispatcher(Obj))
 				{
-					if (DispatchableAction->GetOwner() != this)
+					if (Dispatcher != this)
 					{
 						return false;
 					}
@@ -309,6 +330,9 @@ bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 
 void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 {
+	check(State == EActionDispatcherState::Active);
+	State = EActionDispatcherState::Deactive;
+
 	if (IsSubActionDispatcher())
 	{
 		ActionDispatcher_Display_Log("结束子行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
