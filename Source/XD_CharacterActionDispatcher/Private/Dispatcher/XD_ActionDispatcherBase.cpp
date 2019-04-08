@@ -119,9 +119,16 @@ void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& E
 
 	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
-		if (DeactiveRequestAction != Action && Action->IsActionValid())
+		if (Action->IsActionValid())
 		{
-			Action->AbortAction();
+			if (DeactiveRequestAction == Action)
+			{
+				Action->DeactiveAction();
+			}
+			else
+			{
+				Action->AbortAction();
+			}
 		}
 		else
 		{
@@ -129,6 +136,14 @@ void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& E
 		}
 	}
 	WhenActionAborted();
+}
+
+void UXD_ActionDispatcherBase::BP_AbortDispatch(const FOnActionDispatcherAborted& Event)
+{
+	if (State == EActionDispatcherState::Active)
+	{
+		AbortDispatch(Event);
+	}
 }
 
 void UXD_ActionDispatcherBase::WhenActionAborted()
@@ -153,7 +168,7 @@ void UXD_ActionDispatcherBase::DeactiveDispatcher()
 	{
 		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
 		UObject* Obj = SoftObjectPtr.Get();
-		if (Obj->Implements<UXD_DispatchableEntityInterface>())
+		if (Obj && Obj->Implements<UXD_DispatchableEntityInterface>())
 		{
 			IXD_DispatchableEntityInterface::SetCurrentDispatcher(Obj, nullptr);
 		}
@@ -257,7 +272,7 @@ void UXD_ActionDispatcherBase::PreDispatchActived()
 	{
 		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
 		UObject* Obj = SoftObjectPtr.Get();
-		if (Obj->Implements<UXD_DispatchableEntityInterface>())
+		if (Obj && Obj->Implements<UXD_DispatchableEntityInterface>())
 		{
 			IXD_DispatchableEntityInterface::SetCurrentDispatcher(Obj, this);
 		}

@@ -213,7 +213,7 @@ void UXD_DispatchableActionBase::AbortDispatcher(const FOnActionDispatcherAborte
 	UXD_ActionDispatcherBase* Owner = GetOwner();
 	if (Owner->State == EActionDispatcherState::Active)
 	{
-		Owner->AbortDispatch(Event, this);
+		Owner->AbortDispatch(Event, DeactiveRequestAction ? this : nullptr);
 	}
 }
 

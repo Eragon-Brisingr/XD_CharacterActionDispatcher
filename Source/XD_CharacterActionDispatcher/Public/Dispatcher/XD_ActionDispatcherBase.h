@@ -66,6 +66,8 @@ public:
 
 	void AbortDispatch(const FOnActionDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction = nullptr);
 
+	UFUNCTION(BlueprintCallable, Category = "行为", meta = (DisplayName = "AbortDispatch"))
+	void BP_AbortDispatch(const FOnActionDispatcherAborted& Event);
 protected:
 	void ExecuteAbortedDelegate();
 	void WhenActionAborted();
@@ -90,6 +92,7 @@ public:
 	void WhenLevelLeaderDestroyed(ULevel* Level);
 
 	void PreDispatchActived();
+
 protected:
 	friend class UXD_ActionDispatcherManager;
 	friend class UXD_DispatchableActionBase;
