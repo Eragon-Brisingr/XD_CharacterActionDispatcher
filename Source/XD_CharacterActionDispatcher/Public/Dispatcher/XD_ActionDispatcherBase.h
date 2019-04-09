@@ -64,6 +64,7 @@ public:
 	FOnActionDispatcherAborted OnActionDispatcherAborted;
 	FOnActionDispatcherAbortedNative OnActionDispatcherAbortedNative;
 
+	void AbortDispatch(UXD_DispatchableActionBase* DeactiveRequestAction = nullptr);
 	void AbortDispatch(const FOnActionDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "行为", meta = (DisplayName = "AbortDispatch"))

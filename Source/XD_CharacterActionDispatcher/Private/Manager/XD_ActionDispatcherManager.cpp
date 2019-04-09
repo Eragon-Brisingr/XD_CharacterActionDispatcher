@@ -70,7 +70,7 @@ void UXD_ActionDispatcherManager::WhenPostLoad_Implementation()
 			else
 			{
 				Dispatcher->State = EActionDispatcherState::Active;
-				Dispatcher->AbortDispatch({});
+				Dispatcher->AbortDispatch();
 			}
 		}
 

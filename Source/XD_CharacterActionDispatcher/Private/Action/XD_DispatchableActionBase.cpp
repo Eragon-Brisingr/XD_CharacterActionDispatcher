@@ -172,7 +172,7 @@ void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 					if (PreAction->GetOwner()->State == EActionDispatcherState::Active)
 					{
 						//非同一调度器先将另一个调度器中断
-						PreAction->GetOwner()->AbortDispatch({});
+						PreAction->GetOwner()->AbortDispatch();
 					}
 				}
 				IXD_DispatchableEntityInterface::SetCurrentDispatchableAction(Actor, this);

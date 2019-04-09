@@ -98,7 +98,7 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 		}
 		else
 		{
-			AbortDispatch({});
+			AbortDispatch();
 		}
 	}
 }
@@ -113,13 +113,18 @@ void UXD_ActionDispatcherBase::ExecuteAbortedDelegate()
 
 void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction)
 {
-	check(State == EActionDispatcherState::Active);
-
-	State = EActionDispatcherState::Aborting;
 	if (Event.IsBound())
 	{
 		OnActionDispatcherAborted = Event;
 	}
+	AbortDispatch(DeactiveRequestAction);
+}
+
+void UXD_ActionDispatcherBase::AbortDispatch(UXD_DispatchableActionBase* DeactiveRequestAction /*= nullptr*/)
+{
+	check(State == EActionDispatcherState::Active);
+
+	State = EActionDispatcherState::Aborting;
 
 	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
@@ -257,7 +262,7 @@ void UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlay
 	if (State != EActionDispatcherState::Deactive)
 	{
 		ActionDispatcher_Display_Log("因玩家%s离开导至%s终止", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(this));
-		AbortDispatch({});
+		AbortDispatch();
 	}
 }
 
@@ -269,7 +274,7 @@ void UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed(ULevel* Level)
 		if (CurLevel == Level)
 		{
 			ActionDispatcher_Display_Log("因关卡%s卸载导至%s终止", *UXD_DebugFunctionLibrary::GetDebugName(Level), *UXD_DebugFunctionLibrary::GetDebugName(this));
-			AbortDispatch({});
+			AbortDispatch();
 			UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
 		}
 	}
