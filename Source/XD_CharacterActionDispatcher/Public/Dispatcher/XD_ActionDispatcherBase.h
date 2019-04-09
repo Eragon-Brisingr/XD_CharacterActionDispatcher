@@ -28,7 +28,7 @@ public:
 };
 
 DECLARE_DELEGATE_OneParam(FWhenDispatchFinishedNative, const FName& /*Tag*/);
-DECLARE_MULTICAST_DELEGATE(FOnActionDispatcherAbortedNative);
+DECLARE_DELEGATE(FOnActionDispatcherAbortedNative);
 
 UCLASS(abstract, BlueprintType)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
@@ -57,7 +57,7 @@ public:
 
 	bool IsDispatcherStarted() const { return CurrentActions.Num() > 0; }
 
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
 
 public:
@@ -68,6 +68,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "行为", meta = (DisplayName = "AbortDispatch"))
 	void BP_AbortDispatch(const FOnActionDispatcherAborted& Event);
+
+	UFUNCTION(BlueprintCallable, Category = "行为")
+	void AssignOnDispatcherAbort(const FOnActionDispatcherAborted& Event);
 protected:
 	void ExecuteAbortedDelegate();
 	void WhenActionAborted();
@@ -137,7 +140,7 @@ public:
 	
 	//共同行为调度器
 public:
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	bool EnterTogetherFlowControl(FGuid NodeGuid, int32 Index, int32 TogetherCount);
 
 	TMap<FGuid, FTogetherFlowControl> ActivedTogetherControl;
@@ -148,15 +151,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	bool IsSubActionDispatcher() const;
 
-	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = true))
 	UXD_ActionDispatcherBase* GetMainActionDispatcher();
 
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void ActiveSubActionDispatcher(UXD_ActionDispatcherBase* SubActionDispatcher, FGuid NodeGuid);
 
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	bool TryActiveSubActionDispatcher(FGuid NodeGuid);
 
 	UPROPERTY(SaveGame)
 	TMap<FGuid, UXD_ActionDispatcherBase*> ActivedSubActionDispatchers;
+
+public:
+	virtual void WhenActived() { ReceiveWhenActived(); }
+	UFUNCTION(BlueprintImplementableEvent, Category = "交互", meta = (DisplayName = "WhenActived"))
+	void ReceiveWhenActived();
+	virtual void WhenDeactived() { ReceiveWhenDeactived(); }
+	UFUNCTION(BlueprintImplementableEvent, Category = "交互", meta = (DisplayName = "WhenDeactived"))
+	void ReceiveWhenDeactived();
 };

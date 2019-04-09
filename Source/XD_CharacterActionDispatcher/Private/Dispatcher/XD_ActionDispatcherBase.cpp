@@ -53,6 +53,7 @@ void UXD_ActionDispatcherBase::StartDispatch()
 		State = EActionDispatcherState::Active;
 		PreDispatchActived();
 		WhenDispatchStart();
+		WhenActived();
 	}
 	else
 	{
@@ -106,8 +107,8 @@ void UXD_ActionDispatcherBase::ExecuteAbortedDelegate()
 {
 	OnActionDispatcherAborted.ExecuteIfBound();
 	OnActionDispatcherAborted.Clear();
-	OnActionDispatcherAbortedNative.Broadcast();
-	OnActionDispatcherAbortedNative.Clear();
+	OnActionDispatcherAbortedNative.ExecuteIfBound();
+	OnActionDispatcherAbortedNative.Unbind();
 }
 
 void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction)
@@ -115,7 +116,10 @@ void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& E
 	check(State == EActionDispatcherState::Active);
 
 	State = EActionDispatcherState::Aborting;
-	OnActionDispatcherAborted = Event;
+	if (Event.IsBound())
+	{
+		OnActionDispatcherAborted = Event;
+	}
 
 	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
@@ -144,6 +148,11 @@ void UXD_ActionDispatcherBase::BP_AbortDispatch(const FOnActionDispatcherAborted
 	{
 		AbortDispatch(Event);
 	}
+}
+
+void UXD_ActionDispatcherBase::AssignOnDispatcherAbort(const FOnActionDispatcherAborted& Event)
+{
+	OnActionDispatcherAborted = Event;
 }
 
 void UXD_ActionDispatcherBase::WhenActionAborted()
@@ -297,7 +306,6 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 
 	State = EActionDispatcherState::Active;
 	PreDispatchActived();
-
 	for (UXD_DispatchableActionBase* Action : TArray<UXD_DispatchableActionBase*>(CurrentActions))
 	{
 		if (Action)
@@ -305,6 +313,7 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 			Action->ReactiveAction();
 		}
 	}
+	WhenActived();
 }
 
 bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
@@ -364,6 +373,7 @@ void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 	{
 		Manager->WhenDispatcherFinished(this);
 	}
+	WhenDeactived();
 }
 
 #if WITH_EDITOR
