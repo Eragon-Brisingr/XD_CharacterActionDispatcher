@@ -29,6 +29,7 @@ public:
 
 DECLARE_DELEGATE_OneParam(FWhenDispatchFinishedNative, const FName& /*Tag*/);
 DECLARE_DELEGATE(FOnActionDispatcherAbortedNative);
+DECLARE_DELEGATE_OneParam(FOnDispatchDeactiveNative, bool /*IsFinsihedCompleted*/);
 
 UCLASS(abstract, BlueprintType)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
@@ -76,7 +77,7 @@ protected:
 	void ExecuteAbortedDelegate();
 	void WhenActionAborted();
 
-	void DeactiveDispatcher();
+	void DeactiveDispatcher(bool IsFinsihedCompleted);
 	void SaveDispatchState();
 
 	bool CanReactiveDispatcher() const;
@@ -168,7 +169,9 @@ public:
 	virtual void WhenActived() { ReceiveWhenActived(); }
 	UFUNCTION(BlueprintImplementableEvent, Category = "交互", meta = (DisplayName = "WhenActived"))
 	void ReceiveWhenActived();
-	virtual void WhenDeactived() { ReceiveWhenDeactived(); }
+
+	FOnDispatchDeactiveNative OnDispatchDeactiveNative;
+	virtual void WhenDeactived(bool IsFinsihedCompleted);
 	UFUNCTION(BlueprintImplementableEvent, Category = "交互", meta = (DisplayName = "WhenDeactived"))
-	void ReceiveWhenDeactived();
+	void ReceiveWhenDeactived(bool IsFinsihedCompleted);
 };

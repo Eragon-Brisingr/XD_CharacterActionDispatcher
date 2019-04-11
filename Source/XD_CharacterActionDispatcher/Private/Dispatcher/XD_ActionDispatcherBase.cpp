@@ -106,9 +106,7 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 void UXD_ActionDispatcherBase::ExecuteAbortedDelegate()
 {
 	OnActionDispatcherAborted.ExecuteIfBound();
-	OnActionDispatcherAborted.Clear();
 	OnActionDispatcherAbortedNative.ExecuteIfBound();
-	OnActionDispatcherAbortedNative.Unbind();
 }
 
 void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction)
@@ -166,16 +164,15 @@ void UXD_ActionDispatcherBase::WhenActionAborted()
 	{
 		if (CurrentActions.ContainsByPredicate([](UXD_DispatchableActionBase* Action) {return Action->State != EDispatchableActionState::Deactive; }) == false)
 		{
-			DeactiveDispatcher();
+			DeactiveDispatcher(false);
 			ExecuteAbortedDelegate();
 		}
 	}
 }
 
-void UXD_ActionDispatcherBase::DeactiveDispatcher()
+void UXD_ActionDispatcherBase::DeactiveDispatcher(bool IsFinsihedCompleted)
 {
 	check(State != EActionDispatcherState::Deactive);
-
 	State = EActionDispatcherState::Deactive;
 
 	for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
@@ -204,6 +201,7 @@ void UXD_ActionDispatcherBase::DeactiveDispatcher()
 			UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
 		}
 	}
+	WhenDeactived(IsFinsihedCompleted);
 }
 
 void UXD_ActionDispatcherBase::SaveDispatchState()
@@ -360,7 +358,11 @@ bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 {
 	check(State == EActionDispatcherState::Active);
-	State = EActionDispatcherState::Deactive;
+	DeactiveDispatcher(true);
+	if (UXD_ActionDispatcherManager* Manager = GetManager())
+	{
+		Manager->WhenDispatcherFinished(this);
+	}
 
 	if (IsSubActionDispatcher())
 	{
@@ -370,15 +372,11 @@ void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 	{
 		ActionDispatcher_Display_Log("结束行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
 	}
+
+
 	OnDispatchFinished.Broadcast(Tag);
 	WhenDispatchFinished.ExecuteIfBound(Tag.GetTagName());
 	WhenDispatchFinishedNative.ExecuteIfBound(Tag.GetTagName());
-
-	if (UXD_ActionDispatcherManager* Manager = GetManager())
-	{
-		Manager->WhenDispatcherFinished(this);
-	}
-	WhenDeactived();
 }
 
 #if WITH_EDITOR
@@ -464,4 +462,10 @@ bool UXD_ActionDispatcherBase::TryActiveSubActionDispatcher(FGuid NodeGuid)
 	{
 		return false;
 	}
+}
+
+void UXD_ActionDispatcherBase::WhenDeactived(bool IsFinsihedCompleted)
+{
+	OnDispatchDeactiveNative.ExecuteIfBound(IsFinsihedCompleted);
+	ReceiveWhenDeactived(IsFinsihedCompleted);
 }
