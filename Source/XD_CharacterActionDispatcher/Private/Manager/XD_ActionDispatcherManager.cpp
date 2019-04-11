@@ -59,7 +59,7 @@ void UXD_ActionDispatcherManager::WhenPostLoad_Implementation()
 	//https://issues.unrealengine.com/issue/UE-63285
 	//很诡异的是直接从PostLoad调用的话软引用指向的Actor不是场景中的，通过TimerManager中转处理下
 	FTimerHandle TimeHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimeHandle, FTimerDelegate::CreateLambda([this] 
+	GetWorld()->GetTimerManager().SetTimer(TimeHandle, FTimerDelegate::CreateWeakLambda(this, [this] 
 	{
 		for (UXD_ActionDispatcherBase* Dispatcher : TArray<UXD_ActionDispatcherBase*>(ActivedDispatchers))
 		{
