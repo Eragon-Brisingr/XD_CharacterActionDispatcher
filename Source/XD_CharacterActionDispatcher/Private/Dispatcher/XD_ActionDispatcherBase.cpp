@@ -51,7 +51,7 @@ void UXD_ActionDispatcherBase::StartDispatch()
 		check(State == EActionDispatcherState::Deactive);
 
 		State = EActionDispatcherState::Active;
-		PreDispatchActived();
+		ActiveDispatcher();
 		WhenDispatchStart();
 		WhenActived();
 	}
@@ -164,6 +164,7 @@ void UXD_ActionDispatcherBase::WhenActionAborted()
 	{
 		if (CurrentActions.ContainsByPredicate([](UXD_DispatchableActionBase* Action) {return Action->State != EDispatchableActionState::Deactive; }) == false)
 		{
+			ActionDispatcher_Display_Log("中断%s调度器", *UXD_DebugFunctionLibrary::GetDebugName(this));
 			DeactiveDispatcher(false);
 			ExecuteAbortedDelegate();
 		}
@@ -202,6 +203,7 @@ void UXD_ActionDispatcherBase::DeactiveDispatcher(bool IsFinsihedCompleted)
 		}
 	}
 	WhenDeactived(IsFinsihedCompleted);
+	OnDispatchDeactiveNative.ExecuteIfBound(IsFinsihedCompleted);
 }
 
 void UXD_ActionDispatcherBase::SaveDispatchState()
@@ -278,7 +280,22 @@ void UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed(ULevel* Level)
 	}
 }
 
-void UXD_ActionDispatcherBase::PreDispatchActived()
+void UXD_ActionDispatcherBase::ReactiveDispatcher()
+{
+	check(State == EActionDispatcherState::Deactive);
+
+	State = EActionDispatcherState::Active;
+	ActiveDispatcher();
+	for (UXD_DispatchableActionBase* Action : TArray<UXD_DispatchableActionBase*>(CurrentActions))
+	{
+		if (Action)
+		{
+			Action->ReactiveAction();
+		}
+	}
+}
+
+void UXD_ActionDispatcherBase::ActiveDispatcher()
 {
 	for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
 	{
@@ -299,21 +316,6 @@ void UXD_ActionDispatcherBase::PreDispatchActived()
 		else
 		{
 			UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.AddUObject(this, &UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed);
-		}
-	}
-}
-
-void UXD_ActionDispatcherBase::ReactiveDispatcher()
-{
-	check(State == EActionDispatcherState::Deactive);
-
-	State = EActionDispatcherState::Active;
-	PreDispatchActived();
-	for (UXD_DispatchableActionBase* Action : TArray<UXD_DispatchableActionBase*>(CurrentActions))
-	{
-		if (Action)
-		{
-			Action->ReactiveAction();
 		}
 	}
 	WhenActived();
@@ -466,6 +468,5 @@ bool UXD_ActionDispatcherBase::TryActiveSubActionDispatcher(FGuid NodeGuid)
 
 void UXD_ActionDispatcherBase::WhenDeactived(bool IsFinsihedCompleted)
 {
-	OnDispatchDeactiveNative.ExecuteIfBound(IsFinsihedCompleted);
 	ReceiveWhenDeactived(IsFinsihedCompleted);
 }

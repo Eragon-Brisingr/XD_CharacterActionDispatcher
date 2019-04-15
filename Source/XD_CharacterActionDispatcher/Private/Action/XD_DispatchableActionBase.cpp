@@ -29,7 +29,7 @@ void UXD_DispatchableActionBase::ActiveAction()
 {
 	check(State != EDispatchableActionState::Active);
 
-	ActionDispatcher_Display_Log("激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+	ActionDispatcher_Display_VLog(GetOwner(), "激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 	State = EDispatchableActionState::Active;
 	WhenActionActived();
 }
@@ -38,7 +38,7 @@ void UXD_DispatchableActionBase::AbortAction()
 {
 	check(State != EDispatchableActionState::Aborting);
 
-	ActionDispatcher_Display_Log("中断%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+	ActionDispatcher_Display_VLog(GetOwner(), "中断%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 	State = EDispatchableActionState::Aborting;
 	WhenActionAborted();
 }
@@ -55,14 +55,13 @@ void UXD_DispatchableActionBase::DeactiveAction()
 	bool isFromAbort = State == EDispatchableActionState::Aborting;
 
 	State = EDispatchableActionState::Deactive;
-	ActionDispatcher_Display_Log("反激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+	ActionDispatcher_Display_VLog(GetOwner(), "反激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 
 	if (isFromAbort)
 	{
 		GetOwner()->WhenActionAborted();
 		OnActionAborted.ExecuteIfBound();
 		OnActionAborted.Unbind();
-//		OnActionAbortedEvent.ExecuteIfBound();
 	}
 
 	SaveState();
@@ -73,7 +72,7 @@ void UXD_DispatchableActionBase::ReactiveAction()
 {
 	check(State != EDispatchableActionState::Active);
 
-	ActionDispatcher_Display_Log("再次激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+	ActionDispatcher_Display_VLog(GetOwner(), "再次激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 	State = EDispatchableActionState::Active;
 	WhenActionReactived();
 }
@@ -92,7 +91,7 @@ void UXD_DispatchableActionBase::FinishAction()
 	UXD_ActionDispatcherBase* ActionDispatcher = GetOwner();
 	ActionDispatcher->CurrentActions.Remove(this);
 	WhenActionFinished();
-	ActionDispatcher_Display_Log("结束%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+	ActionDispatcher_Display_VLog(GetOwner(), "结束%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }
 
 void UXD_DispatchableActionBase::SaveState()
@@ -183,7 +182,7 @@ void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 			IXD_DispatchableEntityInterface::SetCurrentDispatchableAction(Actor, this);
 		}
 	}
-	ActionDispatcher_Display_Log("--%s执行行为%s", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+	ActionDispatcher_Display_VLog(Actor, "%s执行行为%s", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }
 
 void UXD_DispatchableActionBase::UnregisterEntity(AActor* Actor)
@@ -194,7 +193,7 @@ void UXD_DispatchableActionBase::UnregisterEntity(AActor* Actor)
 
 		IXD_DispatchableEntityInterface::SetCurrentDispatchableAction(Actor, nullptr);
 	}
-	ActionDispatcher_Display_Log("--%s停止执行行为%s", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
+	ActionDispatcher_Display_VLog(Actor, "%s停止执行行为%s", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }
 
 void UXD_DispatchableActionBase::ExecuteEventAndFinishAction(const FOnDispatchableActionFinishedEvent& Event)

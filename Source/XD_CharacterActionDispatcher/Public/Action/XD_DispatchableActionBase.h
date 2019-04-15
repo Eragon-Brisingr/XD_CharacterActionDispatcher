@@ -43,9 +43,6 @@ protected:
 	//当行为被中断时的实现，一般为NPC主动想中断该行为
 	virtual void WhenActionAborted();
 
-// 	UPROPERTY(SaveGame, meta = (DisplayName = "当被中断后"))
-// 	FOnDispatchableActionFinishedEvent OnActionAbortedEvent;
-
 	void DeactiveAction();
 	//当行为反激活时的实现，一般用作清理委托
 	UFUNCTION()

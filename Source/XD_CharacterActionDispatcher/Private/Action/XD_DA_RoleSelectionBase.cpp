@@ -38,7 +38,7 @@ void UXD_DA_RoleSelectionBase::WhenActionActived()
 	else
 	{
 		int32 SelectIdx = FMath::RandHelper(Selections.Num());
-		ActionDispatcher_Display_Log("%s未实现XD_DA_RoleSelectionInterface，随机选择了选项[%s]", *UXD_DebugFunctionLibrary::GetDebugName(Pawn), *Selections[SelectIdx].Selection.ToString());
+		ActionDispatcher_Warning_LOG("%s未实现XD_DA_RoleSelectionInterface，随机选择了选项[%s]", *UXD_DebugFunctionLibrary::GetDebugName(Pawn), *Selections[SelectIdx].Selection.ToString());
 		ExecuteSelection(Selections[SelectIdx]);
 	}
 }

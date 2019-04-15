@@ -96,14 +96,13 @@ public:
 	void WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason);
 	void WhenLevelLeaderDestroyed(ULevel* Level);
 
-	void PreDispatchActived();
-
 protected:
 	friend class UXD_ActionDispatcherManager;
 	friend class UXD_DispatchableActionBase;
 	bool InvokeReactiveDispatch();
 	void ReactiveDispatcher();
 
+	void ActiveDispatcher();
 private:
 	bool IsAllSoftReferenceValid() const;
 	//结束调度器
