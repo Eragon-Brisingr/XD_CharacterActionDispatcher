@@ -61,6 +61,12 @@ void UXD_ActionDispatcherBase::StartDispatch()
 	}
 }
 
+void UXD_ActionDispatcherBase::StartDispatchWithEvent(const FOnDispatchDeactiveNative& OnDispatchDeactive)
+{
+	OnDispatchDeactiveNative = OnDispatchDeactive;
+	StartDispatch();
+}
+
 void UXD_ActionDispatcherBase::InitLeader(AActor* InDispatcherLeader)
 {
 	check(DispatcherLeader == nullptr);
@@ -105,15 +111,15 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 
 void UXD_ActionDispatcherBase::ExecuteAbortedDelegate()
 {
-	OnActionDispatcherAborted.ExecuteIfBound();
-	OnActionDispatcherAbortedNative.ExecuteIfBound();
+	OnDispatcherAborted.ExecuteIfBound();
+	OnDispatcherAbortedNative.ExecuteIfBound();
 }
 
-void UXD_ActionDispatcherBase::AbortDispatch(const FOnActionDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction)
+void UXD_ActionDispatcherBase::AbortDispatch(const FOnDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction)
 {
 	if (Event.IsBound())
 	{
-		OnActionDispatcherAborted = Event;
+		OnDispatcherAborted = Event;
 	}
 	AbortDispatch(DeactiveRequestAction);
 }
@@ -145,7 +151,13 @@ void UXD_ActionDispatcherBase::AbortDispatch(UXD_DispatchableActionBase* Deactiv
 	WhenActionAborted();
 }
 
-void UXD_ActionDispatcherBase::BP_AbortDispatch(const FOnActionDispatcherAborted& Event)
+void UXD_ActionDispatcherBase::AbortDispatch(const FOnDispatcherAbortedNative& Event, UXD_DispatchableActionBase* DeactiveRequestAction /*= nullptr*/)
+{
+	OnDispatcherAbortedNative = Event;
+	AbortDispatch(DeactiveRequestAction);
+}
+
+void UXD_ActionDispatcherBase::BP_AbortDispatch(const FOnDispatcherAborted& Event)
 {
 	if (State == EActionDispatcherState::Active)
 	{
@@ -153,9 +165,9 @@ void UXD_ActionDispatcherBase::BP_AbortDispatch(const FOnActionDispatcherAborted
 	}
 }
 
-void UXD_ActionDispatcherBase::AssignOnDispatcherAbort(const FOnActionDispatcherAborted& Event)
+void UXD_ActionDispatcherBase::AssignOnDispatcherAbort(const FOnDispatcherAborted& Event)
 {
-	OnActionDispatcherAborted = Event;
+	OnDispatcherAborted = Event;
 }
 
 void UXD_ActionDispatcherBase::WhenActionAborted()

@@ -207,7 +207,7 @@ bool UXD_DispatchableActionBase::IsActionValid() const
 	return false;
 }
 
-void UXD_DispatchableActionBase::AbortDispatcher(const FOnActionDispatcherAborted& Event, bool DeactiveRequestAction)
+void UXD_DispatchableActionBase::AbortDispatcher(const FOnDispatcherAborted& Event, bool DeactiveRequestAction)
 {
 	UXD_ActionDispatcherBase* Owner = GetOwner();
 	if (Owner->State == EActionDispatcherState::Active)

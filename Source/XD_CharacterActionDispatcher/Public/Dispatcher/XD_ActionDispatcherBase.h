@@ -28,7 +28,7 @@ public:
 };
 
 DECLARE_DELEGATE_OneParam(FWhenDispatchFinishedNative, const FName& /*Tag*/);
-DECLARE_DELEGATE(FOnActionDispatcherAbortedNative);
+DECLARE_DELEGATE(FOnDispatcherAbortedNative);
 DECLARE_DELEGATE_OneParam(FOnDispatchDeactiveNative, bool /*IsFinsihedCompleted*/);
 
 UCLASS(abstract, BlueprintType)
@@ -53,6 +53,8 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void InitLeader(AActor* InDispatcherLeader);
 
+	void StartDispatchWithEvent(const FOnDispatchDeactiveNative& OnDispatchDeactive);
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "执行调度"))
 	void WhenDispatchStart();
 
@@ -62,17 +64,18 @@ public:
 	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
 
 public:
-	FOnActionDispatcherAborted OnActionDispatcherAborted;
-	FOnActionDispatcherAbortedNative OnActionDispatcherAbortedNative;
+	FOnDispatcherAborted OnDispatcherAborted;
+	FOnDispatcherAbortedNative OnDispatcherAbortedNative;
 
 	void AbortDispatch(UXD_DispatchableActionBase* DeactiveRequestAction = nullptr);
-	void AbortDispatch(const FOnActionDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction = nullptr);
+	void AbortDispatch(const FOnDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction = nullptr);
+	void AbortDispatch(const FOnDispatcherAbortedNative& Event, UXD_DispatchableActionBase* DeactiveRequestAction = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "行为", meta = (DisplayName = "AbortDispatch"))
-	void BP_AbortDispatch(const FOnActionDispatcherAborted& Event);
+	void BP_AbortDispatch(const FOnDispatcherAborted& Event);
 
 	UFUNCTION(BlueprintCallable, Category = "行为")
-	void AssignOnDispatcherAbort(const FOnActionDispatcherAborted& Event);
+	void AssignOnDispatcherAbort(const FOnDispatcherAborted& Event);
 protected:
 	void ExecuteAbortedDelegate();
 	void WhenActionAborted();

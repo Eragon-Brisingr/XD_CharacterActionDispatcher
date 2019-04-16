@@ -94,7 +94,7 @@ protected:
 	virtual bool IsActionValid() const;
 public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
-	void AbortDispatcher(const FOnActionDispatcherAborted& Event, bool DeactiveRequestAction = false);
+	void AbortDispatcher(const FOnDispatcherAborted& Event, bool DeactiveRequestAction = false);
 
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	bool CanReactiveDispatcher() const;

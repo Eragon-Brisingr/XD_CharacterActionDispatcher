@@ -24,7 +24,7 @@ private:
 	void ExecuteIfBound() const { Event.ExecuteIfBound(); }
 };
 
-DECLARE_DYNAMIC_DELEGATE(FOnActionDispatcherAborted);
+DECLARE_DYNAMIC_DELEGATE(FOnDispatcherAborted);
 
 USTRUCT(BlueprintType, BlueprintInternalUseOnly)
 struct XD_CHARACTERACTIONDISPATCHER_API FDA_RoleSelectionBase
