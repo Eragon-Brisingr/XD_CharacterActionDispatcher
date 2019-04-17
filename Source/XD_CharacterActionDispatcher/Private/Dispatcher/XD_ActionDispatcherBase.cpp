@@ -53,7 +53,7 @@ void UXD_ActionDispatcherBase::StartDispatch()
 		State = EActionDispatcherState::Active;
 		ActiveDispatcher();
 		WhenDispatchStart();
-		WhenActived();
+		ActionDispatcher_Display_Log("开始行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
 	}
 	else
 	{
@@ -149,6 +149,7 @@ void UXD_ActionDispatcherBase::AbortDispatch(UXD_DispatchableActionBase* Deactiv
 		}
 	}
 	WhenActionAborted();
+	ActionDispatcher_Display_Log("中断行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
 }
 
 void UXD_ActionDispatcherBase::AbortDispatch(const FOnDispatcherAbortedNative& Event, UXD_DispatchableActionBase* DeactiveRequestAction /*= nullptr*/)
