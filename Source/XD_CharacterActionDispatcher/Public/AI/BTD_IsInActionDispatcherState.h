@@ -17,6 +17,7 @@ public:
 	UBTD_IsInActionDispatcherState();
 
 	bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+	void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 	FString GetStaticDescription() const override;
 };

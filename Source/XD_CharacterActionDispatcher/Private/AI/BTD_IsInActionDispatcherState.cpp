@@ -9,6 +9,7 @@
 UBTD_IsInActionDispatcherState::UBTD_IsInActionDispatcherState()
 {
 	FlowAbortMode = EBTFlowAbortMode::Self;
+	bNotifyTick = true;
 }
 
 bool UBTD_IsInActionDispatcherState::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
@@ -26,6 +27,14 @@ bool UBTD_IsInActionDispatcherState::CalculateRawConditionValue(UBehaviorTreeCom
 		}
 	}
 	return false;
+}
+
+void UBTD_IsInActionDispatcherState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+	if (FlowAbortMode != EBTFlowAbortMode::None && !CalculateRawConditionValue(OwnerComp, NodeMemory))
+	{
+		OwnerComp.RequestExecution(this);
+	}
 }
 
 FString UBTD_IsInActionDispatcherState::GetStaticDescription() const

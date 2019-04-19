@@ -355,10 +355,11 @@ bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 				}
 				if (UXD_ActionDispatcherBase* Dispatcher = IXD_DispatchableEntityInterface::GetCurrentDispatcher(Obj))
 				{
-					if (Dispatcher != this)
-					{
-						return false;
-					}
+					//TODO 调度器中添加Action并行测试，测试通过则允许同时启用调度器
+// 					if (Dispatcher != this)
+// 					{
+// 						return false;
+// 					}
 				}
 			}
 		}
