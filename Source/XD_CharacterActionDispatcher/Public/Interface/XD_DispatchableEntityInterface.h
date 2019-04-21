@@ -8,6 +8,26 @@
 
 class UXD_DispatchableActionBase;
 
+USTRUCT(BlueprintType, BlueprintInternalUseOnly)
+struct XD_CHARACTERACTIONDISPATCHER_API FXD_DispatchableActionList
+{
+	GENERATED_BODY()
+public:
+	FXD_DispatchableActionList() = default;
+	FXD_DispatchableActionList(TArray<UXD_DispatchableActionBase*>& Actions)
+		:List(&Actions)
+	{}
+private:
+	TArray<UXD_DispatchableActionBase*>* List = nullptr;
+public:
+	operator bool() const { return List != nullptr; }
+	TArray<UXD_DispatchableActionBase*>& operator*()
+	{
+		check(List != nullptr);
+		return *List;
+	}
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UXD_DispatchableEntityInterface : public UInterface
@@ -24,15 +44,22 @@ class XD_CHARACTERACTIONDISPATCHER_API IXD_DispatchableEntityInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	UFUNCTION(BlueprintNativeEvent, Category = "行为", BlueprintCallable, meta = (CompactNodeTitle = "GetAction"))
-	UXD_DispatchableActionBase* GetCurrentDispatchableAction() const;
-	virtual UXD_DispatchableActionBase* GetCurrentDispatchableAction_Implementation() const { return nullptr; }
-	static UXD_DispatchableActionBase* GetCurrentDispatchableAction(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_GetCurrentDispatchableAction(Obj); }
-
 	UFUNCTION(BlueprintNativeEvent, Category = "行为")
-	void SetCurrentDispatchableAction(UXD_DispatchableActionBase* Action);
-	virtual void SetCurrentDispatchableAction_Implementation(UXD_DispatchableActionBase* Action) {}
-	static void SetCurrentDispatchableAction(UObject* Obj, UXD_DispatchableActionBase* Action) { IXD_DispatchableEntityInterface::Execute_SetCurrentDispatchableAction(Obj, Action); }
+	FXD_DispatchableActionList GetCurrentDispatchableActions();
+	virtual FXD_DispatchableActionList GetCurrentDispatchableActions_Implementation() { return FXD_DispatchableActionList(); }
+	static TArray<UXD_DispatchableActionBase*>& GetCurrentDispatchableActions(UObject* Obj) { return *IXD_DispatchableEntityInterface::Execute_GetCurrentDispatchableActions(Obj); }
+	template<typename ActionType>
+	static ActionType* GetCurrentDispatchableAction(UObject* Obj)
+	{
+		for (UXD_DispatchableActionBase* Action : GetCurrentDispatchableActions(Obj))
+		{
+			if (ActionType* InvokeAction = Cast<ActionType>(Action))
+			{
+				return InvokeAction;
+			}
+		}
+		return nullptr;
+	}
 
 	UFUNCTION(BlueprintNativeEvent, Category = "行为")
 	UXD_ActionDispatcherBase* GetCurrentDispatcher() const;

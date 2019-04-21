@@ -153,9 +153,11 @@ void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 
 	if (Actor && Actor->Implements<UXD_DispatchableEntityInterface>())
 	{
-		if (UXD_DispatchableActionBase* PreAction = IXD_DispatchableEntityInterface::GetCurrentDispatchableAction(Actor))
+		TArray<UXD_DispatchableActionBase*>& Actions = IXD_DispatchableEntityInterface::GetCurrentDispatchableActions(Actor);
+		for (UXD_DispatchableActionBase* PreAction : TArray<UXD_DispatchableActionBase*>(Actions))
 		{
-			if (PreAction != this)
+			const bool IsBothCompatible = PreAction->IsCompatibleWith(this) && IsCompatibleWith(PreAction);
+			if (!IsBothCompatible)
 			{
 				//调度器内的行为抢占式跳转移除前一个进行时节点
 				if (PreAction->GetOwner() == GetOwner())
@@ -171,16 +173,13 @@ void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 					if (PreAction->GetOwner()->State == EActionDispatcherState::Active)
 					{
 						//非同一调度器先将另一个调度器中断
-						PreAction->GetOwner()->AbortDispatch();
+						PreAction->GetOwner()->AbortDispatch(PreAction);
 					}
 				}
-				IXD_DispatchableEntityInterface::SetCurrentDispatchableAction(Actor, this);
+				Actions.Remove(PreAction);
 			}
 		}
-		else
-		{
-			IXD_DispatchableEntityInterface::SetCurrentDispatchableAction(Actor, this);
-		}
+		Actions.Add(this);
 	}
 	ActionDispatcher_Display_VLog(Actor, "%s执行行为%s", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }
@@ -189,9 +188,9 @@ void UXD_DispatchableActionBase::UnregisterEntity(AActor* Actor)
 {
 	if (Actor && Actor->Implements<UXD_DispatchableEntityInterface>())
 	{
-		check(IXD_DispatchableEntityInterface::GetCurrentDispatchableAction(Actor) == this);
-
-		IXD_DispatchableEntityInterface::SetCurrentDispatchableAction(Actor, nullptr);
+		TArray<UXD_DispatchableActionBase*>& Actions = IXD_DispatchableEntityInterface::GetCurrentDispatchableActions(Actor);
+		check(Actions.Contains(this));
+		Actions.Remove(this);
 	}
 	ActionDispatcher_Display_VLog(Actor, "%s停止执行行为%s", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }
@@ -213,6 +212,25 @@ void UXD_DispatchableActionBase::AbortDispatcher(const FOnDispatcherAborted& Eve
 	if (Owner->State == EActionDispatcherState::Active)
 	{
 		Owner->AbortDispatch(Event, DeactiveRequestAction ? this : nullptr);
+	}
+}
+
+void UXD_DispatchableActionBase::AbortDispatcher(const FOnActionAborted& Event, bool DeactiveRequestAction /*= false*/)
+{
+	OnActionAborted = Event;
+	UXD_ActionDispatcherBase* Owner = GetOwner();
+	if (Owner->State == EActionDispatcherState::Active)
+	{
+		Owner->AbortDispatch(DeactiveRequestAction ? this : nullptr);
+	}
+}
+
+void UXD_DispatchableActionBase::AbortDispatcher(bool DeactiveRequestAction /*= false*/)
+{
+	UXD_ActionDispatcherBase* Owner = GetOwner();
+	if (Owner->State == EActionDispatcherState::Active)
+	{
+		Owner->AbortDispatch(DeactiveRequestAction ? this : nullptr);
 	}
 }
 

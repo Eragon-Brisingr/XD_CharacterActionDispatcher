@@ -87,7 +87,7 @@ UXD_DA_RoleSelectionBase* UXD_DA_RoleSelectionBase::ShowSelection(UXD_ActionDisp
 	APawn* Role = InRole.Get();
 	if (Role->Implements<UXD_DispatchableEntityInterface>())
 	{
-		if (UXD_DA_RoleSelectionBase* RoleSelection = Cast<UXD_DA_RoleSelectionBase>(IXD_DispatchableEntityInterface::GetCurrentDispatchableAction(Role)))
+		if (UXD_DA_RoleSelectionBase* RoleSelection = IXD_DispatchableEntityInterface::GetCurrentDispatchableAction<UXD_DA_RoleSelectionBase>(Role))
 		{
 			RoleSelection->AddSelections(InSelections);
 			return RoleSelection;

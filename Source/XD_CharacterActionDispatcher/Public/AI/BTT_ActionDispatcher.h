@@ -19,6 +19,4 @@ protected:
 	EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 private:
 	EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
-	void WhenActionAborted(UBehaviorTreeComponent* OwnerComp);
 };

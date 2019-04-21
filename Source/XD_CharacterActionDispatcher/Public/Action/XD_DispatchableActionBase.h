@@ -34,7 +34,6 @@ protected:
 
 	void ActiveAction();
 	//当行为被第一次激活时的实现，别忘记调用RegisterEntity
-	UFUNCTION()
 	virtual void WhenActionActived(){}
 
 	virtual bool CanActiveAction() const { return IsActionValid(); }
@@ -45,14 +44,14 @@ protected:
 
 	void DeactiveAction();
 	//当行为反激活时的实现，一般用作清理委托
-	UFUNCTION()
 	virtual void WhenActionDeactived(){}
 
 	void ReactiveAction();
 	//当行为被再次激活时的实现
-	UFUNCTION()
 	virtual void WhenActionReactived();
 
+	//行为是否能和其他行为同时执行
+	virtual bool IsCompatibleWith(UXD_DispatchableActionBase* Action) const { return false; }
 private:
 	void FinishAction();
 public:
@@ -95,6 +94,8 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void AbortDispatcher(const FOnDispatcherAborted& Event, bool DeactiveRequestAction = false);
+	void AbortDispatcher(const FOnActionAborted& Event, bool DeactiveRequestAction = false);
+	void AbortDispatcher(bool DeactiveRequestAction = false);
 
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	bool CanReactiveDispatcher() const;
