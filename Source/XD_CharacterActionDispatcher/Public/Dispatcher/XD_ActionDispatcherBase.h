@@ -31,7 +31,7 @@ DECLARE_DELEGATE_OneParam(FWhenDispatchFinishedNative, const FName& /*Tag*/);
 DECLARE_DELEGATE(FOnDispatcherAbortedNative);
 DECLARE_DELEGATE_OneParam(FOnDispatchDeactiveNative, bool /*IsFinsihedCompleted*/);
 
-UCLASS(abstract, BlueprintType)
+UCLASS(abstract, BlueprintType, Blueprintable)
 class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
 {
 	GENERATED_BODY()

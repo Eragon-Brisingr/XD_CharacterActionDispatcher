@@ -10,6 +10,7 @@ AXD_ReplicableLevelSequence::AXD_ReplicableLevelSequence(const FObjectInitialize
 	bReplicates = true;
 	bReplicateMovement = true;
 	bOverrideInstanceData = true;
+	bReplicatePlayback = true;
 
 	UDefaultLevelSequenceInstanceData* LevelSequenceInstanceData = Cast<UDefaultLevelSequenceInstanceData>(DefaultInstanceData);
 	LevelSequenceInstanceData->TransformOriginActor = this;
@@ -32,10 +33,7 @@ void AXD_ReplicableLevelSequence::BeginPlay()
 void AXD_ReplicableLevelSequence::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	if (SequencePlayer && HasAuthority() == false)
-	{
-		SequencePlayer->Stop();
-	}
+
 }
 
 void AXD_ReplicableLevelSequence::OnRep_LevelSequence()
@@ -75,7 +73,7 @@ void AXD_ReplicableLevelSequence::Play(ULevelSequence* Sequence, const FTransfor
 		SetActorTransform(PlayTransform);
 		LevelSequenceRef = Sequence;
 		BindingDatas = Data;
-		OnRep_LevelSequence();
 		OnRep_BindingDatas();
+		OnRep_LevelSequence();
 	}
 }
