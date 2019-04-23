@@ -62,17 +62,17 @@ public:
 	}
 
 	UFUNCTION(BlueprintNativeEvent, Category = "行为")
-	UXD_ActionDispatcherBase* GetCurrentDispatcher() const;
-	virtual UXD_ActionDispatcherBase* GetCurrentDispatcher_Implementation() const { return nullptr; }
-	static UXD_ActionDispatcherBase* GetCurrentDispatcher(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_GetCurrentDispatcher(Obj); }
+	UXD_ActionDispatcherBase* GetCurrentMainDispatcher() const;
+	virtual UXD_ActionDispatcherBase* GetCurrentMainDispatcher_Implementation() const { return nullptr; }
+	static UXD_ActionDispatcherBase* GetCurrentMainDispatcher(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_GetCurrentMainDispatcher(Obj); }
 
 	UFUNCTION(BlueprintNativeEvent, Category = "行为")
-	void SetCurrentDispatcher(UXD_ActionDispatcherBase* Dispatcher);
-	virtual void SetCurrentDispatcher_Implementation(UXD_ActionDispatcherBase* Dispatcher) {}
-	static void SetCurrentDispatcher(UObject* Obj, UXD_ActionDispatcherBase* Dispatcher) { IXD_DispatchableEntityInterface::Execute_SetCurrentDispatcher(Obj, Dispatcher); }
+	void SetCurrentMainDispatcher(UXD_ActionDispatcherBase* Dispatcher);
+	virtual void SetCurrentMainDispatcher_Implementation(UXD_ActionDispatcherBase* Dispatcher) {}
+	static void SetCurrentMainDispatcher(UObject* Obj, UXD_ActionDispatcherBase* Dispatcher) { IXD_DispatchableEntityInterface::Execute_SetCurrentMainDispatcher(Obj, Dispatcher); }
 
 	UFUNCTION(BlueprintNativeEvent, Category = "行为")
-	bool CanExecuteDispatchableAction() const;
-	virtual bool CanExecuteDispatchableAction_Implementation() const { return true; }
-	static bool CanExecuteDispatchableAction(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_CanExecuteDispatchableAction(Obj); }
+	bool CanExecuteDispatcher() const;
+	virtual bool CanExecuteDispatcher_Implementation() const { return true; }
+	static bool CanExecuteDispatcher(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_CanExecuteDispatcher(Obj); }
 };

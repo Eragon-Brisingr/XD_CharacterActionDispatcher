@@ -14,6 +14,7 @@
 #include "XD_SaveGameSystemBase.h"
 
 UXD_ActionDispatcherBase::UXD_ActionDispatcherBase()
+	:bIsMainDispatcher(true)
 {
 
 }
@@ -117,10 +118,7 @@ void UXD_ActionDispatcherBase::ExecuteAbortedDelegate()
 
 void UXD_ActionDispatcherBase::AbortDispatch(const FOnDispatcherAborted& Event, UXD_DispatchableActionBase* DeactiveRequestAction)
 {
-	if (Event.IsBound())
-	{
-		OnDispatcherAborted = Event;
-	}
+	OnDispatcherAborted = Event;
 	AbortDispatch(DeactiveRequestAction);
 }
 
@@ -195,7 +193,10 @@ void UXD_ActionDispatcherBase::DeactiveDispatcher(bool IsFinsihedCompleted)
 		UObject* Obj = SoftObjectPtr.Get();
 		if (Obj && Obj->Implements<UXD_DispatchableEntityInterface>())
 		{
-			IXD_DispatchableEntityInterface::SetCurrentDispatcher(Obj, nullptr);
+			if (IXD_DispatchableEntityInterface::GetCurrentMainDispatcher(Obj) == this)
+			{
+				IXD_DispatchableEntityInterface::SetCurrentMainDispatcher(Obj, nullptr);
+			}
 		}
 	}
 
@@ -314,9 +315,9 @@ void UXD_ActionDispatcherBase::ActiveDispatcher()
 	{
 		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
 		UObject* Obj = SoftObjectPtr.Get();
-		if (Obj && Obj->Implements<UXD_DispatchableEntityInterface>())
+		if (bIsMainDispatcher && Obj && Obj->Implements<UXD_DispatchableEntityInterface>())
 		{
-			IXD_DispatchableEntityInterface::SetCurrentDispatcher(Obj, this);
+			IXD_DispatchableEntityInterface::SetCurrentMainDispatcher(Obj, this);
 		}
 	}
 
@@ -349,17 +350,17 @@ bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 		{
 			if (Obj->Implements<UXD_DispatchableEntityInterface>())
 			{
-				if (IXD_DispatchableEntityInterface::CanExecuteDispatchableAction(Obj) == false)
+				if (IXD_DispatchableEntityInterface::CanExecuteDispatcher(Obj) == false)
 				{
 					return false;
 				}
-				if (UXD_ActionDispatcherBase* Dispatcher = IXD_DispatchableEntityInterface::GetCurrentDispatcher(Obj))
+				if (UXD_ActionDispatcherBase* Dispatcher = IXD_DispatchableEntityInterface::GetCurrentMainDispatcher(Obj))
 				{
-					//TODO 调度器中添加Action并行测试，测试通过则允许同时启用调度器
-// 					if (Dispatcher != this)
-// 					{
-// 						return false;
-// 					}
+					//当主调度器（抢占式）存在的时候不能再启用别的调度器
+ 					if (Dispatcher != this)
+ 					{
+ 						return false;
+ 					}
 				}
 			}
 		}

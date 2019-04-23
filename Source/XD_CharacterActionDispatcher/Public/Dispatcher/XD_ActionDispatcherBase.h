@@ -63,6 +63,8 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
 
+	UPROPERTY(EditInstanceOnly, Category = "行为")
+	uint8 bIsMainDispatcher : 1;
 public:
 	FOnDispatcherAborted OnDispatcherAborted;
 	FOnDispatcherAbortedNative OnDispatcherAbortedNative;
