@@ -63,7 +63,8 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
 
-	UPROPERTY(EditInstanceOnly, Category = "行为")
+	//启用MainDispatcher会导致正在运行的MainDispatcher中断
+	UPROPERTY(EditAnywhere, Category = "行为", meta = (DisplayName = "为主调度器"))
 	uint8 bIsMainDispatcher : 1;
 public:
 	FOnDispatcherAborted OnDispatcherAborted;
