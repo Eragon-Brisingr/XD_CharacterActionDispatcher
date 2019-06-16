@@ -80,12 +80,17 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	virtual void BindAllFinishedEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents);
 protected:
+	//返回行为中所有需要注册的实体
+	virtual TArray<AActor*> GetAllRegistableEntities() const;
+private:
 	//所有执行Action的实体在Active时注册
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void RegisterEntity(AActor* Actor);
 	//所有执行Action的实体在Finish时反注册
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void UnregisterEntity(AActor* Actor);
+
+protected:
 	//执行下一个事件
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void ExecuteEventAndFinishAction(const FOnDispatchableActionFinishedEvent& Event);

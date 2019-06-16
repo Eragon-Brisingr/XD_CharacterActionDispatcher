@@ -12,6 +12,11 @@ UXD_DA_MoveTo::UXD_DA_MoveTo()
 #endif
 }
 
+TArray<AActor*> UXD_DA_MoveTo::GetAllRegistableEntities() const
+{
+	return { Pawn.Get() };
+}
+
 bool UXD_DA_MoveTo::IsActionValid() const
 {
 	return Pawn.Get() ? true : false;
@@ -20,7 +25,6 @@ bool UXD_DA_MoveTo::IsActionValid() const
 void UXD_DA_MoveTo::WhenActionActived()
 {
 	APawn* Mover = Pawn.Get();
-	RegisterEntity(Mover);
 	if (AAIController* AIController = Cast<AAIController>(Mover->GetController()))
 	{
 		EPathFollowingRequestResult::Type Result;
@@ -60,7 +64,6 @@ void UXD_DA_MoveTo::WhenActionDeactived()
 void UXD_DA_MoveTo::WhenActionFinished()
 {
 	APawn* Mover = Pawn.Get();
-	UnregisterEntity(Mover);
 }
 
 void UXD_DA_MoveTo::WhenRequestFinished(FAIRequestID RequestID, const FPathFollowingResult& Result)

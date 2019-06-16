@@ -65,6 +65,14 @@ void UXD_ActionDispatcherManager::WhenPostLoad_Implementation()
 		{
 			if (Dispatcher->CanReactiveDispatcher())
 			{
+				Dispatcher->State = EActionDispatcherState::Deactive;
+				for (UXD_DispatchableActionBase* Action : Dispatcher->CurrentActions)
+				{
+					if (Action)
+					{
+						Action->State = EDispatchableActionState::Deactive;
+					}
+				}
 				Dispatcher->ReactiveDispatcher();
 			}
 			else

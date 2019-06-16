@@ -20,6 +20,7 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_MoveTo : public UXD_DispatchableAc
 public:
 	UXD_DA_MoveTo();
 
+	TArray<AActor*> GetAllRegistableEntities() const override;
 	bool IsActionValid() const override;
 	void WhenActionActived() override;
 	void WhenActionDeactived() override;

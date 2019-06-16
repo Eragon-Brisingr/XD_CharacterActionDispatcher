@@ -53,8 +53,8 @@ void UXD_ActionDispatcherBase::StartDispatch()
 
 		State = EActionDispatcherState::Active;
 		ActiveDispatcher();
-		WhenDispatchStart();
 		ActionDispatcher_Display_Log("开始行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
+		WhenDispatchStart();
 	}
 	else
 	{
@@ -177,6 +177,10 @@ void UXD_ActionDispatcherBase::WhenActionAborted()
 		{
 			ActionDispatcher_Display_Log("中断%s调度器", *UXD_DebugFunctionLibrary::GetDebugName(this));
 			DeactiveDispatcher(false);
+			if (UXD_ActionDispatcherManager * Manager = GetManager())
+			{
+				Manager->WhenDispatcherDeactived(this);
+			}
 			ExecuteAbortedDelegate();
 		}
 	}
@@ -198,11 +202,6 @@ void UXD_ActionDispatcherBase::DeactiveDispatcher(bool IsFinsihedCompleted)
 				IXD_DispatchableEntityInterface::SetCurrentMainDispatcher(Obj, nullptr);
 			}
 		}
-	}
-
-	if (UXD_ActionDispatcherManager* Manager = GetManager())
-	{
-		Manager->WhenDispatcherDeactived(this);
 	}
 
 	if (UObject* Leader = DispatcherLeader.Get())
@@ -376,11 +375,6 @@ void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 {
 	check(State == EActionDispatcherState::Active);
 	DeactiveDispatcher(true);
-	if (UXD_ActionDispatcherManager* Manager = GetManager())
-	{
-		Manager->WhenDispatcherFinished(this);
-	}
-
 	if (IsSubActionDispatcher())
 	{
 		ActionDispatcher_Display_Log("结束子行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
@@ -388,8 +382,11 @@ void UXD_ActionDispatcherBase::FinishDispatch(FGameplayTag Tag)
 	else
 	{
 		ActionDispatcher_Display_Log("结束行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
+		if (UXD_ActionDispatcherManager * Manager = GetManager())
+		{
+			Manager->WhenDispatcherFinished(this);
+		}
 	}
-
 
 	OnDispatchFinished.Broadcast(Tag);
 	WhenDispatchFinished.ExecuteIfBound(Tag.GetTagName());
@@ -461,6 +458,9 @@ UXD_ActionDispatcherBase* UXD_ActionDispatcherBase::GetMainActionDispatcher()
 
 void UXD_ActionDispatcherBase::ActiveSubActionDispatcher(UXD_ActionDispatcherBase* SubActionDispatcher, FGuid NodeGuid)
 {
+	check(SubActionDispatcher->State != EActionDispatcherState::Active);
+	SubActionDispatcher->State = EActionDispatcherState::Active;
+
 	ActivedSubActionDispatchers.Add(NodeGuid, SubActionDispatcher);
 	ActionDispatcher_Display_Log("启动子行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(SubActionDispatcher));
 	SubActionDispatcher->WhenDispatchStart();

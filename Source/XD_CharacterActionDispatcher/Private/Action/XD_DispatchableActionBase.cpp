@@ -28,10 +28,19 @@ UWorld* UXD_DispatchableActionBase::GetWorld() const
 void UXD_DispatchableActionBase::ActiveAction()
 {
 	check(State != EDispatchableActionState::Active);
-
 	ActionDispatcher_Display_VLog(GetOwner(), "激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 	State = EDispatchableActionState::Active;
+	for (AActor* Entity : GetAllRegistableEntities())
+	{
+		RegisterEntity(Entity);
+	}
 	WhenActionActived();
+
+	//可能在行为激活的过程中某一个行为中断了调度器，那么后续的行为就不激活了
+	if (GetOwner()->State != EActionDispatcherState::Active)
+	{
+		DeactiveAction();
+	}
 }
 
 void UXD_DispatchableActionBase::AbortAction()
@@ -73,7 +82,11 @@ void UXD_DispatchableActionBase::ReactiveAction()
 	check(State != EDispatchableActionState::Active);
 
 	ActionDispatcher_Display_VLog(GetOwner(), "再次激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
-	State = EDispatchableActionState::Active;
+	State = EDispatchableActionState::Active;	
+	for (AActor* Entity : GetAllRegistableEntities())
+	{
+		RegisterEntity(Entity);
+	}
 	WhenActionReactived();
 }
 
@@ -90,6 +103,10 @@ void UXD_DispatchableActionBase::FinishAction()
 	State = EDispatchableActionState::Finished;
 	UXD_ActionDispatcherBase* ActionDispatcher = GetOwner();
 	ActionDispatcher->CurrentActions.Remove(this);
+	for (AActor* Entity : GetAllRegistableEntities())
+	{
+		UnregisterEntity(Entity);
+	}
 	WhenActionFinished();
 	ActionDispatcher_Display_VLog(GetOwner(), "结束%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }
@@ -147,6 +164,12 @@ void UXD_DispatchableActionBase::BindAllFinishedEvent(const TArray<FOnDispatchab
 	}
 }
 
+TArray<AActor*> UXD_DispatchableActionBase::GetAllRegistableEntities() const
+{
+	unimplemented();
+	return {};
+}
+
 void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 {
 	check((Actor->GetWorld()->AreActorsInitialized()));
@@ -189,8 +212,8 @@ void UXD_DispatchableActionBase::UnregisterEntity(AActor* Actor)
 	if (Actor && Actor->Implements<UXD_DispatchableEntityInterface>())
 	{
 		TArray<UXD_DispatchableActionBase*>& Actions = IXD_DispatchableEntityInterface::GetCurrentDispatchableActions(Actor);
-		check(Actions.Contains(this));
-		Actions.Remove(this);
+		int32 RemoveNum = Actions.Remove(this);
+		check(RemoveNum != 0);
 	}
 	ActionDispatcher_Display_VLog(Actor, "%s停止执行行为%s", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }

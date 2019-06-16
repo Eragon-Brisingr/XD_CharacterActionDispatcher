@@ -4,21 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "Action/XD_DispatchableActionBase.h"
-#include "XD_DA_Exmaple.generated.h"
+#include "XD_DA_Example.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS(meta = (DisplayName = "例子"))
-class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_Exmaple : public UXD_DispatchableActionBase
+class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_Example : public UXD_DispatchableActionBase
 {
 	GENERATED_BODY()
 public:
-	UXD_DA_Exmaple();
+	UXD_DA_Example();
 
 	UPROPERTY(SaveGame, meta = (DisplayName = "当结束时"))
 	FOnDispatchableActionFinishedEvent OnFinished;
 
+	TArray<AActor*> GetAllRegistableEntities() const override { return {}; }
 	bool IsActionValid() const override;
 	void WhenActionActived() override;
 	void WhenActionDeactived() override;

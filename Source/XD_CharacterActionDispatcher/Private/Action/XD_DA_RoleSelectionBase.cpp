@@ -13,6 +13,11 @@ UXD_DA_RoleSelectionBase::UXD_DA_RoleSelectionBase()
 #endif
 }
 
+TArray<AActor*> UXD_DA_RoleSelectionBase::GetAllRegistableEntities() const
+{
+	return { Role.Get() };
+}
+
 bool UXD_DA_RoleSelectionBase::IsActionValid() const
 {
 	return Role.Get() ? true : false;
@@ -21,8 +26,6 @@ bool UXD_DA_RoleSelectionBase::IsActionValid() const
 void UXD_DA_RoleSelectionBase::WhenActionActived()
 {
 	APawn* Pawn = Role.Get();
-	RegisterEntity(Pawn);
-
 	if (Pawn->Implements<UXD_DA_RoleSelectionInterface>())
 	{
 		TArray<FDA_DisplaySelection> RoleSelectionDisplays;
@@ -54,8 +57,7 @@ void UXD_DA_RoleSelectionBase::WhenActionDeactived()
 
 void UXD_DA_RoleSelectionBase::WhenActionFinished()
 {
-	APawn* Pawn = Role.Get();
-	UnregisterEntity(Pawn);
+
 }
 
 void UXD_DA_RoleSelectionBase::ExecuteSelection(const FDA_DisplaySelection& Selection)

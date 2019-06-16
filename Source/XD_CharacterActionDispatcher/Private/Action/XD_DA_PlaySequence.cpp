@@ -15,6 +15,20 @@ UXD_DA_PlaySequenceBase::UXD_DA_PlaySequenceBase()
 #endif
 }
 
+TArray<AActor*> UXD_DA_PlaySequenceBase::GetAllRegistableEntities() const
+{
+	TArray<AActor*> Entities;
+	for (const FPlaySequenceActorData& Data : PlaySequenceActorDatas)
+	{
+		Entities.Add(Data.ActorRef.Get());
+	}
+	for (const FPlaySequenceMoveToData& Data : PlaySequenceMoveToDatas)
+	{
+		Entities.Add(Data.PawnRef.Get());
+	}
+	return Entities;
+}
+
 bool UXD_DA_PlaySequenceBase::IsActionValid() const
 {
 	for (const FPlaySequenceActorData& Data : PlaySequenceActorDatas)
@@ -36,16 +50,10 @@ bool UXD_DA_PlaySequenceBase::IsActionValid() const
 
 void UXD_DA_PlaySequenceBase::WhenActionActived()
 {
-	for (const FPlaySequenceActorData& Data : PlaySequenceActorDatas)
-	{
-		AActor* BindingActor = Data.ActorRef.Get();
-		RegisterEntity(BindingActor);
-	}
 	for (int32 i = 0; i < PlaySequenceMoveToDatas.Num(); ++i)
 	{
 		const FPlaySequenceMoveToData& Data = PlaySequenceMoveToDatas[i];
 		APawn* Mover = Data.PawnRef.Get();
-		RegisterEntity(Mover);
 		FVector PlayLocation = PlayTransform.TransformPosition(Data.Location);
 		FRotator PlayRotation = PlayTransform.TransformRotation(Data.Rotation.Quaternion()).Rotator();
 		MoveToSequencePlayLocation(Mover, PlayLocation, PlayRotation, i);
@@ -69,14 +77,7 @@ void UXD_DA_PlaySequenceBase::WhenActionDeactived()
 
 void UXD_DA_PlaySequenceBase::WhenActionFinished()
 {
-	for (const FPlaySequenceActorData& Data : PlaySequenceActorDatas)
-	{
-		UnregisterEntity(Data.ActorRef.Get());
-	}
-	for (const FPlaySequenceMoveToData& Data : PlaySequenceMoveToDatas)
-	{
-		UnregisterEntity(Data.PawnRef.Get());
-	}
+
 }
 
 void UXD_DA_PlaySequenceBase::WhenPlayFinished()
@@ -128,7 +129,7 @@ void UXD_DA_PlaySequenceBase::WhenMoveReached(int32 MoverIdx)
 
 void UXD_DA_PlaySequenceBase::WhenMoveCanNotReached(int32 MoverIdx)
 {
-	if (State != EDispatchableActionState::Finished)
+	if (State == EDispatchableActionState::Active && State != EDispatchableActionState::Finished)
 	{
 		ExecuteEventAndFinishAction(WhenCanNotPlay);
 	}

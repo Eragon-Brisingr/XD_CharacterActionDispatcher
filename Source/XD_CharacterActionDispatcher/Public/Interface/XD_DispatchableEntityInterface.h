@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "XD_DispatchableEntityInterface.generated.h"
 
 class UXD_DispatchableActionBase;
 
-USTRUCT(BlueprintType, BlueprintInternalUseOnly)
+USTRUCT(BlueprintType, BlueprintInternalUseOnly, meta = (HasNativeMake = "XD_DispatchableActionListUtils.MakeDispatchableActionList", HasNativeBreak = "XD_DispatchableActionListUtils.BreakDispatchableActionList"))
 struct XD_CHARACTERACTIONDISPATCHER_API FXD_DispatchableActionList
 {
 	GENERATED_BODY()
@@ -25,6 +26,30 @@ public:
 	{
 		check(List != nullptr);
 		return *List;
+	}
+	const TArray<UXD_DispatchableActionBase*>& operator*() const
+	{
+		check(List != nullptr);
+		return *List;
+	}
+};
+
+// This class does not need to be modified.
+UCLASS()
+class XD_CHARACTERACTIONDISPATCHER_API UXD_DispatchableActionListUtils : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+	UFUNCTION(BlueprintPure, Category = "行为", meta = (NativeMakeFunc))
+	static FXD_DispatchableActionList MakeDispatchableActionList(UPARAM(Ref) TArray<UXD_DispatchableActionBase*>& Actions)
+	{
+		return FXD_DispatchableActionList(Actions);
+	}
+
+	UFUNCTION(BlueprintPure, Category = "行为", meta = (NativeBreakFunc))
+	static TArray<UXD_DispatchableActionBase*> BreakDispatchableActionList(const FXD_DispatchableActionList& ActionList)
+	{
+		return *ActionList;
 	}
 };
 
