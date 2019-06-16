@@ -226,7 +226,14 @@ void UXD_DispatchableActionBase::ExecuteEventAndFinishAction(const FOnDispatchab
 
 bool UXD_DispatchableActionBase::IsActionValid() const
 {
-	return false;
+	for (AActor* Entity : GetAllRegistableEntities())
+	{
+		if (!Entity)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 void UXD_DispatchableActionBase::AbortDispatcher(const FOnDispatcherAborted& Event, bool DeactiveRequestAction)
