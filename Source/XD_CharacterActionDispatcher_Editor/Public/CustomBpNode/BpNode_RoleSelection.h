@@ -26,6 +26,8 @@ public:
 
 	void AllocateDefaultPins() override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
+
+	virtual void Serialize(FArchive& Ar) override;
 protected:
 	UPROPERTY()
 	int32 SelectionNum = 2;

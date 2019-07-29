@@ -16,6 +16,9 @@
 #include "GameFramework/Pawn.h"
 #include "K2Node_Self.h"
 #include "XD_ActionDispatcherBase.h"
+#include "PropertyPortFlags.h"
+#include "CoreGlobals.h"
+#include "FeedbackContext.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -101,6 +104,8 @@ void UBpNode_RoleSelection::GetContextMenuActions(const FGraphNodeContextMenuBui
 
 void UBpNode_RoleSelection::AllocateDefaultPins()
 {
+	Super::AllocateDefaultPins();
+
 	FCreatePinParams CreatePinParams;
 	CreatePinParams.bIsReference = true;
 
@@ -165,6 +170,31 @@ void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerCon
 		CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(GetSelectionPinName(i), EGPD_Input), *SetWhenSelectedEventNode->FindPinChecked(TEXT("Selection")));
 
 		MakeActorDatasArrayNode->FindPinChecked(*FString::Printf(TEXT("[%d]"), i), EGPD_Input)->MakeLinkTo(SetWhenSelectedEventNode->GetReturnValuePin());
+	}
+}
+
+void UBpNode_RoleSelection::Serialize(FArchive& Ar)
+{
+	Super::Serialize(Ar);
+
+	// 4.23-BUG
+	// FixupPinStringDataReferences中207行会设置Pin->DefaultValue，导致就算是DynamicDelegate的绑定为空也会存入None，引发
+	// DelegatePropertyTools::ImportDelegateFromText中215行ErrorText->Logf(ELogVerbosity::Warning, TEXT("Cannot import unqualified delegate name; no object to search"))报错
+	// 导致蓝图编译失败
+	for (int32 Idx = 0; Idx < SelectionNum; ++Idx)
+	{
+		UScriptStruct* DA_RoleSelectionType = FDA_RoleSelection::StaticStruct();
+
+		UEdGraphPin* SelectionPin = FindPin(GetSelectionPinName(Idx));
+		if (SelectionPin && SelectionPin->DefaultValue.Len() > 0)
+		{
+			FDA_RoleSelection Selection = FDA_RoleSelection();
+			DA_RoleSelectionType->ImportText(*SelectionPin->DefaultValue, &Selection, nullptr, EPropertyPortFlags::PPF_None, GWarn, DA_RoleSelectionType->GetName());
+			FDA_RoleSelection DefaultSelection = FDA_RoleSelection();
+			FString NewSelectionSourceString;
+			DA_RoleSelectionType->ExportText(NewSelectionSourceString, &Selection, &DefaultSelection, nullptr, EPropertyPortFlags::PPF_None, nullptr);
+			SelectionPin->DefaultValue = NewSelectionSourceString;
+		}
 	}
 }
 

@@ -6,6 +6,10 @@
 #include "XD_CharacterActionDispatcherType.h"
 #include "STextPropertyEditableTextBox.h"
 #include "EditorStyleSet.h"
+#include "CoreGlobals.h"
+#include "ScopedTransaction.h"
+#include "FeedbackContext.h"
+#include "PropertyPortFlags.h"
 
 namespace
 {
@@ -58,7 +62,7 @@ namespace
 			{
 				FDA_RoleSelection Selection = FDA_RoleSelection();
 				UScriptStruct* DA_RoleSelectionType = FDA_RoleSelection::StaticStruct();
-				DA_RoleSelectionType->ImportText(*GraphPinObj->DefaultValue, &Selection, nullptr, 0, nullptr, DA_RoleSelectionType->GetName());
+				DA_RoleSelectionType->ImportText(*GraphPinObj->DefaultValue, &Selection, nullptr, 0, GWarn, DA_RoleSelectionType->GetName());
 				return Selection.Selection;
 			}
 			return FText::GetEmpty();
@@ -74,13 +78,16 @@ namespace
 
 			if (GraphPinObj->DefaultValue.Len() > 0)
 			{
-				DA_RoleSelectionType->ImportText(*GraphPinObj->DefaultValue, &Selection, nullptr, 0, nullptr, DA_RoleSelectionType->GetName());
+				DA_RoleSelectionType->ImportText(*GraphPinObj->DefaultValue, &Selection, nullptr, EPropertyPortFlags::PPF_None, GWarn, DA_RoleSelectionType->GetName());
 			}
 			Selection.Selection = InText;
 
+			FDA_RoleSelection DefaultSelection = FDA_RoleSelection();
+			FString NewSelectionSourceString;
+			DA_RoleSelectionType->ExportText(NewSelectionSourceString, &Selection, &DefaultSelection, nullptr, EPropertyPortFlags::PPF_None, nullptr);
+
 			GraphPinObj->Modify();
-			GraphPinObj->DefaultValue.Empty();
-			DA_RoleSelectionType->ExportText(GraphPinObj->DefaultValue, &Selection, nullptr, nullptr, 0, nullptr);
+			GraphPinObj->GetSchema()->TrySetDefaultValue(*GraphPinObj, NewSelectionSourceString);
 		}
 
 		virtual bool IsValidText(const FText& InText, FText& OutErrorMsg) const override
@@ -107,11 +114,11 @@ namespace
 
 TSharedPtr<class SGraphPin> FDA_RoleSelectionGraphPinFactory::CreatePin(class UEdGraphPin* InPin) const
 {
-	if (InPin->PinType.PinCategory == UEdGraphSchema_K2::PC_Struct
-		&& InPin->PinType.PinSubCategoryObject == FDA_RoleSelection::StaticStruct())
-	{
-		return SNew(SDA_RoleSelectionGraphPin, InPin);
-	}
+ 	if (InPin->PinType.PinCategory == UEdGraphSchema_K2::PC_Struct
+ 		&& InPin->PinType.PinSubCategoryObject == FDA_RoleSelection::StaticStruct())
+ 	{
+ 		return SNew(SDA_RoleSelectionGraphPin, InPin);
+ 	}
 	return nullptr;
 }
 
