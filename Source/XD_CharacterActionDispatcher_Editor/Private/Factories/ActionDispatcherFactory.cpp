@@ -11,6 +11,16 @@
 #include "ClassViewerModule.h"
 #include "SClassPickerDialog.h"
 #include "XD_ActionDispatcherSettings.h"
+#include "EdGraph/EdGraph.h"
+#include "K2Node_Event.h"
+#include "ObjectEditorUtils.h"
+#include "EdGraphSchema_K2.h"
+#include "EditorStyleSettings.h"
+#include "BlueprintEditorUtils.h"
+#include "K2Node_CallParentFunction.h"
+#include "BpNode_DispatchStartEvent.h"
+#include "EdGraph_ActionDispatcher.h"
+#include "EdGraphSchema_ActionDispatcher.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -33,7 +43,96 @@ UObject* UActionDispatcherFactory::FactoryCreateNew(UClass* Class, UObject* InPa
 	FName WhenDispatchStartName = GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, WhenDispatchStart);
 	int32 NodePosY = 0;
 	UFunction* WhenDispatchStartFunction = UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(WhenDispatchStartName);
-	UK2Node_Event* WhenDispatchStartNode = FKismetEditorUtilities::AddDefaultEventNode(NewBP, NewBP->UbergraphPages[0], WhenDispatchStartName, UXD_ActionDispatcherBase::StaticClass(), NodePosY);
+
+	UEdGraph* MainGraph = FBlueprintEditorUtils::CreateNewGraph(NewBP, TEXT("Action Dispatcher Graph"), UEdGraph_ActionDispatcher::StaticClass(), UEdGraphSchema_ActionDispatcher::StaticClass());
+#if WITH_EDITORONLY_DATA
+	if (NewBP->UbergraphPages.Num())
+	{
+		FBlueprintEditorUtils::RemoveGraphs(NewBP, NewBP->UbergraphPages);
+	}
+#endif
+	FBlueprintEditorUtils::AddUbergraphPage(NewBP, MainGraph);
+	NewBP->LastEditedDocuments.Add(MainGraph);
+
+	MainGraph->bAllowDeletion = false;
+	MainGraph->bAllowRenaming = false;
+
+	struct FActionDispatcherEventUtil
+	{
+		static UBpNode_DispatchStartEvent* AddDefaultEventNode(UBlueprint* InBlueprint, UEdGraph* InGraph, FName InEventName, UClass* InEventClass, int32& InOutNodePosY)
+		{
+			UBpNode_DispatchStartEvent* NewEventNode = nullptr;
+
+			FMemberReference EventReference;
+			EventReference.SetExternalMember(InEventName, InEventClass);
+
+			// Prevent events that are hidden in the Blueprint's class from being auto-generated.
+			if (!FObjectEditorUtils::IsFunctionHiddenFromClass(EventReference.ResolveMember<UFunction>(InBlueprint), InBlueprint->ParentClass))
+			{
+				const UEdGraphSchema_K2* Schema = GetDefault<UEdGraphSchema_K2>();
+
+				// Add the event
+				NewEventNode = NewObject<UBpNode_DispatchStartEvent>(InGraph);
+				NewEventNode->EventReference = EventReference;
+
+				// Snap the new position to the grid
+				const UEditorStyleSettings* StyleSettings = GetDefault<UEditorStyleSettings>();
+				if (StyleSettings)
+				{
+					const uint32 GridSnapSize = StyleSettings->GridSnapSize;
+					InOutNodePosY = GridSnapSize * FMath::RoundFromZero(InOutNodePosY / (float)GridSnapSize);
+				}
+
+				// add update event graph
+				NewEventNode->bOverrideFunction = true;
+				NewEventNode->CreateNewGuid();
+				NewEventNode->PostPlacedNewNode();
+				NewEventNode->SetFlags(RF_Transactional);
+				NewEventNode->AllocateDefaultPins();
+				NewEventNode->bCommentBubblePinned = true;
+				NewEventNode->bCommentBubbleVisible = true;
+				NewEventNode->NodePosY = InOutNodePosY;
+				UEdGraphSchema_K2::SetNodeMetaData(NewEventNode, FNodeMetadata::DefaultGraphNode);
+				InOutNodePosY = NewEventNode->NodePosY + NewEventNode->NodeHeight + 200;
+
+				InGraph->AddNode(NewEventNode);
+
+				// Get the function that the event node or function entry represents
+				FFunctionFromNodeHelper FunctionFromNode(NewEventNode);
+				if (FunctionFromNode.Function && Schema->GetCallableParentFunction(FunctionFromNode.Function))
+				{
+					UFunction* ValidParent = Schema->GetCallableParentFunction(FunctionFromNode.Function);
+					FGraphNodeCreator<UK2Node_CallParentFunction> FunctionNodeCreator(*InGraph);
+					UK2Node_CallParentFunction* ParentFunctionNode = FunctionNodeCreator.CreateNode();
+					ParentFunctionNode->SetFromFunction(ValidParent);
+					ParentFunctionNode->AllocateDefaultPins();
+
+					for (UEdGraphPin* EventPin : NewEventNode->Pins)
+					{
+						if (UEdGraphPin* ParentPin = ParentFunctionNode->FindPin(EventPin->PinName, EGPD_Input))
+						{
+							ParentPin->MakeLinkTo(EventPin);
+						}
+					}
+					ParentFunctionNode->GetExecPin()->MakeLinkTo(NewEventNode->FindPin(UEdGraphSchema_K2::PN_Then));
+
+					ParentFunctionNode->NodePosX = FunctionFromNode.Node->NodePosX + FunctionFromNode.Node->NodeWidth + 200;
+					ParentFunctionNode->NodePosY = FunctionFromNode.Node->NodePosY;
+					UEdGraphSchema_K2::SetNodeMetaData(ParentFunctionNode, FNodeMetadata::DefaultGraphNode);
+					FunctionNodeCreator.Finalize();
+
+					ParentFunctionNode->MakeAutomaticallyPlacedGhostNode();
+				}
+
+				NewEventNode->MakeAutomaticallyPlacedGhostNode();
+			}
+
+			return NewEventNode;
+		}
+
+	};
+
+	UBpNode_DispatchStartEvent* WhenDispatchStartNode = FActionDispatcherEventUtil::AddDefaultEventNode(NewBP, MainGraph, WhenDispatchStartName, UXD_ActionDispatcherBase::StaticClass(), NodePosY);
 	NewBP->WhenDispatchStartNode = WhenDispatchStartNode;
 	return NewBP;
 }

@@ -18,7 +18,7 @@ class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_FinishDispatch : public UK
 public:
 	bool ShouldShowNodeProperties() const override { return true; }
 	FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
-	FLinearColor GetNodeTitleColor() const;
+	FLinearColor GetNodeTitleColor() const override;
 	FText GetTooltipText() const override;
 	FText GetMenuCategory() const override;
 	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
