@@ -25,7 +25,7 @@ void FActionDispatcherBP_Compiler::PreCompile()
 
 	if (CompileOptions.CompileType != EKismetCompileType::SkeletonOnly)
 	{
-		for (const FBPVariableDescription& BPVariableDescription : Blueprint->NewVariables)
+		for (FBPVariableDescription& BPVariableDescription : Blueprint->NewVariables)
 		{
 			EPropertyFlags Flags = (EPropertyFlags)BPVariableDescription.PropertyFlags;
 			if ((Flags & CPF_Edit) != CPF_Edit)
@@ -38,7 +38,9 @@ void FActionDispatcherBP_Compiler::PreCompile()
 			{
 				if (!(isMarkSaveGame && BPVariableDescription.HasMetaData(FBlueprintMetadata::MD_ExposeOnSpawn)))
 				{
-					MessageLog.Error(*FString::Printf(TEXT("[%s] 暴露变量需添加标记[保存游戏]SaveGame与[在生成时显示]ExposeOnSpawn"), *BPVariableDescription.VarName.ToString()));
+					MessageLog.Error(*FString::Printf(TEXT("[%s] 暴露变量需添加标记[保存游戏]SaveGame与[在生成时显示]ExposeOnSpawn，已自动修复"), *BPVariableDescription.VarName.ToString()));
+					BPVariableDescription.PropertyFlags |= CPF_SaveGame;
+					BPVariableDescription.SetMetaData(FBlueprintMetadata::MD_ExposeOnSpawn, TEXT("true"));
 				}
 			}
 			else
@@ -48,7 +50,8 @@ void FActionDispatcherBP_Compiler::PreCompile()
 				{
 					if (!isMarkSaveGame)
 					{
-						MessageLog.Error(*FString::Printf(TEXT("[%s] 非暴露变量需添加标记SaveGame或标记为[只读蓝图]BlueprintReadOnly或者[私有]Private"), *BPVariableDescription.VarName.ToString()));
+						MessageLog.Error(*FString::Printf(TEXT("[%s] 非暴露变量需添加标记SaveGame或标记为[只读蓝图]BlueprintReadOnly或者[私有]Private，已自动设置SaveGame"), *BPVariableDescription.VarName.ToString()));
+						BPVariableDescription.PropertyFlags |= CPF_SaveGame;
 					}
 				}
 			}
