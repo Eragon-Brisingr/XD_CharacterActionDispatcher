@@ -52,4 +52,12 @@ protected:
 
 	static FName RetureValuePinName;
 	static FName RolePinName;
+
+public:
+	bool ShouldShowNodeProperties() const override { return true; }
+
+	UPROPERTY(EditAnywhere, Category = "调试")
+	FName EntryPointEventName;
+private:
+	void PostPlacedNewNode() override;
 };

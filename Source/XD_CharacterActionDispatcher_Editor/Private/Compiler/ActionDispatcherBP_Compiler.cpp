@@ -55,7 +55,7 @@ void FActionDispatcherBP_Compiler::PreCompile()
 					}
 				}
 			}
-		}		
+		}
 		
 		UK2Node_Event* WhenDispatchStartNode = Cast<UK2Node_Event>(ActionDispatcherBlueprint->WhenDispatchStartNode);
 		if (WhenDispatchStartNode == nullptr)

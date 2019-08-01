@@ -94,4 +94,10 @@ private:
 	//刷新Seqeuence可绑定的数据
 	UFUNCTION(Category = "Sequence", meta = (DisplayName = "刷新Sequence数据", CallInEditor = true))
 	void RefreshSequenceData();
+
+public:
+	UPROPERTY(EditAnywhere, Category = "调试")
+	FName EntryPointEventName;
+private:
+	void PostPlacedNewNode() override;
 };

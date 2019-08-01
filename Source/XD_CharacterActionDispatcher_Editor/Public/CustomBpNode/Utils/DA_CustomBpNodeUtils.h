@@ -5,6 +5,10 @@
 #include "CoreMinimal.h"
 
 class UBlueprint;
+class UEdGraphNode;
+class FKismetCompilerContext;
+class UEdGraphPin;
+class UEdGraph;
 
 /**
  * 
@@ -33,4 +37,7 @@ struct DA_NodeUtils
 	static bool IsActionDispatcherGraph(const UEdGraph* TargetGraph);
 
 	static void UpdateNode(UBlueprint* Blueprint);
+
+	// 创建Debug用的跳转事件
+	static void CreateDebugEventEntryPoint(UEdGraphNode* SourceNode, FKismetCompilerContext& CompilerContext, UEdGraphPin* ExecPin, const FName& EventName);
 };

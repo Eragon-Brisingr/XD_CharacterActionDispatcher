@@ -126,6 +126,8 @@ void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerCon
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
 
+	DA_NodeUtils::CreateDebugEventEntryPoint(this, CompilerContext, GetExecPin(), EntryPointEventName);
+
 	UK2Node_CallFunction* CallRoleSelectionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 	CallRoleSelectionNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_DA_RoleSelectionBase, ShowSelection), UXD_DA_RoleSelectionBase::StaticClass());
 	CallRoleSelectionNode->AllocateDefaultPins();
@@ -235,6 +237,12 @@ FName UBpNode_RoleSelection::GetSelectionPinName(int32 Idx)
 FName UBpNode_RoleSelection::GetExecPinName(int32 Idx)
 {
 	return *FString::Printf(TEXT("选择了[%d]"), Idx + 1);
+}
+
+void UBpNode_RoleSelection::PostPlacedNewNode()
+{
+	Super::PostPlacedNewNode();
+	EntryPointEventName = *FString::Printf(TEXT("RoleSelection_%d"), FMath::Rand());
 }
 
 #undef LOCTEXT_NAMESPACE

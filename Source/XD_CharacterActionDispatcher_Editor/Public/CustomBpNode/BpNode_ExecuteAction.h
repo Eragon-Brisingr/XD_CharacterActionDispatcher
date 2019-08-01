@@ -33,4 +33,13 @@ protected:
 
 	UPROPERTY()
 	TSubclassOf<UXD_DispatchableActionBase> ActionClass;
+
+public:
+	bool ShouldShowNodeProperties() const override { return true; }
+
+	UPROPERTY(EditAnywhere, Category = "调试")
+	FName EntryPointEventName;
+private:
+	void PostPlacedNewNode() override;
+
 };

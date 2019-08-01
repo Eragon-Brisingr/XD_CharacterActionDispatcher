@@ -109,6 +109,13 @@ void UBpNode_ExecuteAction::ReflushFinishExec()
 	}
 }
 
+void UBpNode_ExecuteAction::PostPlacedNewNode()
+{
+	Super::PostPlacedNewNode();
+
+	EntryPointEventName = *FString::Printf(TEXT("%s_%d"), *ActionClass->GetName(), FMath::Rand());
+}
+
 void UBpNode_ExecuteAction::PinDefaultValueChanged(UEdGraphPin* ChangedPin)
 {
 	Super::PinDefaultValueChanged(ChangedPin);
@@ -122,6 +129,8 @@ void UBpNode_ExecuteAction::PinDefaultValueChanged(UEdGraphPin* ChangedPin)
 void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
+
+	DA_NodeUtils::CreateDebugEventEntryPoint(this, CompilerContext, GetExecPin(), EntryPointEventName);
 
 	UK2Node_CallFunction* CallCreateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 	CallCreateNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UGameplayStatics, SpawnObject), UGameplayStatics::StaticClass());

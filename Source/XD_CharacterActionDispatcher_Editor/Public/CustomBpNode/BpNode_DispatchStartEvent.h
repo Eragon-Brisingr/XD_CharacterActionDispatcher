@@ -16,3 +16,11 @@ class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_DispatchStartEvent : publi
 public:
 	bool CanUserDeleteNode() const override { return false; }
 };
+
+UCLASS()
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_DebugEntryPointEvent : public UK2Node_Event
+{
+	GENERATED_BODY()
+public:
+};
+

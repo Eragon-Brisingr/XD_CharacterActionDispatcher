@@ -220,6 +220,8 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
 
+	DA_NodeUtils::CreateDebugEventEntryPoint(this, CompilerContext, GetExecPin(), EntryPointEventName);
+
 	if (LevelSequence.IsNull())
 	{
 		CompilerContext.MessageLog.Error(TEXT("@@ LevelSequence 为空"), this);
@@ -350,6 +352,12 @@ void UBpNode_PlayLevelSequencer::UpdatePinInfo(const FSequencerBindingOption &Op
 void UBpNode_PlayLevelSequencer::ReflushNode()
 {
 	DA_NodeUtils::UpdateNode(GetBlueprint());
+}
+
+void UBpNode_PlayLevelSequencer::PostPlacedNewNode()
+{
+	Super::PostPlacedNewNode();
+	EntryPointEventName = *FString::Printf(TEXT("PlayLevelSequencer_%d"), FMath::Rand());
 }
 
 #undef LOCTEXT_NAMESPACE
