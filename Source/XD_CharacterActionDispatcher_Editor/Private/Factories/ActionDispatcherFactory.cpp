@@ -184,6 +184,7 @@ bool UActionDispatcherFactory::ConfigureProperties()
 
 	Options.Mode = EClassViewerMode::ClassPicker;
 	Options.ClassFilter = MakeShareable<FActionDispatcherFilterViewer>(new FActionDispatcherFilterViewer);
+	Options.NameTypeToDisplay = EClassViewerNameTypeToDisplay::Dynamic;
 
 	const FText TitleText = LOCTEXT("选择调度器类型", "选择调度器类型");
 	UClass* ChosenClass = nullptr;

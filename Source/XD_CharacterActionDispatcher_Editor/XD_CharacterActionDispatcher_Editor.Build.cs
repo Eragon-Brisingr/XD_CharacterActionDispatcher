@@ -44,6 +44,7 @@ public class XD_CharacterActionDispatcher_Editor : ModuleRules
                 "UnrealEd",
                 "EditorStyle",
                 "EditorWidgets",
+                "Projects",
 
                 "MovieScene",
                 "MovieSceneTools",
