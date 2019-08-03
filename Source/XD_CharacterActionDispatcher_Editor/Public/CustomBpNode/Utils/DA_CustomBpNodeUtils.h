@@ -9,6 +9,8 @@ class UEdGraphNode;
 class FKismetCompilerContext;
 class UEdGraphPin;
 class UEdGraph;
+class UK2Node;
+struct FGraphNodeContextMenuBuilder;
 
 /**
  * 
@@ -40,4 +42,7 @@ struct DA_NodeUtils
 
 	// 创建Debug用的跳转事件
 	static void CreateDebugEventEntryPoint(UEdGraphNode* SourceNode, FKismetCompilerContext& CompilerContext, UEdGraphPin* ExecPin, const FName& EventName);
+
+	static void AddDebugMenuSection(const UK2Node* Node, const FGraphNodeContextMenuBuilder& Context, FName EntryPointEventName);
+
 };

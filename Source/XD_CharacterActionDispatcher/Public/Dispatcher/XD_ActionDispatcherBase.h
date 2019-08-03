@@ -64,7 +64,7 @@ public:
 	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
 
 	//启用MainDispatcher会导致正在运行的MainDispatcher中断
-	UPROPERTY(EditAnywhere, Category = "行为", meta = (DisplayName = "为主调度器"))
+	UPROPERTY(EditDefaultsOnly, Category = "行为", meta = (DisplayName = "为主调度器"))
 	uint8 bIsMainDispatcher : 1;
 public:
 	FOnDispatcherAborted OnDispatcherAborted;
@@ -179,4 +179,8 @@ public:
 	virtual void WhenDeactived(bool IsFinsihedCompleted);
 	UFUNCTION(BlueprintImplementableEvent, Category = "交互", meta = (DisplayName = "WhenDeactived"))
 	void ReceiveWhenDeactived(bool IsFinsihedCompleted);
+
+public:
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
+	void PreDebugForceExecuteNode();
 };

@@ -83,6 +83,12 @@ bool UBpNode_ExecuteAction::IsCompatibleWithGraph(const UEdGraph* TargetGraph) c
 	return Super::IsCompatibleWithGraph(TargetGraph) && DA_NodeUtils::IsActionDispatcherGraph(TargetGraph);
 }
 
+void UBpNode_ExecuteAction::GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const
+{
+	Super::GetContextMenuActions(Context);
+	DA_NodeUtils::AddDebugMenuSection(this, Context, EntryPointEventName);
+}
+
 void UBpNode_ExecuteAction::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();

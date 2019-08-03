@@ -19,6 +19,9 @@
 #include "PropertyPortFlags.h"
 #include "CoreGlobals.h"
 #include "FeedbackContext.h"
+#include "UIAction.h"
+#include "EdGraph/EdGraphNode.h"
+#include "MultiBoxBuilder.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -100,6 +103,8 @@ void UBpNode_RoleSelection::GetContextMenuActions(const FGraphNodeContextMenuBui
 		}
 		Context.MenuBuilder->EndSection();
 	}
+
+	DA_NodeUtils::AddDebugMenuSection(this, Context, EntryPointEventName);
 }
 
 void UBpNode_RoleSelection::AllocateDefaultPins()

@@ -485,3 +485,8 @@ void UXD_ActionDispatcherBase::WhenDeactived(bool IsFinsihedCompleted)
 {
 	ReceiveWhenDeactived(IsFinsihedCompleted);
 }
+
+void UXD_ActionDispatcherBase::PreDebugForceExecuteNode()
+{
+
+}

@@ -22,6 +22,7 @@ public:
 	FName GetCornerIcon() const override { return TEXT("Graph.Latent.LatentIcon"); }
 	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
+	void GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const override;
 
 	void AllocateDefaultPins() override;
 	void PinDefaultValueChanged(UEdGraphPin* ChangedPin) override;
