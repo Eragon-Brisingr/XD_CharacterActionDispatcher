@@ -142,25 +142,11 @@ TArray<UXD_DispatchableActionBase::FPinNameData> UXD_DispatchableActionBase::Get
 
 void UXD_DispatchableActionBase::BindAllFinishedEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents)
 {
-	if (FinishedEvents.Num() == 0)
+	const TArray<UStructProperty*>& AllFinishedEvents = GetAllFinishedEvents();
+	for (int32 BindIdx = 0; BindIdx < FinishedEvents.Num(); ++BindIdx)
 	{
-		return;
-	}
-
-	int32 BindIdx = 0;
-	for (TFieldIterator<UStructProperty> It(GetClass()); It; ++It)
-	{
-		UStructProperty* Struct = *It;
-		if (Struct->Struct->IsChildOf(FOnDispatchableActionFinishedEvent::StaticStruct()))
-		{
-			FOnDispatchableActionFinishedEvent* Value = Struct->ContainerPtrToValuePtr<FOnDispatchableActionFinishedEvent>(this);
-			*Value = FinishedEvents[BindIdx++];
-
-			if (FinishedEvents.Num() >= BindIdx)
-			{
-				break;
-			}
-		}
+		FOnDispatchableActionFinishedEvent* Value = AllFinishedEvents[BindIdx]->ContainerPtrToValuePtr<FOnDispatchableActionFinishedEvent>(this);
+		*Value = FinishedEvents[BindIdx++];
 	}
 }
 
@@ -277,4 +263,26 @@ bool UXD_DispatchableActionBase::InvokeReactiveDispatcher()
 void UXD_DispatchableActionBase::ReactiveDispatcher()
 {
 	GetOwner()->ReactiveDispatcher();
+}
+
+void UXD_DispatchableActionBase::PostInitProperties()
+{
+	Super::PostInitProperties();
+
+	if (HasAnyFlags(RF_ClassDefaultObject))
+	{
+		for (TFieldIterator<UStructProperty> It(GetClass()); It; ++It)
+		{
+			UStructProperty* Struct = *It;
+			if (Struct->Struct->IsChildOf(FOnDispatchableActionFinishedEvent::StaticStruct()))
+			{
+				CachedAllFinishedEvents.Add(Struct);
+			}
+		}
+	}
+}
+
+const TArray<UStructProperty*>& UXD_DispatchableActionBase::GetAllFinishedEvents() const
+{
+	return GetClass()->GetDefaultObject<UXD_DispatchableActionBase>()->CachedAllFinishedEvents;
 }

@@ -33,7 +33,7 @@ protected:
 	friend class UXD_ActionDispatcherBase;
 
 	void ActiveAction();
-	//当行为被第一次激活时的实现，别忘记调用RegisterEntity
+	//当行为被第一次激活时的实现
 	virtual void WhenActionActived(){}
 
 	virtual bool CanActiveAction() const { return IsActionValid(); }
@@ -55,7 +55,7 @@ protected:
 private:
 	void FinishAction();
 public:
-	//当行为成功结束时的实现，一般用作UnregisterEntity
+	//当行为成功结束时的实现
 	UFUNCTION()
 	virtual void WhenActionFinished(){}
 
@@ -110,6 +110,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void ReactiveDispatcher();
+
+private:
+	void PostInitProperties() override;
+	TArray<UStructProperty*> CachedAllFinishedEvents;
+	const TArray<UStructProperty*>& GetAllFinishedEvents() const;
 };
 
 UCLASS(abstract, Blueprintable)
