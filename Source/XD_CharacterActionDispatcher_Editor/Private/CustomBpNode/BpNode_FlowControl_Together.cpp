@@ -93,7 +93,7 @@ void UBpNode_FlowControl_Together::GetContextMenuActions(const FGraphNodeContext
 
 void UBpNode_FlowControl_Together::AllocateDefaultPins()
 {
-	UEdGraphPin* TogetherPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, TogetherEventPinName);
+	UEdGraphPin* TogetherPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, DA_NodeUtils::PinFinishEventSubCategoryName, TogetherEventPinName);
 	TogetherPin->PinFriendlyName = LOCTEXT("可执行共同事件引脚描述", "可执行共同事件");
 	for (int32 i = 0; i < TogetherEventCount; ++i)
 	{

@@ -8,6 +8,7 @@
 #include "BpNode_FinishDispatch.h"
 #include "K2Node_Composite.h"
 #include "K2Node_MacroInstance.h"
+#include "DA_CustomBpNodeUtils.h"
 
 FLinkToFinishNodeChecker FLinkToFinishNodeChecker::CheckForceConnectFinishNode(UEdGraphNode* Node, FCompilerResultsLog& MessageLog)
 {
@@ -52,7 +53,7 @@ void FLinkToFinishNodeChecker::DoCheckImpl(UEdGraphNode* Node)
 	{
 		for (UEdGraphPin* Pin : Node->Pins)
 		{
-			if (Pin->Direction == EGPD_Output && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec)
+			if (Pin->Direction == EGPD_Output && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec && Pin->PinType.PinSubCategory == DA_NodeUtils::PinFinishEventSubCategoryName)
 			{
 				CheckPinConnectedFinishNode(Pin);
 			}

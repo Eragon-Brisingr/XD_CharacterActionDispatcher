@@ -9,16 +9,30 @@
 /**
  * 
  */
-DECLARE_DYNAMIC_DELEGATE(FOnDispatchableActionFinished);
+DECLARE_DYNAMIC_DELEGATE(FDispatchableActionEventDelegate);
 
 USTRUCT(BlueprintType)
-struct XD_CHARACTERACTIONDISPATCHER_API FOnDispatchableActionFinishedEvent
+struct XD_CHARACTERACTIONDISPATCHER_API FDispatchableActionEventBase
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(SaveGame)
-	FOnDispatchableActionFinished Event;
+	FDispatchableActionEventDelegate Event;
+};
 
+USTRUCT(BlueprintType)
+struct XD_CHARACTERACTIONDISPATCHER_API FOnDispatchableActionFinishedEvent : public FDispatchableActionEventBase
+{
+	GENERATED_BODY()
+private:
+	friend class UXD_DispatchableActionBase;
+	void ExecuteIfBound() const { Event.ExecuteIfBound(); }
+};
+
+USTRUCT(BlueprintType)
+struct XD_CHARACTERACTIONDISPATCHER_API FDispatchableActionNormalEvent : public FDispatchableActionEventBase
+{
+	GENERATED_BODY()
 private:
 	friend class UXD_DispatchableActionBase;
 	void ExecuteIfBound() const { Event.ExecuteIfBound(); }

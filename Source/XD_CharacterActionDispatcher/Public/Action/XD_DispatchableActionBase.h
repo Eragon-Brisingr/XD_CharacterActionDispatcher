@@ -78,7 +78,7 @@ public:
 	virtual TArray<FPinNameData> GetAllFinishedEventName() const;
 	// TODO 可以不为运行时行为，ExpandNode时根据类型绑定上回调，这样还可以支持参数
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	virtual void BindAllFinishedEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents);
+	virtual void BindAllActionEvent(const TArray<FDispatchableActionEventBase>& ActionEvents);
 protected:
 	//返回行为中所有需要注册的实体
 	virtual TArray<AActor*> GetAllRegistableEntities() const;

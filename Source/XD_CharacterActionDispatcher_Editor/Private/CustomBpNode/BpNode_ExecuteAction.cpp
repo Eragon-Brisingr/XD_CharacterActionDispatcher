@@ -109,7 +109,7 @@ void UBpNode_ExecuteAction::ReflushFinishExec()
 		TArray<UXD_DispatchableActionBase::FPinNameData> FinishedEventNames = ActionClass.GetDefaultObject()->GetAllFinishedEventName();
 		for (const UXD_DispatchableActionBase::FPinNameData& EventName : FinishedEventNames)
 		{
-			UEdGraphPin* Pin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, EventName.PinName);
+			UEdGraphPin* Pin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, DA_NodeUtils::PinFinishEventSubCategoryName, EventName.PinName);
 			Pin->PinFriendlyName = EventName.PinDisplayName;
 		}
 	}
@@ -198,41 +198,41 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 			MakeEventArrayNode->AllocateDefaultPins();
 
 			UK2Node_CallFunction* BindingEventsNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-			BindingEventsNode->SetFromFunction(UXD_DispatchableActionBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_DispatchableActionBase, BindAllFinishedEvent)));
+			BindingEventsNode->SetFromFunction(UXD_DispatchableActionBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_DispatchableActionBase, BindAllActionEvent)));
 			BindingEventsNode->AllocateDefaultPins();
 			CallCreateNode->GetReturnValuePin()->MakeLinkTo(BindingEventsNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
 			LastThen->MakeLinkTo(BindingEventsNode->GetExecPin());
 			LastThen = BindingEventsNode->GetThenPin();
 
-			MakeEventArrayNode->GetOutputPin()->MakeLinkTo(BindingEventsNode->FindPinChecked(TEXT("FinishedEvents")));
+			MakeEventArrayNode->GetOutputPin()->MakeLinkTo(BindingEventsNode->FindPinChecked(TEXT("ActionEvents")));
 			MakeEventArrayNode->PinConnectionListChanged(MakeEventArrayNode->GetOutputPin());
-
-			UK2Node_CallFunction* ActiveActionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-			ActiveActionNode->SetFromFunction(UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InvokeActiveAction)));
-			ActiveActionNode->AllocateDefaultPins();
-			GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
-			CallCreateNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(TEXT("Action")));
 
 			for (int32 i = 0; i < FinishedEventNames.Num(); ++i)
 			{
 				const FName& FinishedEventName = FinishedEventNames[i].PinName;
 				UEdGraphPin* ElementPin = MakeEventArrayNode->FindPinChecked(FString::Printf(TEXT("[%d]"), i));
 
-				UK2Node_CallFunction* MakeDispatchableActionFinishedEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-				MakeDispatchableActionFinishedEventNode->SetFromFunction(UXD_BpNodeFunctionWarpper::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_BpNodeFunctionWarpper, MakeDispatchableActionFinishedEvent)));
-				MakeDispatchableActionFinishedEventNode->AllocateDefaultPins();
-				UEdGraphPin* MakeEventPin = MakeDispatchableActionFinishedEventNode->FindPinChecked(TEXT("Event"));
+				UK2Node_CallFunction* MakeDispatchableActionEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+				MakeDispatchableActionEventNode->SetFromFunction(UXD_BpNodeFunctionWarpper::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_BpNodeFunctionWarpper, MakeDispatchableActionEvent)));
+				MakeDispatchableActionEventNode->AllocateDefaultPins();
+				UEdGraphPin* MakeEventPin = MakeDispatchableActionEventNode->FindPinChecked(TEXT("Event"));
 
 				//创建委托
 				UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(this, MakeEventPin, SourceGraph);
-				FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("%s_[%s]"), *FinishedEventName.ToString(), *CompilerContext.GetGuid(this));
+				FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("%s_%s"), *EntryPointEventName.ToString(), *FinishedEventName.ToString());
 				FinishedEventNode->AllocateDefaultPins();
 
 				FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(MakeEventPin);
-				MakeDispatchableActionFinishedEventNode->GetReturnValuePin()->MakeLinkTo(ElementPin);
+				MakeDispatchableActionEventNode->GetReturnValuePin()->MakeLinkTo(ElementPin);
 
 				CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(FinishedEventName, EGPD_Output), *FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
 			}
+
+			UK2Node_CallFunction* ActiveActionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+			ActiveActionNode->SetFromFunction(UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InvokeActiveAction)));
+			ActiveActionNode->AllocateDefaultPins();
+			GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
+			CallCreateNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(TEXT("Action")));
 
 			LastThen->MakeLinkTo(ActiveActionNode->GetExecPin());
 			LastThen = ActiveActionNode->GetThenPin();

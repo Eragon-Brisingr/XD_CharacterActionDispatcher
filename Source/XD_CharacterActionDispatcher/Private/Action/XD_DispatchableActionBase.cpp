@@ -125,28 +125,24 @@ TArray<UXD_DispatchableActionBase::FPinNameData> UXD_DispatchableActionBase::Get
 {
 	TArray<FPinNameData> Res;
 #if WITH_EDITOR
-	for (TFieldIterator<UStructProperty> It(GetClass()); It; ++It)
+	for (UStructProperty* Struct : GetAllFinishedEvents())
 	{
-		UStructProperty* Struct = *It;
-		if (Struct->Struct->IsChildOf(FOnDispatchableActionFinishedEvent::StaticStruct()))
-		{
-			FPinNameData Data;
-			Data.PinName = *Struct->GetName();
-			Data.PinDisplayName = Struct->GetDisplayNameText();
-			Res.Add(Data);
-		}
+		FPinNameData Data;
+		Data.PinName = *Struct->GetName();
+		Data.PinDisplayName = Struct->GetDisplayNameText();
+		Res.Add(Data);
 	}
 #endif
 	return Res;
 }
 
-void UXD_DispatchableActionBase::BindAllFinishedEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents)
+void UXD_DispatchableActionBase::BindAllActionEvent(const TArray<FDispatchableActionEventBase>& ActionEvents)
 {
 	const TArray<UStructProperty*>& AllFinishedEvents = GetAllFinishedEvents();
-	for (int32 BindIdx = 0; BindIdx < FinishedEvents.Num(); ++BindIdx)
+	for (int32 BindIdx = 0; BindIdx < ActionEvents.Num(); ++BindIdx)
 	{
-		FOnDispatchableActionFinishedEvent* Value = AllFinishedEvents[BindIdx]->ContainerPtrToValuePtr<FOnDispatchableActionFinishedEvent>(this);
-		*Value = FinishedEvents[BindIdx++];
+		FDispatchableActionEventBase* Value = AllFinishedEvents[BindIdx]->ContainerPtrToValuePtr<FDispatchableActionEventBase>(this);
+		*Value = ActionEvents[BindIdx++];
 	}
 }
 

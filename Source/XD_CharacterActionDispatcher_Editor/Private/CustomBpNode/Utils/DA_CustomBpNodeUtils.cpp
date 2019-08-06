@@ -76,4 +76,8 @@ void DA_NodeUtils::AddDebugMenuSection(const UK2Node* Node, const FGraphNodeCont
 	}
 }
 
+FName DA_NodeUtils::PinFinishEventSubCategoryName = TEXT("FinishEvent");
+
+FName DA_NodeUtils::PinNodeEventSubCategoryName = TEXT("Event");
+
 #undef LOCTEXT_NAMESPACE

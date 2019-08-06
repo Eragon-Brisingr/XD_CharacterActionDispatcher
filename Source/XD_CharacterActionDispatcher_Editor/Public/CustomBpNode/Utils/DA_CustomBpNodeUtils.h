@@ -45,4 +45,6 @@ struct DA_NodeUtils
 
 	static void AddDebugMenuSection(const UK2Node* Node, const FGraphNodeContextMenuBuilder& Context, FName EntryPointEventName);
 
+	static FName PinFinishEventSubCategoryName;
+	static FName PinNodeEventSubCategoryName;
 };

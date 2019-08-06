@@ -238,9 +238,9 @@ void UBpNode_ActiveSubActionDispatcher::ReflushFinishExec()
 {
 	for (const FName& Tag : FinishedTags)
 	{
-		CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, Tag);
+		CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, DA_NodeUtils::PinFinishEventSubCategoryName, Tag);
 	}
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, DefaultPinName);
+	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, DA_NodeUtils::PinFinishEventSubCategoryName, DefaultPinName);
 }
 
 #undef LOCTEXT_NAMESPACE

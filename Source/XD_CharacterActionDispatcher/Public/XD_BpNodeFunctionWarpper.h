@@ -17,5 +17,8 @@ public:
 	static void PlayLevelSequence(ALevelSequenceActor* LevelSequenceActor);
 
 	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))
-	static FOnDispatchableActionFinishedEvent MakeDispatchableActionFinishedEvent(const FOnDispatchableActionFinished& Event);
+	static FDispatchableActionEventBase MakeDispatchableActionEvent(const FDispatchableActionEventDelegate& Event);
+
+	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))
+	static FOnDispatchableActionFinishedEvent MakeDispatchableActionFinishedEvent(const FDispatchableActionEventDelegate& Event);
 };
