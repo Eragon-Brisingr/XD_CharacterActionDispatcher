@@ -13,6 +13,10 @@
 #include "UIAction.h"
 #include "K2Node_CallFunction.h"
 #include "XD_CharacterActionDispatcher_EditorUtility.h"
+#include "XD_DispatchableActionBase.h"
+#include "K2Node_MakeArray.h"
+#include "K2Node_CustomEvent.h"
+#include "XD_BpNodeFunctionWarpper.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -76,8 +80,116 @@ void DA_NodeUtils::AddDebugMenuSection(const UK2Node* Node, const FGraphNodeCont
 	}
 }
 
-FName DA_NodeUtils::PinFinishEventSubCategoryName = TEXT("FinishEvent");
+FString DA_NodeUtils::PinFinishEventToopTip = TEXT("FinishEvent");
+FString DA_NodeUtils::PinNormalEventToopTip = TEXT("NormalEvent");
 
-FName DA_NodeUtils::PinNodeEventSubCategoryName = TEXT("Event");
+UEdGraphPin* DA_NodeUtils::CreateFinishEventPin(UK2Node* EdNode, const FName& PinName, const FText& DisplayName)
+{
+	UEdGraphPin* Pin = EdNode->CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, PinName);
+	Pin->PinFriendlyName = DisplayName;
+	Pin->PinToolTip = PinFinishEventToopTip;
+	return Pin;
+}
+
+UEdGraphPin* DA_NodeUtils::CreateNormalEventPin(UK2Node* EdNode, const FName& PinName, const FText& DisplayName /*= FText::GetEmpty()*/)
+{
+	UEdGraphPin* Pin = EdNode->CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, PinName);
+	Pin->PinFriendlyName = DisplayName;
+	Pin->PinToolTip = PinNormalEventToopTip;
+	return Pin;
+}
+
+void DA_NodeUtils::CreateActionEventPins(UK2Node* Node, const TSubclassOf<UXD_DispatchableActionBase>& ActionClass)
+{
+	if (ActionClass)
+	{
+		TArray<UXD_DispatchableActionBase::FPinNameData> FinishedEventNames = ActionClass.GetDefaultObject()->GetAllFinishedEventName();
+		for (const UXD_DispatchableActionBase::FPinNameData& EventName : FinishedEventNames)
+		{
+			DA_NodeUtils::CreateFinishEventPin(Node, EventName.PinName, EventName.PinDisplayName);
+		}
+		TArray<UXD_DispatchableActionBase::FPinNameData> NormalEventNames = ActionClass.GetDefaultObject()->GetAllNormalEventName();
+		for (const UXD_DispatchableActionBase::FPinNameData& EventName : NormalEventNames)
+		{
+			DA_NodeUtils::CreateNormalEventPin(Node, EventName.PinName, EventName.PinDisplayName);
+		}
+	}
+}
+
+UEdGraphPin* DA_NodeUtils::CreateAllEventNode(const TSubclassOf<UXD_DispatchableActionBase>& ActionClass, UK2Node* Node, UEdGraphPin* LastThen, UEdGraphPin* ActionRefPin, const FName& EntryPointEventName, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
+{
+	if (ActionClass)
+	{
+		UXD_DispatchableActionBase* Action = ActionClass.GetDefaultObject();
+
+		UK2Node_CallFunction* BindingEventsNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(Node, SourceGraph);
+		BindingEventsNode->SetFromFunction(UXD_DispatchableActionBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_DispatchableActionBase, BindAllActionEvent)));
+		BindingEventsNode->AllocateDefaultPins();
+		ActionRefPin->MakeLinkTo(BindingEventsNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
+		LastThen->MakeLinkTo(BindingEventsNode->GetExecPin());
+		LastThen = BindingEventsNode->GetThenPin();
+
+		UK2Node_MakeArray* MakeFinishedEventArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(Node, SourceGraph);
+		{
+			TArray<UXD_DispatchableActionBase::FPinNameData> FinishedEventNames = Action->GetAllFinishedEventName();
+			MakeFinishedEventArrayNode->NumInputs = FinishedEventNames.Num();
+			MakeFinishedEventArrayNode->AllocateDefaultPins();
+			MakeFinishedEventArrayNode->GetOutputPin()->MakeLinkTo(BindingEventsNode->FindPinChecked(TEXT("FinishedEvents")));
+			MakeFinishedEventArrayNode->PinConnectionListChanged(MakeFinishedEventArrayNode->GetOutputPin());
+
+			for (int32 i = 0; i < FinishedEventNames.Num(); ++i)
+			{
+				const FName& FinishedEventName = FinishedEventNames[i].PinName;
+				UEdGraphPin* ElementPin = MakeFinishedEventArrayNode->FindPinChecked(FString::Printf(TEXT("[%d]"), i));
+
+				UK2Node_CallFunction* MakeDispatchableActionEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(Node, SourceGraph);
+				MakeDispatchableActionEventNode->SetFromFunction(UXD_BpNodeFunctionWarpper::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_BpNodeFunctionWarpper, MakeDispatchableActionFinishedEvent)));
+				MakeDispatchableActionEventNode->AllocateDefaultPins();
+				UEdGraphPin* MakeEventPin = MakeDispatchableActionEventNode->FindPinChecked(TEXT("Event"));
+
+				//创建委托
+				UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(Node, MakeEventPin, SourceGraph);
+				FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("%s_%s"), *EntryPointEventName.ToString(), *FinishedEventName.ToString());
+				FinishedEventNode->AllocateDefaultPins();
+
+				FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(MakeEventPin);
+				MakeDispatchableActionEventNode->GetReturnValuePin()->MakeLinkTo(ElementPin);
+
+				CompilerContext.MovePinLinksToIntermediate(*Node->FindPinChecked(FinishedEventName, EGPD_Output), *FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
+			}
+		}
+
+		UK2Node_MakeArray* MakeNormalEventArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(Node, SourceGraph);
+		{
+			TArray<UXD_DispatchableActionBase::FPinNameData> NormalEventNames = Action->GetAllNormalEventName();
+			MakeNormalEventArrayNode->NumInputs = NormalEventNames.Num();
+			MakeNormalEventArrayNode->AllocateDefaultPins();
+			MakeNormalEventArrayNode->GetOutputPin()->MakeLinkTo(BindingEventsNode->FindPinChecked(TEXT("NormalEvents")));
+			MakeNormalEventArrayNode->PinConnectionListChanged(MakeNormalEventArrayNode->GetOutputPin());
+
+			for (int32 i = 0; i < NormalEventNames.Num(); ++i)
+			{
+				const FName& NormalEventName = NormalEventNames[i].PinName;
+				UEdGraphPin* ElementPin = MakeNormalEventArrayNode->FindPinChecked(FString::Printf(TEXT("[%d]"), i));
+
+				UK2Node_CallFunction* MakeDispatchableActionEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(Node, SourceGraph);
+				MakeDispatchableActionEventNode->SetFromFunction(UXD_BpNodeFunctionWarpper::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_BpNodeFunctionWarpper, MakeDispatchableNormalEvent)));
+				MakeDispatchableActionEventNode->AllocateDefaultPins();
+				UEdGraphPin* MakeEventPin = MakeDispatchableActionEventNode->FindPinChecked(TEXT("Event"));
+
+				//创建委托
+				UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(Node, MakeEventPin, SourceGraph);
+				FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("%s_%s"), *EntryPointEventName.ToString(), *NormalEventName.ToString());
+				FinishedEventNode->AllocateDefaultPins();
+
+				FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(MakeEventPin);
+				MakeDispatchableActionEventNode->GetReturnValuePin()->MakeLinkTo(ElementPin);
+
+				CompilerContext.MovePinLinksToIntermediate(*Node->FindPinChecked(NormalEventName, EGPD_Output), *FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
+			}
+		}
+	}
+	return LastThen;
+}
 
 #undef LOCTEXT_NAMESPACE

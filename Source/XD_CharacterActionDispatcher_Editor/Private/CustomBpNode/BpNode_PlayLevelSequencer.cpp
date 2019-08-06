@@ -144,10 +144,8 @@ void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Execute);
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Struct, TBaseStructure<FTransform>::Get(), PlayLocationPinName);
 
-	UEdGraphPin* WhenPlayCompletedPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, DA_NodeUtils::PinFinishEventSubCategoryName, WhenPlayCompletedPinName);
-	WhenPlayCompletedPin->PinFriendlyName = LOCTEXT("播放完毕执行引脚描述", "播放完毕");
-	UEdGraphPin* WhenCanNotPlayPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, DA_NodeUtils::PinFinishEventSubCategoryName, WhenCanNotPlayPinName);
-	WhenCanNotPlayPin->PinFriendlyName = LOCTEXT("无法播放执行引脚描述", "无法播放");
+	DA_NodeUtils::CreateFinishEventPin(this, WhenPlayCompletedPinName, LOCTEXT("播放完毕执行引脚描述", "播放完毕"));
+	DA_NodeUtils::CreateFinishEventPin(this, WhenCanNotPlayPinName, LOCTEXT("无法播放执行引脚描述", "无法播放"));
 	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass, RetureValuePinName);
 	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Then);
 

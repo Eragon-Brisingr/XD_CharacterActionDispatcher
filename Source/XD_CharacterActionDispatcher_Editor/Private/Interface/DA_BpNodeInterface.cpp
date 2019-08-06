@@ -4,6 +4,7 @@
 #include "LinkToFinishNodeChecker.h"
 #include "EdGraph/EdGraphPin.h"
 #include "EdGraphSchema_K2.h"
+#include "DA_CustomBpNodeUtils.h"
 
 void IDA_BpNodeInterface::WhenCheckLinkedFinishNode(FLinkToFinishNodeChecker& Checker) const
 {
@@ -11,7 +12,7 @@ void IDA_BpNodeInterface::WhenCheckLinkedFinishNode(FLinkToFinishNodeChecker& Ch
 	{
 		for (UEdGraphPin* Pin : Node->Pins)
 		{
-			if (Pin->Direction == EGPD_Output && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec && Pin->PinName != UEdGraphSchema_K2::PN_Then)
+			if (Pin->Direction == EGPD_Output && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec && Pin->PinName != UEdGraphSchema_K2::PN_Then && Pin->PinToolTip == DA_NodeUtils::PinFinishEventToopTip)
 			{
 				Checker.CheckPinConnectedFinishNode(Pin);
 			}

@@ -11,6 +11,7 @@ class UEdGraphPin;
 class UEdGraph;
 class UK2Node;
 struct FGraphNodeContextMenuBuilder;
+class UXD_DispatchableActionBase;
 
 /**
  * 
@@ -45,6 +46,15 @@ struct DA_NodeUtils
 
 	static void AddDebugMenuSection(const UK2Node* Node, const FGraphNodeContextMenuBuilder& Context, FName EntryPointEventName);
 
-	static FName PinFinishEventSubCategoryName;
-	static FName PinNodeEventSubCategoryName;
+	static FString PinFinishEventToopTip;
+	static FString PinNormalEventToopTip;
+
+	static UEdGraphPin* CreateFinishEventPin(UK2Node* EdNode, const FName& PinName, const FText& DisplayName = FText::GetEmpty());
+	static UEdGraphPin* CreateNormalEventPin(UK2Node* EdNode, const FName& PinName, const FText& DisplayName = FText::GetEmpty());
+
+	static void CreateActionEventPins(UK2Node* Node, const TSubclassOf<UXD_DispatchableActionBase>& ActionClass);
+
+	static UEdGraphPin* CreateAllEventNode(const TSubclassOf<UXD_DispatchableActionBase>& ActionClass, UK2Node* Node, UEdGraphPin* LastThen, UEdGraphPin* ActionRefPin, const FName& EntryPointEventName,
+		FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
+
 };

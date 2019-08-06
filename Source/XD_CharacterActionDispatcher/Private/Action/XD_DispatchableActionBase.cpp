@@ -136,13 +136,34 @@ TArray<UXD_DispatchableActionBase::FPinNameData> UXD_DispatchableActionBase::Get
 	return Res;
 }
 
-void UXD_DispatchableActionBase::BindAllActionEvent(const TArray<FDispatchableActionEventBase>& ActionEvents)
+TArray<UXD_DispatchableActionBase::FPinNameData> UXD_DispatchableActionBase::GetAllNormalEventName() const
+{
+	TArray<FPinNameData> Res;
+#if WITH_EDITOR
+	for (UStructProperty* Struct : GetAllNormalEvents())
+	{
+		FPinNameData Data;
+		Data.PinName = *Struct->GetName();
+		Data.PinDisplayName = Struct->GetDisplayNameText();
+		Res.Add(Data);
+	}
+#endif
+	return Res;
+}
+
+void UXD_DispatchableActionBase::BindAllActionEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents, const TArray<FDispatchableActionNormalEvent>& NormalEvents)
 {
 	const TArray<UStructProperty*>& AllFinishedEvents = GetAllFinishedEvents();
-	for (int32 BindIdx = 0; BindIdx < ActionEvents.Num(); ++BindIdx)
+	for (int32 BindIdx = 0; BindIdx < FinishedEvents.Num(); ++BindIdx)
 	{
-		FDispatchableActionEventBase* Value = AllFinishedEvents[BindIdx]->ContainerPtrToValuePtr<FDispatchableActionEventBase>(this);
-		*Value = ActionEvents[BindIdx++];
+		FOnDispatchableActionFinishedEvent* Value = AllFinishedEvents[BindIdx]->ContainerPtrToValuePtr<FOnDispatchableActionFinishedEvent>(this);
+		*Value = FinishedEvents[BindIdx];
+	}
+	const TArray<UStructProperty*>& AllNormalEvents = GetAllNormalEvents();
+	for (int32 BindIdx = 0; BindIdx < NormalEvents.Num(); ++BindIdx)
+	{
+		FDispatchableActionNormalEvent* Value = AllNormalEvents[BindIdx]->ContainerPtrToValuePtr<FDispatchableActionNormalEvent>(this);
+		*Value = NormalEvents[BindIdx];
 	}
 }
 
@@ -274,6 +295,10 @@ void UXD_DispatchableActionBase::PostInitProperties()
 			{
 				CachedAllFinishedEvents.Add(Struct);
 			}
+			else if (Struct->Struct->IsChildOf(FDispatchableActionNormalEvent::StaticStruct()))
+			{
+				CachedAllNormalEvents.Add(Struct);
+			}
 		}
 	}
 }
@@ -281,4 +306,9 @@ void UXD_DispatchableActionBase::PostInitProperties()
 const TArray<UStructProperty*>& UXD_DispatchableActionBase::GetAllFinishedEvents() const
 {
 	return GetClass()->GetDefaultObject<UXD_DispatchableActionBase>()->CachedAllFinishedEvents;
+}
+
+const TArray<UStructProperty*>& UXD_DispatchableActionBase::GetAllNormalEvents() const
+{
+	return GetClass()->GetDefaultObject<UXD_DispatchableActionBase>()->CachedAllNormalEvents;
 }

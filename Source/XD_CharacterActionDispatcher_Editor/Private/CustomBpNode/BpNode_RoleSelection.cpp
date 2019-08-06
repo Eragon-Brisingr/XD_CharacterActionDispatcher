@@ -215,7 +215,7 @@ void UBpNode_RoleSelection::AddSelection()
 void UBpNode_RoleSelection::AddSelectionImpl(int32 Idx)
 {
 	UEdGraphPin* SelectionPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Struct, SelectionStructType, GetSelectionPinName(Idx));
-	UEdGraphPin* ExecPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, DA_NodeUtils::PinFinishEventSubCategoryName, GetExecPinName(Idx));
+	UEdGraphPin* ExecPin = DA_NodeUtils::CreateFinishEventPin(this, GetExecPinName(Idx));
 
 	FSelectionPin SelectionPinData;
 	SelectionPinData.SelectionPin = SelectionPin;

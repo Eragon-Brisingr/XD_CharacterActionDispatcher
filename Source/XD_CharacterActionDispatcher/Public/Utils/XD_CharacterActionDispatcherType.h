@@ -33,8 +33,7 @@ USTRUCT(BlueprintType)
 struct XD_CHARACTERACTIONDISPATCHER_API FDispatchableActionNormalEvent : public FDispatchableActionEventBase
 {
 	GENERATED_BODY()
-private:
-	friend class UXD_DispatchableActionBase;
+public:
 	void ExecuteIfBound() const { Event.ExecuteIfBound(); }
 };
 

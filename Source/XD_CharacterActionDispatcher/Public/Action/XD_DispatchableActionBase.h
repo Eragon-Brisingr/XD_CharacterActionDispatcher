@@ -75,10 +75,11 @@ public:
 		FName PinName;
 		FText PinDisplayName;
 	};
-	virtual TArray<FPinNameData> GetAllFinishedEventName() const;
+	TArray<FPinNameData> GetAllFinishedEventName() const;
+	TArray<FPinNameData> GetAllNormalEventName() const;
 	// TODO 可以不为运行时行为，ExpandNode时根据类型绑定上回调，这样还可以支持参数
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	virtual void BindAllActionEvent(const TArray<FDispatchableActionEventBase>& ActionEvents);
+	void BindAllActionEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents, const TArray<FDispatchableActionNormalEvent>& NormalEvents);
 protected:
 	//返回行为中所有需要注册的实体
 	virtual TArray<AActor*> GetAllRegistableEntities() const;
@@ -114,7 +115,9 @@ public:
 private:
 	void PostInitProperties() override;
 	TArray<UStructProperty*> CachedAllFinishedEvents;
+	TArray<UStructProperty*> CachedAllNormalEvents;
 	const TArray<UStructProperty*>& GetAllFinishedEvents() const;
+	const TArray<UStructProperty*>& GetAllNormalEvents() const;
 };
 
 UCLASS(abstract, Blueprintable)

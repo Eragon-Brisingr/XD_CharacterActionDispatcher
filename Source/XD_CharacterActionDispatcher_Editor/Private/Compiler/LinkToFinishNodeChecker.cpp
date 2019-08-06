@@ -53,7 +53,7 @@ void FLinkToFinishNodeChecker::DoCheckImpl(UEdGraphNode* Node)
 	{
 		for (UEdGraphPin* Pin : Node->Pins)
 		{
-			if (Pin->Direction == EGPD_Output && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec && Pin->PinType.PinSubCategory == DA_NodeUtils::PinFinishEventSubCategoryName)
+			if (Pin->Direction == EGPD_Output && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec)
 			{
 				CheckPinConnectedFinishNode(Pin);
 			}
