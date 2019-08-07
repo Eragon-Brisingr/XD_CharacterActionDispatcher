@@ -144,8 +144,7 @@ void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Execute);
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Struct, TBaseStructure<FTransform>::Get(), PlayLocationPinName);
 
-	DA_NodeUtils::CreateFinishEventPin(this, WhenPlayCompletedPinName, LOCTEXT("播放完毕执行引脚描述", "播放完毕"));
-	DA_NodeUtils::CreateFinishEventPin(this, WhenCanNotPlayPinName, LOCTEXT("无法播放执行引脚描述", "无法播放"));
+	DA_NodeUtils::CreateActionEventPins(this, GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass);
 	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass, RetureValuePinName);
 	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Then);
 
@@ -232,69 +231,33 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 		return;
 	}
 
-	UK2Node_CallFunction* PlaySequenceNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-	PlaySequenceNode->SetFromFunction(UXD_DA_PlaySequenceBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_DA_PlaySequenceBase, PlaySequence)));
-	PlaySequenceNode->AllocateDefaultPins();
-	DA_NodeUtils::SetPinStructValue(PlaySequenceNode->FindPinChecked(TEXT("Sequence"), EGPD_Input), LevelSequence.ToSoftObjectPath());
-	CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *PlaySequenceNode->GetExecPin());
-	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(UEdGraphSchema_K2::PN_Then), *PlaySequenceNode->GetThenPin());
+	UK2Node_CallFunction* CreatePlaySequenceNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	CreatePlaySequenceNode->SetFromFunction(UXD_DA_PlaySequenceBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_DA_PlaySequenceBase, CreatePlaySequenceAction)));
+	CreatePlaySequenceNode->AllocateDefaultPins();
+	DA_NodeUtils::SetPinStructValue(CreatePlaySequenceNode->FindPinChecked(TEXT("Sequence"), EGPD_Input), LevelSequence.ToSoftObjectPath());
+	CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *CreatePlaySequenceNode->GetExecPin());
+	UEdGraphPin* LastThen = CreatePlaySequenceNode->GetThenPin();
 
 	UK2Node_CallFunction* GetMainActionDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 	{
 		GetMainActionDispatcherNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, GetMainActionDispatcher), UXD_ActionDispatcherBase::StaticClass());
 		GetMainActionDispatcherNode->AllocateDefaultPins();
 	}
-	GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(PlaySequenceNode->FindPinChecked(TEXT("ActionDispatcher")));
+	GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(CreatePlaySequenceNode->FindPinChecked(TEXT("ActionDispatcher")));
 
-	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(PlayLocationPinName), *PlaySequenceNode->FindPinChecked(TEXT("InPlayTransform")));
-	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(RetureValuePinName), *PlaySequenceNode->GetReturnValuePin());
-
-	//WhenPlayCompleted
-	{
-		UK2Node_CallFunction* MakeDispatchableActionFinishedEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-		MakeDispatchableActionFinishedEventNode->SetFromFunction(UXD_BpNodeFunctionWarpper::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_BpNodeFunctionWarpper, MakeDispatchableActionFinishedEvent)));
-		MakeDispatchableActionFinishedEventNode->AllocateDefaultPins();
-		UEdGraphPin* MakeEventPin = MakeDispatchableActionFinishedEventNode->FindPinChecked(TEXT("Event"));
-
-		//创建委托
-		UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(this, MakeEventPin, SourceGraph);
-		FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("WhenPlayCompleted_[%s]"), *CompilerContext.GetGuid(this));
-		FinishedEventNode->AllocateDefaultPins();
-
-		FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(MakeEventPin);
-		MakeDispatchableActionFinishedEventNode->GetReturnValuePin()->MakeLinkTo(PlaySequenceNode->FindPinChecked(TEXT("InWhenPlayEnd")));
-
-		CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(WhenPlayCompletedPinName, EGPD_Output), *FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
-	}
-
-	//WhenCanNotPlay
-	{
-		UK2Node_CallFunction* MakeDispatchableActionFinishedEventNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-		MakeDispatchableActionFinishedEventNode->SetFromFunction(UXD_BpNodeFunctionWarpper::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_BpNodeFunctionWarpper, MakeDispatchableActionFinishedEvent)));
-		MakeDispatchableActionFinishedEventNode->AllocateDefaultPins();
-		UEdGraphPin* MakeEventPin = MakeDispatchableActionFinishedEventNode->FindPinChecked(TEXT("Event"));
-
-		//创建委托
-		UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(this, MakeEventPin, SourceGraph);
-		FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("WhenCanNotPlay_[%s]"), *CompilerContext.GetGuid(this));
-		FinishedEventNode->AllocateDefaultPins();
-
-		FinishedEventNode->FindPinChecked(UK2Node_CustomEvent::DelegateOutputName)->MakeLinkTo(MakeEventPin);
-		MakeDispatchableActionFinishedEventNode->GetReturnValuePin()->MakeLinkTo(PlaySequenceNode->FindPinChecked(TEXT("InWhenCanNotPlay")));
-
-		CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(WhenCanNotPlayPinName, EGPD_Output), *FinishedEventNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
-	}
+	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(PlayLocationPinName), *CreatePlaySequenceNode->FindPinChecked(TEXT("InPlayTransform")));
+	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(RetureValuePinName), *CreatePlaySequenceNode->GetReturnValuePin());
 
 	UK2Node_MakeArray* MakeActorDatasArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(this, SourceGraph);
 	MakeActorDatasArrayNode->NumInputs = 0;
 	MakeActorDatasArrayNode->AllocateDefaultPins();
-	MakeActorDatasArrayNode->GetOutputPin()->MakeLinkTo(PlaySequenceNode->FindPinChecked(TEXT("ActorDatas")));
+	MakeActorDatasArrayNode->GetOutputPin()->MakeLinkTo(CreatePlaySequenceNode->FindPinChecked(TEXT("ActorDatas")));
 	MakeActorDatasArrayNode->PinConnectionListChanged(MakeActorDatasArrayNode->GetOutputPin());
 
 	UK2Node_MakeArray* MakePawnDatasArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(this, SourceGraph);
 	MakePawnDatasArrayNode->NumInputs = 0;
 	MakePawnDatasArrayNode->AllocateDefaultPins();
-	MakePawnDatasArrayNode->GetOutputPin()->MakeLinkTo(PlaySequenceNode->FindPinChecked(TEXT("MoveToDatas")));
+	MakePawnDatasArrayNode->GetOutputPin()->MakeLinkTo(CreatePlaySequenceNode->FindPinChecked(TEXT("MoveToDatas")));
 	MakePawnDatasArrayNode->PinConnectionListChanged(MakePawnDatasArrayNode->GetOutputPin());
 
  	for (FSequencerBindingOption& Option : BindingOptions)
@@ -331,6 +294,10 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
  			}
  		}
  	}
+
+	LastThen = DA_NodeUtils::CreateAllEventNode(GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass, this, LastThen, CreatePlaySequenceNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
+	LastThen = DA_NodeUtils::CreateInvokeActiveActionNode(this, LastThen, GetMainActionDispatcherNode, CreatePlaySequenceNode->GetReturnValuePin(), CompilerContext, SourceGraph);
+	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(UEdGraphSchema_K2::PN_Then), *LastThen);
 }
 
 void UBpNode_PlayLevelSequencer::UpdatePinInfo(const FSequencerBindingOption &Option)

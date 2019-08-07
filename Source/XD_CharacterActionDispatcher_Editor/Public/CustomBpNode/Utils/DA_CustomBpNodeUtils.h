@@ -54,7 +54,9 @@ struct DA_NodeUtils
 
 	static void CreateActionEventPins(UK2Node* Node, const TSubclassOf<UXD_DispatchableActionBase>& ActionClass);
 
-	static UEdGraphPin* CreateAllEventNode(const TSubclassOf<UXD_DispatchableActionBase>& ActionClass, UK2Node* Node, UEdGraphPin* LastThen, UEdGraphPin* ActionRefPin, const FName& EntryPointEventName,
+	static UEdGraphPin* CreateAllEventNode(const TSubclassOf<UXD_DispatchableActionBase>& ActionClass, UK2Node* ActionNode, UEdGraphPin* LastThen, UEdGraphPin* ActionRefPin, const FName& EntryPointEventName,
 		FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
+
+	static UEdGraphPin* CreateInvokeActiveActionNode(UK2Node* ActionNode, UEdGraphPin* LastThen, UK2Node_CallFunction* GetMainActionDispatcherNode, UEdGraphPin* ActionRefPin, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
 
 };

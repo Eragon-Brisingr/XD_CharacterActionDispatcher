@@ -41,6 +41,7 @@ void UXD_DispatchableActionBase::ActiveAction()
 	{
 		DeactiveAction();
 	}
+	OnActionActived.ExecuteIfBound();
 }
 
 void UXD_DispatchableActionBase::AbortAction()
@@ -75,6 +76,7 @@ void UXD_DispatchableActionBase::DeactiveAction()
 
 	SaveState();
 	WhenActionDeactived();
+	OnActionDeactived.ExecuteIfBound();
 }
 
 void UXD_DispatchableActionBase::ReactiveAction()
@@ -107,6 +109,10 @@ void UXD_DispatchableActionBase::FinishAction()
 	{
 		UnregisterEntity(Entity);
 	}
+
+	//结束前也调用下反激活
+	WhenActionDeactived();
+	OnActionDeactived.ExecuteIfBound();
 	WhenActionFinished();
 	ActionDispatcher_Display_VLog(GetOwner(), "结束%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 }

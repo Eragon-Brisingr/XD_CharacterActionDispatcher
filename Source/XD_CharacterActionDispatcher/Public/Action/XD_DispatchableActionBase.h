@@ -112,6 +112,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void ReactiveDispatcher();
 
+	UPROPERTY(SaveGame, meta = (DisplayName = "行为激活"))
+	FDispatchableActionNormalEvent OnActionActived;
+	UPROPERTY(SaveGame, meta = (DisplayName = "行为反激活"))
+	FDispatchableActionNormalEvent OnActionDeactived;
 private:
 	void PostInitProperties() override;
 	TArray<UStructProperty*> CachedAllFinishedEvents;

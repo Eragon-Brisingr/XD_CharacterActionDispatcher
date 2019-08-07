@@ -184,22 +184,9 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 
 	LastThen = DA_NodeUtils::CreateAllEventNode(ActionClass, this, LastThen, CallCreateNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
 
-	UK2Node_CallFunction* ActiveActionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-	{
-		ActiveActionNode->SetFromFunction(UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InvokeActiveAction)));
-		ActiveActionNode->AllocateDefaultPins();
-		GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
-		CallCreateNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(TEXT("Action")));
+	LastThen = DA_NodeUtils::CreateInvokeActiveActionNode(this, LastThen, GetMainActionDispatcherNode, CallCreateNode->GetReturnValuePin(), CompilerContext, SourceGraph);
 
-		LastThen->MakeLinkTo(ActiveActionNode->GetExecPin());
-		LastThen = ActiveActionNode->GetThenPin();
-	}
-
-	//connect then
-	{
-		UEdGraphPin* SpawnNodeThen = GetThenPin();
-		bSucceeded &= SpawnNodeThen && LastThen && CompilerContext.MovePinLinksToIntermediate(*SpawnNodeThen, *LastThen).CanSafeConnect();
-	}
+	bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*GetThenPin(), *LastThen).CanSafeConnect();
 
 	BreakAllNodeLinks();
 
