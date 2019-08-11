@@ -12,7 +12,7 @@ UXD_DA_MoveTo::UXD_DA_MoveTo()
 #endif
 }
 
-TArray<AActor*> UXD_DA_MoveTo::GetAllRegistableEntities() const
+TSet<AActor*> UXD_DA_MoveTo::GetAllRegistableEntities() const
 {
 	return { Pawn.Get() };
 }

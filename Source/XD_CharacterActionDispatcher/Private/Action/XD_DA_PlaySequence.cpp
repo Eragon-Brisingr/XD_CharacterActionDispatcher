@@ -15,9 +15,9 @@ UXD_DA_PlaySequenceBase::UXD_DA_PlaySequenceBase()
 #endif
 }
 
-TArray<AActor*> UXD_DA_PlaySequenceBase::GetAllRegistableEntities() const
+TSet<AActor*> UXD_DA_PlaySequenceBase::GetAllRegistableEntities() const
 {
-	TArray<AActor*> Entities;
+	TSet<AActor*> Entities;
 	for (const FPlaySequenceActorData& Data : PlaySequenceActorDatas)
 	{
 		Entities.Add(Data.ActorRef.Get());
@@ -33,14 +33,14 @@ bool UXD_DA_PlaySequenceBase::IsActionValid() const
 {
 	for (const FPlaySequenceActorData& Data : PlaySequenceActorDatas)
 	{
-		if (Data.ActorRef.Get() == false)
+		if (Data.ActorRef.IsValid() == false)
 		{
 			return false;
 		}
 	}
 	for (const FPlaySequenceMoveToData& Data : PlaySequenceMoveToDatas)
 	{
-		if (Data.PawnRef.Get() == false)
+		if (Data.PawnRef.IsValid() == false)
 		{
 			return false;
 		}

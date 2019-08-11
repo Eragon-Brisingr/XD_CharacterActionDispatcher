@@ -19,7 +19,7 @@ public:
 	UPROPERTY(SaveGame, meta = (DisplayName = "当结束时"))
 	FOnDispatchableActionFinishedEvent OnFinished;
 
-	TArray<AActor*> GetAllRegistableEntities() const override { return {}; }
+	TSet<AActor*> GetAllRegistableEntities() const override { return {}; }
 	bool IsActionValid() const override;
 	void WhenActionActived() override;
 	void WhenActionDeactived() override;

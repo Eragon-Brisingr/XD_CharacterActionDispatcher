@@ -1,16 +1,18 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "XD_ActionDispatcherBase.h"
+#if WITH_EDITOR
+#include "Engine/BlueprintGeneratedClass.h"
+#include "ActionDispatcherBlueprint.h"
+#endif
+
+#include "GameFramework/Pawn.h"
+#include "Engine/World.h"
 #include "XD_DispatchableActionBase.h"
 #include "XD_ActionDispatcherManager.h"
 #include "XD_ActionDispatcher_Log.h"
 #include "XD_DebugFunctionLibrary.h"
 #include "XD_DispatchableEntityInterface.h"
-
-#if WITH_EDITOR
-#include "Engine/BlueprintGeneratedClass.h"
-#include "ActionDispatcherBlueprint.h"
-#endif
 #include "XD_SaveGameSystemBase.h"
 
 UXD_ActionDispatcherBase::UXD_ActionDispatcherBase()
@@ -96,6 +98,7 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 	check(Action && !CurrentActions.Contains(Action));
 	check(IsSubActionDispatcher() == false);
 
+	//TODO 这边用Action是否有效来判断是否要中断可能有问题，再考虑下
 	CurrentActions.Add(Action);
 	if (State == EActionDispatcherState::Active)
 	{
@@ -108,6 +111,22 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 			AbortDispatch();
 		}
 	}
+}
+
+void UXD_ActionDispatcherBase::Tick(float DeltaTime)
+{
+	for (UXD_DispatchableActionBase* Action : CurrentActions)
+	{
+		if (Action->bTickable)
+		{
+			Action->WhenTick(DeltaTime);
+		}
+	}
+}
+
+bool UXD_ActionDispatcherBase::IsTickable() const
+{
+	return State != EActionDispatcherState::Deactive;
 }
 
 void UXD_ActionDispatcherBase::ExecuteAbortedDelegate()
@@ -191,15 +210,18 @@ void UXD_ActionDispatcherBase::DeactiveDispatcher(bool IsFinsihedCompleted)
 	check(State != EActionDispatcherState::Deactive);
 	State = EActionDispatcherState::Deactive;
 
-	for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
+	if (bIsMainDispatcher)
 	{
-		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
-		UObject* Obj = SoftObjectPtr.Get();
-		if (Obj && Obj->Implements<UXD_DispatchableEntityInterface>())
+		for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
 		{
-			if (IXD_DispatchableEntityInterface::GetCurrentMainDispatcher(Obj) == this)
+			FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
+			UObject* Obj = SoftObjectPtr.Get();
+			if (Obj && Obj->Implements<UXD_DispatchableEntityInterface>())
 			{
-				IXD_DispatchableEntityInterface::SetCurrentMainDispatcher(Obj, nullptr);
+				if (IXD_DispatchableEntityInterface::GetCurrentMainDispatcher(Obj) == this)
+				{
+					IXD_DispatchableEntityInterface::SetCurrentMainDispatcher(Obj, nullptr);
+				}
 			}
 		}
 	}
@@ -310,13 +332,16 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 
 void UXD_ActionDispatcherBase::ActiveDispatcher()
 {
-	for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
+	if (bIsMainDispatcher)
 	{
-		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
-		UObject* Obj = SoftObjectPtr.Get();
-		if (bIsMainDispatcher && Obj && Obj->Implements<UXD_DispatchableEntityInterface>())
+		for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
 		{
-			IXD_DispatchableEntityInterface::SetCurrentMainDispatcher(Obj, this);
+			FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
+			UObject* Obj = SoftObjectPtr.Get();
+			if (Obj && Obj->Implements<UXD_DispatchableEntityInterface>())
+			{
+				IXD_DispatchableEntityInterface::SetCurrentMainDispatcher(Obj, this);
+			}
 		}
 	}
 

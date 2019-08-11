@@ -7,6 +7,7 @@
 #include "XD_CharacterActionDispatcherType.h"
 #include "GameplayTagContainer.h"
 #include "Engine/EngineTypes.h"
+#include "Tickable.h"
 #include "XD_ActionDispatcherBase.generated.h"
 
 class UXD_DispatchableActionBase;
@@ -32,7 +33,7 @@ DECLARE_DELEGATE(FOnDispatcherAbortedNative);
 DECLARE_DELEGATE_OneParam(FOnDispatchDeactiveNative, bool /*IsFinsihedCompleted*/);
 
 UCLASS(abstract, BlueprintType, Blueprintable)
-class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject
+class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherBase : public UObject, public FTickableGameObject
 {
 	GENERATED_BODY()
 public:
@@ -66,6 +67,11 @@ public:
 	//启用MainDispatcher会导致正在运行的MainDispatcher中断
 	UPROPERTY(EditDefaultsOnly, Category = "行为", meta = (DisplayName = "为主调度器"))
 	uint8 bIsMainDispatcher : 1;
+
+public:
+	void Tick(float DeltaTime) override;
+	bool IsTickable() const override;
+	TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UXD_ActionDispatcherBase, STATGROUP_Tickables); }
 public:
 	FOnDispatcherAborted OnDispatcherAborted;
 	FOnDispatcherAbortedNative OnDispatcherAbortedNative;

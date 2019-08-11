@@ -18,8 +18,8 @@ bool UBTD_IsInActionDispatcherState::CalculateRawConditionValue(UBehaviorTreeCom
 	APawn* Pawn = AIOwner->GetPawn();
 	if (Pawn->Implements<UXD_DispatchableEntityInterface>())
 	{
-		TArray<UXD_DispatchableActionBase*>& Actions = IXD_DispatchableEntityInterface::GetCurrentDispatchableActions(Pawn);
-		return Actions.ContainsByPredicate([](auto Action) {return Action->State != EDispatchableActionState::Deactive; });
+		UXD_ActionDispatcherBase* MainDispatcher = IXD_DispatchableEntityInterface::GetCurrentMainDispatcher(Pawn);
+		return MainDispatcher && MainDispatcher->State == EActionDispatcherState::Active;
 	}
 	return false;
 }

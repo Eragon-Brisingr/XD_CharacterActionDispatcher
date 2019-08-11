@@ -13,7 +13,7 @@ UXD_DA_RoleSelectionBase::UXD_DA_RoleSelectionBase()
 #endif
 }
 
-TArray<AActor*> UXD_DA_RoleSelectionBase::GetAllRegistableEntities() const
+TSet<AActor*> UXD_DA_RoleSelectionBase::GetAllRegistableEntities() const
 {
 	return { Role.Get() };
 }

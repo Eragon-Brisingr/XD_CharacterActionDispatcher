@@ -24,7 +24,7 @@ FText UBpNode_ExecuteAction::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
 	{
-		return FText::Format(LOCTEXT("Execute Action Title", "Execute Action [{0}]"), ActionClass ? ActionClass->GetDisplayNameText() : LOCTEXT("None", "None"));
+		return FText::Format(LOCTEXT("Execute Action Title", "Execute Action {0} [{1}]"), ActionClass ? FText::FromString(ActionClass->GetName()) : LOCTEXT("None", "None"), ActionClass ? ActionClass->GetDisplayNameText() : LOCTEXT("None", "None"));
 	}
 	else if (UClass* ClassToSpawn = GetClassToSpawn())
 	{
@@ -33,7 +33,7 @@ FText UBpNode_ExecuteAction::GetNodeTitle(ENodeTitleType::Type TitleType) const
 			FFormatNamedArguments Args;
 			Args.Add(TEXT("ClassName"), ClassToSpawn->GetDisplayNameText());
 			// FText::Format() is slow, so we cache this to save on performance
-			CachedNodeTitle.SetCachedText(FText::Format(LOCTEXT("执行行为_Title", "执行行为 [{ClassName}]"), Args), this);
+			CachedNodeTitle.SetCachedText(FText::Format(LOCTEXT("执行行为_Title", "{ClassName}"), Args), this);
 		}
 		return CachedNodeTitle;
 	}

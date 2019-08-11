@@ -35,13 +35,13 @@ void UXD_DispatchableActionBase::ActiveAction()
 		RegisterEntity(Entity);
 	}
 	WhenActionActived();
+	OnActionActived.ExecuteIfBound();
 
 	//可能在行为激活的过程中某一个行为中断了调度器，那么后续的行为就不激活了
 	if (GetOwner()->State != EActionDispatcherState::Active)
 	{
 		DeactiveAction();
 	}
-	OnActionActived.ExecuteIfBound();
 }
 
 void UXD_DispatchableActionBase::AbortAction()
@@ -173,7 +173,7 @@ void UXD_DispatchableActionBase::BindAllActionEvent(const TArray<FOnDispatchable
 	}
 }
 
-TArray<AActor*> UXD_DispatchableActionBase::GetAllRegistableEntities() const
+TSet<AActor*> UXD_DispatchableActionBase::GetAllRegistableEntities() const
 {
 	unimplemented();
 	return {};

@@ -184,11 +184,11 @@ FText UBpNode_PlayLevelSequencer::GetNodeTitle(ENodeTitleType::Type TitleType) c
 {
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
 	{
-		return LOCTEXT("PlaySequence title", "Play Sequence");
+		return LOCTEXT("PlaySequence title", "Execute Action Play Sequence [播放定序器]");
 	}
 	else
 	{
-		return FText::Format(LOCTEXT("PlaySequence detail title", "播放定序器[{0}]"), FText::FromString(LevelSequence.IsNull() ? TEXT("None") : LevelSequence.GetAssetName()));
+		return FText::Format(LOCTEXT("PlaySequence detail title", "播放定序器({0})"), FText::FromString(LevelSequence.IsNull() ? TEXT("None") : LevelSequence.GetAssetName()));
 	}
 }
 

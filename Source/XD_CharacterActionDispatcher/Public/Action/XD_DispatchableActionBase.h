@@ -52,6 +52,11 @@ protected:
 
 	//行为是否能和其他行为同时执行
 	virtual bool IsCompatibleWith(UXD_DispatchableActionBase* Action) const { return false; }
+
+	UPROPERTY(EditDefaultsOnly, Category = "设置")
+	uint8 bTickable : 1;
+	//需开启bTickable
+	virtual void WhenTick(float DeltaSeconds) {}
 private:
 	void FinishAction();
 public:
@@ -82,7 +87,7 @@ public:
 	void BindAllActionEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents, const TArray<FDispatchableActionNormalEvent>& NormalEvents);
 protected:
 	//返回行为中所有需要注册的实体
-	virtual TArray<AActor*> GetAllRegistableEntities() const;
+	virtual TSet<AActor*> GetAllRegistableEntities() const;
 private:
 	//所有执行Action的实体在Active时注册
 	UFUNCTION(BlueprintCallable, Category = "行为")
