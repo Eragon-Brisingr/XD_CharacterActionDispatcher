@@ -5,6 +5,7 @@
 #include "Modules/ModuleManager.h"
 
 class FSlateStyleSet;
+class FActionDispatcher_AssetActions;
 
 class FXD_CharacterActionDispatcher_EditorModule : public IModuleInterface
 {
@@ -17,4 +18,5 @@ private:
 	static TSharedPtr<FKismetCompilerContext> GetCompilerForBP(UBlueprint* BP, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompileOptions);
 
 	TSharedPtr<FSlateStyleSet> StyleSet;
+	TSharedPtr<FActionDispatcher_AssetActions> ActionDispatcherAssetActions;
 };

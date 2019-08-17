@@ -331,4 +331,10 @@ void UBpNode_PlayLevelSequencer::PostPlacedNewNode()
 	EntryPointEventName = *FString::Printf(TEXT("PlayLevelSequencer_%d"), FMath::Rand());
 }
 
+void UBpNode_PlayLevelSequencer::PostPasteNode()
+{
+	Super::PostPasteNode();
+	EntryPointEventName = *FString::Printf(TEXT("PlayLevelSequencer_%d"), FMath::Rand());
+}
+
 #undef LOCTEXT_NAMESPACE

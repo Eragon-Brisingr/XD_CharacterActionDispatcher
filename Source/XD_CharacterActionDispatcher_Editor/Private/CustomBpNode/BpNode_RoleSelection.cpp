@@ -244,6 +244,12 @@ FName UBpNode_RoleSelection::GetExecPinName(int32 Idx)
 	return *FString::Printf(TEXT("选择了[%d]"), Idx + 1);
 }
 
+void UBpNode_RoleSelection::PostPasteNode()
+{
+	Super::PostPasteNode();
+	EntryPointEventName = *FString::Printf(TEXT("RoleSelection_%d"), FMath::Rand());
+}
+
 void UBpNode_RoleSelection::PostPlacedNewNode()
 {
 	Super::PostPlacedNewNode();

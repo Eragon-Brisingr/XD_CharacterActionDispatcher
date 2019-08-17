@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "K2Node_ConstructObjectFromClass.h"
 #include "DA_BpNodeInterface.h"
+#include "BpNode_CreateActionFromClassBase.h"
 #include "BpNode_StartDispatcher.generated.h"
 
 class UXD_ActionDispatcherBase;
@@ -13,7 +13,7 @@ class UXD_ActionDispatcherBase;
  * 
  */
 UCLASS(abstract)
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_StartDispatcherBase : public UK2Node_ConstructObjectFromClass
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_StartDispatcherBase : public UBpNode_CreateActionFromClassBase
 {
 	GENERATED_BODY()
 public:

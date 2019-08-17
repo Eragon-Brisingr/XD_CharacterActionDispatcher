@@ -55,9 +55,9 @@ protected:
 
 public:
 	bool ShouldShowNodeProperties() const override { return true; }
+	void PostPasteNode() override;
+	void PostPlacedNewNode() override;
 
 	UPROPERTY(EditAnywhere, Category = "调试")
 	FName EntryPointEventName;
-private:
-	void PostPlacedNewNode() override;
 };

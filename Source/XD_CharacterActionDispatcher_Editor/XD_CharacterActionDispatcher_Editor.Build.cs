@@ -40,11 +40,13 @@ public class XD_CharacterActionDispatcher_Editor : ModuleRules
 				"SlateCore",
                 "GraphEditor",
                 "BlueprintGraph",
+                "Kismet",
                 "KismetCompiler",
                 "UnrealEd",
                 "EditorStyle",
                 "EditorWidgets",
                 "Projects",
+                "AssetTools",
 
                 "MovieScene",
                 "MovieSceneTools",

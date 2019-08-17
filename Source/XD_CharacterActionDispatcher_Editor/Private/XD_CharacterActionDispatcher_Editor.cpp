@@ -11,6 +11,8 @@
 #include "IPluginManager.h"
 #include "SlateImageBrush.h"
 #include "SlateStyleRegistry.h"
+#include "AssetToolsModule.h"
+#include "ActionDispatcher_AssetActions.h"
 
 #define LOCTEXT_NAMESPACE "FXD_CharacterActionDispatcher_EditorModule"
 
@@ -22,6 +24,11 @@ void FXD_CharacterActionDispatcher_EditorModule::StartupModule()
 	PropertyModule.RegisterCustomPropertyTypeLayout(FSequencerBindingOption::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSequencerBindingOption_Customization::MakeInstance));
 
 	FEdGraphUtilities::RegisterVisualPinFactory(MakeShared<FDA_RoleSelectionGraphPinFactory>());
+
+	// 注册资源操作
+	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+	ActionDispatcherAssetActions = MakeShareable(new FActionDispatcher_AssetActions());
+	AssetTools.RegisterAssetTypeActions(ActionDispatcherAssetActions.ToSharedRef());
 
 	FKismetCompilerContext::RegisterCompilerForBP(UActionDispatcherBlueprint::StaticClass(), &FXD_CharacterActionDispatcher_EditorModule::GetCompilerForBP);
 
@@ -59,6 +66,8 @@ void FXD_CharacterActionDispatcher_EditorModule::ShutdownModule()
 	//Unregister the style
 	FSlateStyleRegistry::UnRegisterSlateStyle(StyleSet->GetStyleSetName());
 
+	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+	AssetTools.UnregisterAssetTypeActions(ActionDispatcherAssetActions.ToSharedRef());
 }
 
 TSharedPtr<FKismetCompilerContext> FXD_CharacterActionDispatcher_EditorModule::GetCompilerForBP(UBlueprint* BP, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompileOptions)

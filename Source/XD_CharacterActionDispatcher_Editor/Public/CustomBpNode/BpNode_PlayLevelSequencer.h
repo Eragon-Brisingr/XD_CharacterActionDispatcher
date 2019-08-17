@@ -101,4 +101,5 @@ public:
 	FName EntryPointEventName;
 private:
 	void PostPlacedNewNode() override;
+	void PostPasteNode() override;
 };

@@ -172,7 +172,6 @@ UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::CreatePlaySequenceAction(UXD_A
 	DA_PlaySequence->PlaySequenceActorDatas = ActorDatas;
 	DA_PlaySequence->PlaySequenceMoveToDatas = MoveToDatas;
 	DA_PlaySequence->PlayTransform = InPlayTransform;
-	ActionDispatcher->InvokeActiveAction(DA_PlaySequence);
 	return DA_PlaySequence;
 }
 

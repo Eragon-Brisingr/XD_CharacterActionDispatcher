@@ -14,6 +14,7 @@ class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_DispatchStartEvent : publi
 {
 	GENERATED_BODY()
 public:
+	bool CanDuplicateNode() const override { return false; }
 	bool CanUserDeleteNode() const override { return false; }
 };
 

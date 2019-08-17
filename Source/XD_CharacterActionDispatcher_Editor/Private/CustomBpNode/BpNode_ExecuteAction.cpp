@@ -112,7 +112,12 @@ void UBpNode_ExecuteAction::ReflushFinishExec()
 void UBpNode_ExecuteAction::PostPlacedNewNode()
 {
 	Super::PostPlacedNewNode();
+	EntryPointEventName = *FString::Printf(TEXT("%s_%d"), *ActionClass->GetName(), FMath::Rand());
+}
 
+void UBpNode_ExecuteAction::PostPasteNode()
+{
+	Super::PostPasteNode();
 	EntryPointEventName = *FString::Printf(TEXT("%s_%d"), *ActionClass->GetName(), FMath::Rand());
 }
 
