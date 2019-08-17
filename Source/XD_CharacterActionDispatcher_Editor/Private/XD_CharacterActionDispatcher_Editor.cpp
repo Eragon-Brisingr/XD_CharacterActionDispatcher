@@ -66,8 +66,11 @@ void FXD_CharacterActionDispatcher_EditorModule::ShutdownModule()
 	//Unregister the style
 	FSlateStyleRegistry::UnRegisterSlateStyle(StyleSet->GetStyleSetName());
 
-	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-	AssetTools.UnregisterAssetTypeActions(ActionDispatcherAssetActions.ToSharedRef());
+	if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
+	{
+		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+		AssetTools.UnregisterAssetTypeActions(ActionDispatcherAssetActions.ToSharedRef());
+	}
 }
 
 TSharedPtr<FKismetCompilerContext> FXD_CharacterActionDispatcher_EditorModule::GetCompilerForBP(UBlueprint* BP, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompileOptions)
