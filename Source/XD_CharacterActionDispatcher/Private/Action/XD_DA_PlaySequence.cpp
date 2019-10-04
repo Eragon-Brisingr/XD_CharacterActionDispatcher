@@ -5,7 +5,6 @@
 #include "XD_ReplicableLevelSequence.h"
 #include "XD_ActionDispatcherBase.h"
 #include "AIController.h"
-#include "XD_ActionDispatcherSettings.h"
 
 UXD_DA_PlaySequenceBase::UXD_DA_PlaySequenceBase()
 {
@@ -165,13 +164,12 @@ void UXD_DA_PlaySequenceBase::WhenMoveFinished(FAIRequestID RequestID, const FPa
 	}
 }
 
-UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::CreatePlaySequenceAction(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform)
+UXD_DA_PlaySequenceBase* UXD_DA_PlaySequenceBase::CreatePlaySequenceAction(TSubclassOf<UXD_DA_PlaySequenceBase> SequenceType, UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas)
 {
-	UXD_DA_PlaySequenceBase* DA_PlaySequence = NewObject<UXD_DA_PlaySequenceBase>(ActionDispatcher, GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass);
+	UXD_DA_PlaySequenceBase* DA_PlaySequence = NewObject<UXD_DA_PlaySequenceBase>(ActionDispatcher, SequenceType);
 	DA_PlaySequence->LevelSequence = Sequence;
 	DA_PlaySequence->PlaySequenceActorDatas = ActorDatas;
 	DA_PlaySequence->PlaySequenceMoveToDatas = MoveToDatas;
-	DA_PlaySequence->PlayTransform = InPlayTransform;
 	return DA_PlaySequence;
 }
 

@@ -47,7 +47,7 @@ FText UBpNode_ExecuteAction::GetMenuCategory() const
 
 void UBpNode_ExecuteAction::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
-	bool ShowPluginNode = GetDefault<UXD_ActionDispatcherSettings>()->bShowPluginNode;
+	const bool ShowPluginNode = GetDefault<UXD_ActionDispatcherSettings>()->bShowPluginNode;
 
 	UClass* ActionKey = GetClass();
 	if (ActionRegistrar.IsOpenForRegistration(ActionKey))
@@ -92,14 +92,9 @@ void UBpNode_ExecuteAction::GetContextMenuActions(const FGraphNodeContextMenuBui
 void UBpNode_ExecuteAction::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
-	GetClassPin()->DefaultObject = ActionClass;
 	ReflushFinishExec();
 
-	//调整节点顺序
-	RemovePin(GetThenPin());
-	RemovePin(GetResultPin());
-	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, GetClassPinBaseClass(), UEdGraphSchema_K2::PN_ReturnValue);
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Then);
+	CreateResultPin();
 }
 
 void UBpNode_ExecuteAction::ReflushFinishExec()
@@ -119,16 +114,6 @@ void UBpNode_ExecuteAction::PostPasteNode()
 {
 	Super::PostPasteNode();
 	EntryPointEventName = *FString::Printf(TEXT("%s_%d"), *ActionClass->GetName(), FMath::Rand());
-}
-
-void UBpNode_ExecuteAction::PinDefaultValueChanged(UEdGraphPin* ChangedPin)
-{
-	Super::PinDefaultValueChanged(ChangedPin);
-	if (ChangedPin && (ChangedPin->PinName == TEXT("Class")))
-	{
-		ActionClass = GetClassToSpawn();
-		ReconstructNode();
-	}
 }
 
 void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
@@ -184,9 +169,9 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 		bSucceeded &= SpawnResultPin && CallResultPin && CompilerContext.MovePinLinksToIntermediate(*SpawnResultPin, *CallResultPin).CanSafeConnect();
 	}
 
-	//创建所有事件的委托
-	UEdGraphPin* LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallResultPin, ClassToSpawn);
+	UEdGraphPin* LastThen = DA_NodeUtils::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallResultPin, ClassToSpawn);
 
+	//创建所有事件的委托
 	LastThen = DA_NodeUtils::CreateAllEventNode(ActionClass, this, LastThen, CallCreateNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
 
 	LastThen = DA_NodeUtils::CreateInvokeActiveActionNode(this, LastThen, GetMainActionDispatcherNode, CallCreateNode->GetReturnValuePin(), CompilerContext, SourceGraph);
@@ -204,6 +189,11 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 UClass* UBpNode_ExecuteAction::GetClassPinBaseClass() const
 {
 	return UXD_DispatchableActionBase::StaticClass();
+}
+
+bool UBpNode_ExecuteAction::CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const
+{
+	return Super::CanShowActionClass(ShowPluginNode, Action) && Action->bShowInExecuteActionNode;
 }
 
 #undef LOCTEXT_NAMESPACE

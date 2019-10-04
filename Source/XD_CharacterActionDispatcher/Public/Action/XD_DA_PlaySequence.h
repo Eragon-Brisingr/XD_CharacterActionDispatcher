@@ -51,7 +51,7 @@ public:
 	uint8 bIsReached : 1;
 };
 
-UCLASS()
+UCLASS(meta = (DisplayName = "播放定序器_基础"))
 class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_PlaySequenceBase : public UXD_DispatchableActionBase
 {
 	GENERATED_BODY()
@@ -95,9 +95,9 @@ public:
 	UPROPERTY()
 	AXD_ReplicableLevelSequence* SequencePlayer;
 
-	UPROPERTY(SaveGame)
+	UPROPERTY(SaveGame, BlueprintReadOnly, meta = (ExposeOnSpawn = "true"))
 	FTransform PlayTransform;
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	static UXD_DA_PlaySequenceBase* CreatePlaySequenceAction(UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas, const FTransform& InPlayTransform);
+	static UXD_DA_PlaySequenceBase* CreatePlaySequenceAction(TSubclassOf<UXD_DA_PlaySequenceBase> SequenceType, UXD_ActionDispatcherBase* ActionDispatcher, TSoftObjectPtr<ULevelSequence> Sequence, const TArray<FPlaySequenceActorData>& ActorDatas, const TArray<FPlaySequenceMoveToData>& MoveToDatas);
 };

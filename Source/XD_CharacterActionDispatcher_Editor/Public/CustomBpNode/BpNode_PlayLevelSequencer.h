@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "K2Node.h"
 #include "MovieSceneObjectBindingID.h"
 #include "IPropertyTypeCustomization.h"
 #include "DA_BpNodeInterface.h"
+#include "BpNode_CreateActionFromClassBase.h"
 #include "BpNode_PlayLevelSequencer.generated.h"
 
 class ULevelSequence;
@@ -59,10 +59,12 @@ struct FSequencerBindingOption_Customization : public IPropertyTypeCustomization
 };
 
 UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_PlayLevelSequencer : public UK2Node, public IDA_BpNodeInterface
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_PlayLevelSequencer : public UBpNode_CreateActionFromClassBase, public IDA_BpNodeInterface
 {
 	GENERATED_BODY()
 public:
+	UBpNode_PlayLevelSequencer();
+
  	UPROPERTY(EditAnywhere, Category = "Sequence", meta = (DisplayName = "播放的Sequencer"))
  	TSoftObjectPtr<ULevelSequence> LevelSequence;
 
@@ -76,20 +78,17 @@ public:
 	FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
 	FText GetMenuCategory() const override;
 	FName GetCornerIcon() const override { return TEXT("Graph.Latent.LatentIcon"); }
-	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
 	void GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const override;
 
 	void AllocateDefaultPins() override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
+	UClass* GetClassPinBaseClass() const override;
 private:
 	void UpdatePinInfo(const FSequencerBindingOption &Option);
 
 	void ReflushNode();
 
-	static FName PlayLocationPinName;
-	static FName WhenPlayCompletedPinName;
-	static FName WhenCanNotPlayPinName;
 	static FName RetureValuePinName;
 
 	//刷新Seqeuence可绑定的数据

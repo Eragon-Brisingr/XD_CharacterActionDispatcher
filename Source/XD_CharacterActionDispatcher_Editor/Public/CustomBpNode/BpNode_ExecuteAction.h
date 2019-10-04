@@ -25,15 +25,12 @@ public:
 	void GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const override;
 
 	void AllocateDefaultPins() override;
-	void PinDefaultValueChanged(UEdGraphPin* ChangedPin) override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 protected:
 	UClass* GetClassPinBaseClass() const override;
+	bool CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const override;
 
 	void ReflushFinishExec();
-
-	UPROPERTY()
-	TSubclassOf<UXD_DispatchableActionBase> ActionClass;
 private:
 	bool ShouldShowNodeProperties() const override { return true; }
 	void PostPlacedNewNode() override;

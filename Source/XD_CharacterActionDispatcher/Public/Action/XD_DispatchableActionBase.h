@@ -33,20 +33,22 @@ protected:
 	friend class UXD_ActionDispatcherBase;
 
 	void ActiveAction();
+	void AbortAction();
+	void DeactiveAction();
+	void ReactiveAction();
+protected:
 	//当行为被第一次激活时的实现
 	virtual void WhenActionActived(){}
 
-	virtual bool CanActiveAction() const { return IsActionValid(); }
+	//确认行为是否可以执行
+	virtual bool IsActionValid() const;
 
-	void AbortAction();
 	//当行为被中断时的实现，一般为NPC主动想中断该行为
 	virtual void WhenActionAborted();
 
-	void DeactiveAction();
 	//当行为反激活时的实现，一般用作清理委托
 	virtual void WhenActionDeactived(){}
 
-	void ReactiveAction();
 	//当行为被再次激活时的实现
 	virtual void WhenActionReactived();
 
@@ -100,9 +102,8 @@ protected:
 	//执行下一个事件
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void ExecuteEventAndFinishAction(const FOnDispatchableActionFinishedEvent& Event);
-
-	virtual bool IsActionValid() const;
 public:
+	//DeactiveRequestAction为true则不会调用Abort行为，考虑动画被打断的情况
 	UFUNCTION(BlueprintCallable, Category = "行为")
 	void AbortDispatcher(const FOnDispatcherAborted& Event, bool DeactiveRequestAction = false);
 	void AbortDispatcher(const FOnActionAborted& Event, bool DeactiveRequestAction = false);
@@ -143,10 +144,6 @@ public:
 	bool IsActionValid() const override { return ReceiveIsActionValid(); }
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "IsActionValid"))
 	bool ReceiveIsActionValid() const;
-
-	bool CanActiveAction() const override { return IsActionValid() && ReceiveCanActiveAction(); }
-	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "CanActiveAction"))
-	bool ReceiveCanActiveAction() const;
 
 	void WhenActionDeactived() override { ReceiveWhenActionDeactived(); }
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "WhenActionDeactived"))

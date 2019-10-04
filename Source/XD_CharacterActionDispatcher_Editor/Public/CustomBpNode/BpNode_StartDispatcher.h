@@ -17,6 +17,7 @@ class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_StartDispatcherBase : publ
 {
 	GENERATED_BODY()
 public:
+	UBpNode_StartDispatcherBase();
 	void AllocateDefaultPins() override;
 	void PinDefaultValueChanged(UEdGraphPin* ChangedPin) override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;

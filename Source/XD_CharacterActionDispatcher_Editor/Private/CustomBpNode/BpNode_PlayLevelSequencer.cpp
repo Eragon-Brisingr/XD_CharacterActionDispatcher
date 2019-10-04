@@ -56,9 +56,6 @@ void FSequencerBindingOption_Customization::CustomizeHeader(TSharedRef<class IPr
 		];
 }
 
-FName UBpNode_PlayLevelSequencer::PlayLocationPinName = TEXT("PlayLocation");
-FName UBpNode_PlayLevelSequencer::WhenPlayCompletedPinName = TEXT("WhenPlayCompleted");
-FName UBpNode_PlayLevelSequencer::WhenCanNotPlayPinName = TEXT("WhenCanNotPlay");
 FName UBpNode_PlayLevelSequencer::RetureValuePinName = TEXT("ReturnValue");
 
 void UBpNode_PlayLevelSequencer::RefreshSequenceData()
@@ -141,17 +138,20 @@ void UBpNode_PlayLevelSequencer::RefreshSequenceData()
 
 void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
 {
-	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Execute);
-	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Struct, TBaseStructure<FTransform>::Get(), PlayLocationPinName);
+	Super::AllocateDefaultPins();
 
-	DA_NodeUtils::CreateActionEventPins(this, GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass);
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass, RetureValuePinName);
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, NAME_None, UEdGraphSchema_K2::PN_Then);
+	DA_NodeUtils::CreateActionEventPins(this, ActionClass);
+	CreateResultPin();
 
 	for (const FSequencerBindingOption& Option : BindingOptions)
 	{
 		UpdatePinInfo(Option);
 	}
+}
+
+UBpNode_PlayLevelSequencer::UBpNode_PlayLevelSequencer()
+{
+	ActionClass = UXD_DA_PlaySequenceBase::StaticClass();
 }
 
 void UBpNode_PlayLevelSequencer::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -182,30 +182,20 @@ void UBpNode_PlayLevelSequencer::PostEditChangeChainProperty(struct FPropertyCha
 
 FText UBpNode_PlayLevelSequencer::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
+	static FText EmptyName = LOCTEXT("None", "None");
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
 	{
-		return LOCTEXT("PlaySequence title", "Execute Action Play Sequence [播放定序器]");
+		return FText::Format(LOCTEXT("PlaySequence title", "Execute Action {0} [{1}]"), ActionClass ? FText::FromString(ActionClass->GetName()) : EmptyName, ActionClass ? ActionClass->GetDisplayNameText() : EmptyName);
 	}
 	else
 	{
-		return FText::Format(LOCTEXT("PlaySequence detail title", "播放定序器({0})"), FText::FromString(LevelSequence.IsNull() ? TEXT("None") : LevelSequence.GetAssetName()));
+		return FText::Format(LOCTEXT("PlaySequence detail title", "[{0}]({1})"), ActionClass ? ActionClass->GetDisplayNameText() : EmptyName, FText::FromString(LevelSequence.IsNull() ? TEXT("None") : LevelSequence.GetAssetName()));
 	}
 }
 
 FText UBpNode_PlayLevelSequencer::GetMenuCategory() const
 {
 	return LOCTEXT("行为调度器", "行为调度器");
-}
-
-void UBpNode_PlayLevelSequencer::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
-{
-	UClass* ActionKey = GetClass();
-	if (ActionRegistrar.IsOpenForRegistration(ActionKey))
-	{
-		UBlueprintNodeSpawner* NodeSpawner = UBlueprintNodeSpawner::Create(GetClass());
-		check(NodeSpawner != nullptr);
-		ActionRegistrar.AddBlueprintAction(ActionKey, NodeSpawner);
-	}
 }
 
 bool UBpNode_PlayLevelSequencer::IsCompatibleWithGraph(const UEdGraph* TargetGraph) const
@@ -236,7 +226,8 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 	CreatePlaySequenceNode->AllocateDefaultPins();
 	DA_NodeUtils::SetPinStructValue(CreatePlaySequenceNode->FindPinChecked(TEXT("Sequence"), EGPD_Input), LevelSequence.ToSoftObjectPath());
 	CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *CreatePlaySequenceNode->GetExecPin());
-	UEdGraphPin* LastThen = CreatePlaySequenceNode->GetThenPin();
+	CompilerContext.MovePinLinksToIntermediate(*GetClassPin(), *CreatePlaySequenceNode->FindPinChecked(TEXT("SequenceType")));
+	UEdGraphPin* LastThen = DA_NodeUtils::GenerateAssignmentNodes(CompilerContext, SourceGraph, CreatePlaySequenceNode, this, CreatePlaySequenceNode->GetReturnValuePin(), GetClassToSpawn());
 
 	UK2Node_CallFunction* GetMainActionDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 	{
@@ -245,7 +236,6 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 	}
 	GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(CreatePlaySequenceNode->FindPinChecked(TEXT("ActionDispatcher")));
 
-	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(PlayLocationPinName), *CreatePlaySequenceNode->FindPinChecked(TEXT("InPlayTransform")));
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(RetureValuePinName), *CreatePlaySequenceNode->GetReturnValuePin());
 
 	UK2Node_MakeArray* MakeActorDatasArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(this, SourceGraph);
@@ -295,9 +285,14 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
  		}
  	}
 
-	LastThen = DA_NodeUtils::CreateAllEventNode(GetDefault<UXD_ActionDispatcherSettings>()->PlaySequenceImplClass, this, LastThen, CreatePlaySequenceNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
+	LastThen = DA_NodeUtils::CreateAllEventNode(ActionClass, this, LastThen, CreatePlaySequenceNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
 	LastThen = DA_NodeUtils::CreateInvokeActiveActionNode(this, LastThen, GetMainActionDispatcherNode, CreatePlaySequenceNode->GetReturnValuePin(), CompilerContext, SourceGraph);
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(UEdGraphSchema_K2::PN_Then), *LastThen);
+}
+
+UClass* UBpNode_PlayLevelSequencer::GetClassPinBaseClass() const
+{
+	return UXD_DA_PlaySequenceBase::StaticClass();
 }
 
 void UBpNode_PlayLevelSequencer::UpdatePinInfo(const FSequencerBindingOption &Option)

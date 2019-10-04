@@ -98,18 +98,23 @@ void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Ac
 	check(Action && !CurrentActions.Contains(Action));
 	check(IsSubActionDispatcher() == false);
 
-	//TODO 这边用Action是否有效来判断是否要中断可能有问题，再考虑下
-	CurrentActions.Add(Action);
 	if (State == EActionDispatcherState::Active)
 	{
 		if (Action->IsActionValid())
 		{
+			CurrentActions.Add(Action);
 			Action->ActiveAction();
 		}
 		else
 		{
+			//要在AbortDispatch添加当前动作，防止UnregisteEntitry那边检查报错
 			AbortDispatch();
+			CurrentActions.Add(Action);
 		}
+	}
+	else
+	{
+		CurrentActions.Add(Action);
 	}
 }
 
@@ -120,6 +125,11 @@ void UXD_ActionDispatcherBase::Tick(float DeltaTime)
 		if (Action->bTickable)
 		{
 			Action->WhenTick(DeltaTime);
+		}
+		if (!Action->IsActionValid())
+		{
+			Action->AbortDispatcher();
+			break;
 		}
 	}
 }
@@ -149,24 +159,17 @@ void UXD_ActionDispatcherBase::AbortDispatch(UXD_DispatchableActionBase* Deactiv
 
 	for (UXD_DispatchableActionBase* Action : CurrentActions)
 	{
-		if (Action->IsActionValid())
+		if (DeactiveRequestAction == Action)
 		{
-			if (DeactiveRequestAction == Action)
-			{
-				Action->DeactiveAction();
-			}
-			else
-			{
-				Action->AbortAction();
-			}
+			Action->DeactiveAction();
 		}
 		else
 		{
-			Action->State = EDispatchableActionState::Deactive;
+			Action->AbortAction();
+			break;
 		}
 	}
 	WhenActionAborted();
-	ActionDispatcher_Display_Log("中断行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
 }
 
 void UXD_ActionDispatcherBase::AbortDispatch(const FOnDispatcherAbortedNative& Event, UXD_DispatchableActionBase* DeactiveRequestAction /*= nullptr*/)
@@ -194,7 +197,7 @@ void UXD_ActionDispatcherBase::WhenActionAborted()
 	{
 		if (CurrentActions.ContainsByPredicate([](UXD_DispatchableActionBase* Action) {return Action->State != EDispatchableActionState::Deactive; }) == false)
 		{
-			ActionDispatcher_Display_Log("中断%s调度器", *UXD_DebugFunctionLibrary::GetDebugName(this));
+			ActionDispatcher_Display_Log("中断行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
 			DeactiveDispatcher(false);
 			if (UXD_ActionDispatcherManager * Manager = GetManager())
 			{
@@ -320,6 +323,7 @@ void UXD_ActionDispatcherBase::ReactiveDispatcher()
 	check(State == EActionDispatcherState::Deactive);
 
 	State = EActionDispatcherState::Active;
+	ActionDispatcher_Display_Log("恢复行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));
 	ActiveDispatcher();
 	for (UXD_DispatchableActionBase* Action : TArray<UXD_DispatchableActionBase*>(CurrentActions))
 	{

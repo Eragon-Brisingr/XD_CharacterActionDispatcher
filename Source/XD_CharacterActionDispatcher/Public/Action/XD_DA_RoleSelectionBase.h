@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "显示选项_基础"))
 class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_RoleSelectionBase : public UXD_DispatchableActionBase
 {
 	GENERATED_BODY()
@@ -26,7 +26,7 @@ public:
 	UPROPERTY(SaveGame)
 	TArray<FDA_RoleSelection> Selections;
 
-	UPROPERTY(SaveGame)
+	UPROPERTY(SaveGame, BlueprintReadOnly, meta = (ExposeOnSpawn = "true"))
 	TSoftObjectPtr<APawn> Role;
 
 	UFUNCTION(BlueprintCallable, Category = "行为|选择")
@@ -35,12 +35,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "行为|选择")
 	static void ExecuteRoleSelected(APawn* InRole, const FDA_DisplaySelection& Selection);
 public:
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	static UXD_DA_RoleSelectionBase* ShowSelection(UXD_ActionDispatcherBase* ActionDispatcher, const TSoftObjectPtr<APawn>& InRole, const TArray<FDA_RoleSelection>& InSelections);
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
+	void ShowSelection(UXD_ActionDispatcherBase* ActionDispatcher, const TArray<FDA_RoleSelection>& InSelections, const TArray<bool>& ShowSelectionConditions);
 
-	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = true))
 	static FDA_RoleSelection& SetWhenSelectedEvent(FDA_RoleSelection Selection, const FOnDispatchableActionFinishedEvent& Event);
-
 private:
 	void AddSelections(const TArray<FDA_RoleSelection>& InSelections);
 

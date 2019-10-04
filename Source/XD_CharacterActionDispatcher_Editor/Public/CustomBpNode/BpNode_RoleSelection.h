@@ -3,15 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "K2Node.h"
 #include "DA_BpNodeInterface.h"
+#include "BpNode_CreateActionFromClassBase.h"
 #include "BpNode_RoleSelection.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_RoleSelection : public UK2Node, public IDA_BpNodeInterface
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_RoleSelection : public UBpNode_CreateActionFromClassBase, public IDA_BpNodeInterface
 {
 	GENERATED_BODY()
 public:
@@ -20,14 +20,15 @@ public:
 	FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
 	FText GetMenuCategory() const override;
 	FName GetCornerIcon() const override;
-	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
 	void GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const override;
 
 	void AllocateDefaultPins() override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 
-	virtual void Serialize(FArchive& Ar) override;
+	void Serialize(FArchive& Ar) override;
+
+	UClass* GetClassPinBaseClass() const override;
 protected:
 	UPROPERTY()
 	int32 SelectionNum = 2;
@@ -46,13 +47,9 @@ protected:
 	void AddSelectionImpl(int32 Idx);
 	void RemoveSelection(const UEdGraphPin* SelectionPin);
 
-	FName GetSelectionPinName(int32 Idx);
-
-	FName GetExecPinName(int32 Idx);
-
-	static FName RetureValuePinName;
-	static FName RolePinName;
-
+	FName GetSelectionPinName(int32 Idx) const;
+	FName GetShowSelectionConditionName(int32 Idx) const;
+	FName GetExecPinName(int32 Idx) const;
 public:
 	bool ShouldShowNodeProperties() const override { return true; }
 	void PostPasteNode() override;

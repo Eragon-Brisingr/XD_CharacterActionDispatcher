@@ -23,9 +23,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "设置", Config)
 	TSubclassOf<UXD_DA_PlaySequenceBase> PlaySequenceImplClass;
 
-	UPROPERTY(EditAnywhere, Category = "设置", Config)
-	TSubclassOf<UXD_DA_RoleSelectionBase> RoleSelectionImplClass;
-	
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = "设置", Config)
 	uint8 bShowPluginNode : 1;

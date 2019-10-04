@@ -5,11 +5,15 @@
 #include "XD_DA_RoleSelectionInterface.h"
 #include "XD_DebugFunctionLibrary.h"
 #include "XD_ActionDispatcher_Log.h"
+#include "XD_ActionDispatcherSettings.h"
+#include "XD_ActionDispatcherBase.h"
+#include "GameFramework/Pawn.h"
 
 UXD_DA_RoleSelectionBase::UXD_DA_RoleSelectionBase()
 {
 #if WITH_EDITORONLY_DATA
 	bShowInExecuteActionNode = false;
+	bIsPluginAction = true;
 #endif
 }
 
@@ -20,7 +24,7 @@ TSet<AActor*> UXD_DA_RoleSelectionBase::GetAllRegistableEntities() const
 
 bool UXD_DA_RoleSelectionBase::IsActionValid() const
 {
-	return Role.Get() ? true : false;
+	return Role.IsValid();
 }
 
 void UXD_DA_RoleSelectionBase::WhenActionActived()
@@ -83,25 +87,16 @@ void UXD_DA_RoleSelectionBase::ExecuteRoleSelected(APawn* InRole, const FDA_Disp
 	}
 }
 
-UXD_DA_RoleSelectionBase* UXD_DA_RoleSelectionBase::ShowSelection(UXD_ActionDispatcherBase* ActionDispatcher, const TSoftObjectPtr<APawn>& InRole, const TArray<FDA_RoleSelection>& InSelections)
+void UXD_DA_RoleSelectionBase::ShowSelection(UXD_ActionDispatcherBase* ActionDispatcher, const TArray<FDA_RoleSelection>& InSelections, const TArray<bool>& ShowSelectionConditions)
 {
-	//若当前已经是选择状态了
-	APawn* Role = InRole.Get();
-	if (Role->Implements<UXD_DispatchableEntityInterface>())
+	for (int32 Idx = 0; Idx < InSelections.Num(); ++Idx)
 	{
-		if (UXD_DA_RoleSelectionBase* RoleSelection = IXD_DispatchableEntityInterface::GetCurrentDispatchableAction<UXD_DA_RoleSelectionBase>(Role))
+		if (ShowSelectionConditions[Idx])
 		{
-			RoleSelection->AddSelections(InSelections);
-			return RoleSelection;
+			Selections.Add(InSelections[Idx]);
 		}
 	}
-
-	//非选择状态激活选择
-	UXD_DA_RoleSelectionBase* RoleSelection = NewObject<UXD_DA_RoleSelectionBase>(ActionDispatcher);
-	RoleSelection->Role = InRole;
-	RoleSelection->Selections = InSelections;
-	ActionDispatcher->InvokeActiveAction(RoleSelection);
-	return RoleSelection;
+	ActionDispatcher->InvokeActiveAction(this);
 }
 
 FDA_RoleSelection& UXD_DA_RoleSelectionBase::SetWhenSelectedEvent(FDA_RoleSelection Selection, const FOnDispatchableActionFinishedEvent& Event)
@@ -112,18 +107,19 @@ FDA_RoleSelection& UXD_DA_RoleSelectionBase::SetWhenSelectedEvent(FDA_RoleSelect
 
 void UXD_DA_RoleSelectionBase::AddSelections(const TArray<FDA_RoleSelection>& InSelections)
 {
-	Selections.Append(InSelections);
-
 	APawn* Pawn = Role.Get();
 	if (Pawn->Implements<UXD_DA_RoleSelectionInterface>())
 	{
 		TArray<FDA_DisplaySelection> DisplaySelections;
-		for (int32 i = 0; i < Selections.Num(); ++i)
+		for (int32 i = 0; i < InSelections.Num(); ++i)
 		{
 			FDA_DisplaySelection RoleSelectionDisplay(InSelections[i]);
 			RoleSelectionDisplay.SelectionIdx = Selections.Num() + i;
 			DisplaySelections.Add(RoleSelectionDisplay);
 		}
+
+		Selections.Append(InSelections);
+
 		IXD_DA_RoleSelectionInterface::ExecuteAddSelects(Pawn, DisplaySelections);
 	}
 }

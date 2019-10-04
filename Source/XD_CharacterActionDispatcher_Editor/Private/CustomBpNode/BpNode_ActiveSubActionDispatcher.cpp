@@ -66,11 +66,7 @@ void UBpNode_ActiveSubActionDispatcher::AllocateDefaultPins()
 	GetClassPin()->DefaultObject = ActionDispatcherClass;
 
 	ReflushFinishExec();
-	//调整节点顺序
-	RemovePin(GetThenPin());
-	RemovePin(GetResultPin());
-	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, GetClassPinBaseClass(), UEdGraphSchema_K2::PN_ReturnValue);
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Then);
+	CreateResultPin();
 }
 
 void UBpNode_ActiveSubActionDispatcher::PinDefaultValueChanged(UEdGraphPin* ChangedPin)
@@ -167,7 +163,7 @@ void UBpNode_ActiveSubActionDispatcher::ExpandNode(class FKismetCompilerContext&
 		bSucceeded &= SpawnResultPin && CallResultPin && CompilerContext.MovePinLinksToIntermediate(*SpawnResultPin, *CallResultPin).CanSafeConnect();
 	}
 
-	UEdGraphPin* LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallResultPin, ClassToSpawn);
+	UEdGraphPin* LastThen = DA_NodeUtils::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallResultPin, ClassToSpawn);
 	{
 		UK2Node_CallFunction* ActiveSubActionDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 		ActiveSubActionDispatcherNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, ActiveSubActionDispatcher), UXD_ActionDispatcherBase::StaticClass());

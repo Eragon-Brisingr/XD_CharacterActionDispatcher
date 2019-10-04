@@ -75,6 +75,12 @@ void UXD_DispatchableActionBase::DeactiveAction()
 	}
 
 	SaveState();
+
+	for (AActor* Entity : GetAllRegistableEntities())
+	{
+		UnregisterEntity(Entity);
+	}
+
 	WhenActionDeactived();
 	OnActionDeactived.ExecuteIfBound();
 }
@@ -84,7 +90,7 @@ void UXD_DispatchableActionBase::ReactiveAction()
 	check(State != EDispatchableActionState::Active);
 
 	ActionDispatcher_Display_VLog(GetOwner(), "再次激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
-	State = EDispatchableActionState::Active;	
+	State = EDispatchableActionState::Active;
 	for (AActor* Entity : GetAllRegistableEntities())
 	{
 		RegisterEntity(Entity);
@@ -105,6 +111,7 @@ void UXD_DispatchableActionBase::FinishAction()
 	State = EDispatchableActionState::Finished;
 	UXD_ActionDispatcherBase* ActionDispatcher = GetOwner();
 	ActionDispatcher->CurrentActions.Remove(this);
+
 	for (AActor* Entity : GetAllRegistableEntities())
 	{
 		UnregisterEntity(Entity);
@@ -188,6 +195,8 @@ void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 		TArray<UXD_DispatchableActionBase*>& Actions = IXD_DispatchableEntityInterface::GetCurrentDispatchableActions(Actor);
 		for (UXD_DispatchableActionBase* PreAction : TArray<UXD_DispatchableActionBase*>(Actions))
 		{
+			check(PreAction != this);
+
 			const bool IsBothCompatible = PreAction->IsCompatibleWith(this) && IsCompatibleWith(PreAction);
 			if (!IsBothCompatible)
 			{

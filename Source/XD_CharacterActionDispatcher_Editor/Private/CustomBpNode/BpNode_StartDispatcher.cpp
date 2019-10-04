@@ -18,6 +18,11 @@
 
 FName UBpNode_StartDispatcherBase::DefaultPinName = TEXT("Default");
 
+UBpNode_StartDispatcherBase::UBpNode_StartDispatcherBase()
+{
+	
+}
+
 void UBpNode_StartDispatcherBase::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
@@ -219,7 +224,7 @@ void UBpNode_StartDispatcherWithManager::ExpandNode(class FKismetCompilerContext
 		LastThen = InitLeaderNode->GetThenPin();
 	}
 
-	LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, InitLeaderNode, this, CallResultPin, ClassToSpawn);
+	LastThen = DA_NodeUtils::GenerateAssignmentNodes(CompilerContext, SourceGraph, InitLeaderNode, this, CallResultPin, ClassToSpawn);
 	{
 		{
 			UK2Node_CallFunction* BindWhenDispatchFinishedNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
@@ -393,7 +398,7 @@ void UBpNode_StartDispatcherWithOwner::ExpandNode(class FKismetCompilerContext& 
 		LastThen = InitLeaderNode->GetThenPin();
 	}
 
-	LastThen = FKismetCompilerUtilities::GenerateAssignmentNodes(CompilerContext, SourceGraph, InitLeaderNode, this, CallResultPin, ClassToSpawn);
+	LastThen = DA_NodeUtils::GenerateAssignmentNodes(CompilerContext, SourceGraph, InitLeaderNode, this, CallResultPin, ClassToSpawn);
 	{
 		{
 			UK2Node_CallFunction* BindWhenDispatchFinishedNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);

@@ -1,4 +1,4 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+﻿// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -10,6 +10,7 @@
 
 class FBlueprintActionDatabaseRegistrar;
 class UEdGraph;
+class UXD_DispatchableActionBase;
 
 UCLASS(abstract)
 class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_CreateActionFromClassBase : public UK2Node
@@ -84,9 +85,16 @@ protected:
 	/** Refresh pins when class was changed */
 	void OnClassPinChanged();
 
-	/** Tooltip text for this node. */
-	FText NodeTooltip;
-
 	/** Constructing FText strings can be costly, so we cache the node's title */
 	FNodeTextCache CachedNodeTitle;
+
+	void CreateResultPin();
+
+protected:
+	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
+
+	UPROPERTY()
+	TSubclassOf<UXD_DispatchableActionBase> ActionClass;
+
+	virtual bool CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const;
 };

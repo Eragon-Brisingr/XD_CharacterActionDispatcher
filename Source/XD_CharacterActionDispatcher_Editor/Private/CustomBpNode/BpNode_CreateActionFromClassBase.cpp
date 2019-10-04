@@ -1,4 +1,4 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+﻿// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "BpNode_CreateActionFromClassBase.h"
 #include "UObject/UnrealType.h"
@@ -8,6 +8,10 @@
 #include "EditorCategoryUtils.h"
 #include "BlueprintActionDatabaseRegistrar.h"
 #include "FindInBlueprintManager.h"
+#include "XD_ActionDispatcherSettings.h"
+#include "XD_ObjectFunctionLibrary.h"
+#include "XD_DispatchableActionBase.h"
+#include "KismetCompiler.h"
 
 struct FBpNode_CreateActionFromClassHelper
 {
@@ -20,17 +24,17 @@ FName FBpNode_CreateActionFromClassHelper::WorldContextPinName(TEXT("WorldContex
 FName FBpNode_CreateActionFromClassHelper::ClassPinName(TEXT("Class"));
 FName FBpNode_CreateActionFromClassHelper::OuterPinName(TEXT("Outer"));
 
-#define LOCTEXT_NAMESPACE "K2Node_ConstructObjectFromClass"
+#define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher_CreateActionFromClassBase"
 
 UBpNode_CreateActionFromClassBase::UBpNode_CreateActionFromClassBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	NodeTooltip = LOCTEXT("NodeTooltip", "Attempts to spawn a new object");
+	
 }
 
 UClass* UBpNode_CreateActionFromClassBase::GetClassPinBaseClass() const
 {
-	return UObject::StaticClass();
+	return nullptr;
 }
 
 bool UBpNode_CreateActionFromClassBase::UseWorldContext() const
@@ -63,6 +67,7 @@ void UBpNode_CreateActionFromClassBase::AllocateDefaultPins()
 		UEdGraphPin* OuterPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, UObject::StaticClass(), FBpNode_CreateActionFromClassHelper::OuterPinName);
 	}
 
+	GetClassPin()->DefaultObject = ActionClass;
 	Super::AllocateDefaultPins();
 }
 
@@ -260,6 +265,38 @@ void UBpNode_CreateActionFromClassBase::OnClassPinChanged()
 	FBlueprintEditorUtils::MarkBlueprintAsModified(GetBlueprint());
 }
 
+void UBpNode_CreateActionFromClassBase::CreateResultPin()
+{
+	//调整节点顺序
+	RemovePin(GetThenPin());
+	RemovePin(GetResultPin());
+	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, GetClassPinBaseClass(), UEdGraphSchema_K2::PN_ReturnValue);
+	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Then);
+}
+
+void UBpNode_CreateActionFromClassBase::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
+{
+	Super::ExpandNode(CompilerContext, SourceGraph);
+
+	for (UEdGraphPin* Pin : Pins)
+	{
+		if (Pin->Direction == EEdGraphPinDirection::EGPD_Input && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_SoftObject)
+		{
+			if (Pin->DefaultValue.IsEmpty() && Pin->LinkedTo.Num() == 0)
+			{
+				if (UClass* ClassToSpawn = GetClassToSpawn())
+				{
+					UProperty* Property = FindField<UProperty>(ClassToSpawn, Pin->PinName);
+					if (!Property->GetBoolMetaData(TEXT("AllowEmpty")))
+					{
+						CompilerContext.MessageLog.Error(*LOCTEXT("节点软引用为空", "节点 @@ 的引脚 @@ 必须存在连接。").ToString(), this, Pin);
+					}
+				}
+			}
+		}
+	}
+}
+
 void UBpNode_CreateActionFromClassBase::PinConnectionListChanged(UEdGraphPin* Pin)
 {
 	Super::PinConnectionListChanged(Pin);
@@ -274,11 +311,11 @@ void UBpNode_CreateActionFromClassBase::GetPinHoverText(const UEdGraphPin& Pin, 
 {
 	if (UEdGraphPin* ClassPin = GetClassPin())
 	{
-		SetPinToolTip(*ClassPin, LOCTEXT("ClassPinDescription", "The object class you want to construct"));
+		SetPinToolTip(*ClassPin, LOCTEXT("ClassPinDescription", "创建的行为类型"));
 	}
 	if (UEdGraphPin* ResultPin = GetResultPin())
 	{
-		SetPinToolTip(*ResultPin, LOCTEXT("ResultPinDescription", "The constructed object"));
+		SetPinToolTip(*ResultPin, LOCTEXT("ResultPinDescription", "行为实例"));
 	}
 	if (UEdGraphPin* OuterPin = (UseOuter() ? GetOuterPin() : nullptr))
 	{
@@ -292,13 +329,15 @@ void UBpNode_CreateActionFromClassBase::PinDefaultValueChanged(UEdGraphPin* Chan
 {
 	if (ChangedPin && (ChangedPin->PinName == FBpNode_CreateActionFromClassHelper::ClassPinName))
 	{
+		ActionClass = GetClassToSpawn();
 		OnClassPinChanged();
+		ReconstructNode();
 	}
 }
 
 FText UBpNode_CreateActionFromClassBase::GetTooltipText() const
 {
-	return NodeTooltip;
+	return ActionClass ? ActionClass->GetToolTipText() : LOCTEXT("NodeTooltip", "创建行为");
 }
 
 UEdGraphPin* UBpNode_CreateActionFromClassBase::GetThenPin()const
@@ -341,12 +380,12 @@ UEdGraphPin* UBpNode_CreateActionFromClassBase::GetResultPin() const
 
 FText UBpNode_CreateActionFromClassBase::GetBaseNodeTitle() const
 {
-	return NSLOCTEXT("K2Node", "ConstructObject_BaseTitle", "Construct Object from Class");
+	return LOCTEXT("ConstructObject_BaseTitle", "Construct Object from Class");
 }
 
 FText UBpNode_CreateActionFromClassBase::GetNodeTitleFormat() const
 {
-	return NSLOCTEXT("K2Node", "Construct", "Construct {ClassName}");
+	return LOCTEXT("Construct", "Construct {ClassName}");
 }
 
 FText UBpNode_CreateActionFromClassBase::GetNodeTitle(ENodeTitleType::Type TitleType) const
@@ -387,27 +426,50 @@ void UBpNode_CreateActionFromClassBase::GetNodeAttributes( TArray<TKeyValuePair<
 
 void UBpNode_CreateActionFromClassBase::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
-	// actions get registered under specific object-keys; the idea is that 
-	// actions might have to be updated (or deleted) if their object-key is  
-	// mutated (or removed)... here we use the node's class (so if the node 
-	// type disappears, then the action should go with it)
+	TSubclassOf<UXD_DispatchableActionBase> SpawnActionClass = GetClassPinBaseClass();
+	if (SpawnActionClass == nullptr)
+	{
+		return;
+	}
+
+	const bool ShowPluginNode = GetDefault<UXD_ActionDispatcherSettings>()->bShowPluginNode;
+
 	UClass* ActionKey = GetClass();
-	// to keep from needlessly instantiating a UBlueprintNodeSpawner, first   
-	// check to make sure that the registrar is looking for actions of this type
-	// (could be regenerating actions for a specific asset, and therefore the 
-	// registrar would only accept actions corresponding to that asset)
 	if (ActionRegistrar.IsOpenForRegistration(ActionKey))
 	{
-		UBlueprintNodeSpawner* NodeSpawner = UBlueprintNodeSpawner::Create(GetClass());
-		check(NodeSpawner != nullptr);
+		for (UClass* It : UXD_ObjectFunctionLibrary::GetAllSubclass(SpawnActionClass))
+		{
+			UXD_DispatchableActionBase* Action = It->GetDefaultObject<UXD_DispatchableActionBase>();
+			if (!CanShowActionClass(ShowPluginNode, Action))
+			{
+				continue;
+			}
 
-		ActionRegistrar.AddBlueprintAction(ActionKey, NodeSpawner);
+			UBlueprintNodeSpawner* NodeSpawner = UBlueprintNodeSpawner::Create(GetClass());
+			check(NodeSpawner != nullptr);
+
+			NodeSpawner->CustomizeNodeDelegate = UBlueprintNodeSpawner::FCustomizeNodeDelegate::CreateLambda([=](UEdGraphNode* NewNode, bool bIsTemplateNode)
+				{
+					UBpNode_CreateActionFromClassBase* ExecuteActionNode = CastChecked<UBpNode_CreateActionFromClassBase>(NewNode);
+					ExecuteActionNode->ActionClass = It;
+				});
+			ActionRegistrar.AddBlueprintAction(ActionKey, NodeSpawner);
+		}
 	}
+}
+
+bool UBpNode_CreateActionFromClassBase::CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const
+{
+	if (!ShowPluginNode && Action->bIsPluginAction)
+	{
+		return false;
+	}
+	return true;
 }
 
 FText UBpNode_CreateActionFromClassBase::GetMenuCategory() const
 {
-	return FEditorCategoryUtils::GetCommonCategory(FCommonEditorCategory::Gameplay);
+	return LOCTEXT("行为调度器", "行为调度器");
 }
 
 bool UBpNode_CreateActionFromClassBase::HasExternalDependencies(TArray<class UStruct*>* OptionalOutput) const
