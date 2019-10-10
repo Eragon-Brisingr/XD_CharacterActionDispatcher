@@ -26,25 +26,25 @@ FName FBpNode_CreateActionFromClassHelper::OuterPinName(TEXT("Outer"));
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher_CreateActionFromClassBase"
 
-UBpNode_CreateActionFromClassBase::UBpNode_CreateActionFromClassBase(const FObjectInitializer& ObjectInitializer)
+UBpNode_AD_CreateObjectBase::UBpNode_AD_CreateObjectBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	
 }
 
-UClass* UBpNode_CreateActionFromClassBase::GetClassPinBaseClass() const
+UClass* UBpNode_AD_CreateObjectBase::GetClassPinBaseClass() const
 {
 	return nullptr;
 }
 
-bool UBpNode_CreateActionFromClassBase::UseWorldContext() const
+bool UBpNode_AD_CreateObjectBase::UseWorldContext() const
 {
 	UBlueprint* BP = GetBlueprint();
 	const UClass* ParentClass = BP ? BP->ParentClass : nullptr;
 	return ParentClass ? ParentClass->HasMetaDataHierarchical(FBlueprintMetadata::MD_ShowWorldContextPin) != nullptr : false;
 }
 
-void UBpNode_CreateActionFromClassBase::AllocateDefaultPins()
+void UBpNode_AD_CreateObjectBase::AllocateDefaultPins()
 {
 	// Add execution pins
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Execute);
@@ -67,18 +67,17 @@ void UBpNode_CreateActionFromClassBase::AllocateDefaultPins()
 		UEdGraphPin* OuterPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, UObject::StaticClass(), FBpNode_CreateActionFromClassHelper::OuterPinName);
 	}
 
-	GetClassPin()->DefaultObject = ActionClass;
 	Super::AllocateDefaultPins();
 }
 
-UEdGraphPin* UBpNode_CreateActionFromClassBase::GetOuterPin() const
+UEdGraphPin* UBpNode_AD_CreateObjectBase::GetOuterPin() const
 {
 	UEdGraphPin* Pin = FindPin(FBpNode_CreateActionFromClassHelper::OuterPinName);
 	ensure(nullptr == Pin || Pin->Direction == EGPD_Input);
 	return Pin;
 }
 
-void UBpNode_CreateActionFromClassBase::SetPinToolTip(UEdGraphPin& MutatablePin, const FText& PinDescription) const
+void UBpNode_AD_CreateObjectBase::SetPinToolTip(UEdGraphPin& MutatablePin, const FText& PinDescription) const
 {
 	MutatablePin.PinToolTip = UEdGraphSchema_K2::TypeToText(MutatablePin.PinType).ToString();
 
@@ -92,7 +91,7 @@ void UBpNode_CreateActionFromClassBase::SetPinToolTip(UEdGraphPin& MutatablePin,
 	MutatablePin.PinToolTip += FString(TEXT("\n")) + PinDescription.ToString();
 }
 
-void UBpNode_CreateActionFromClassBase::CreatePinsForClass(UClass* InClass, TArray<UEdGraphPin*>* OutClassPins)
+void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEdGraphPin*>* OutClassPins)
 {
 	check(InClass);
 
@@ -161,7 +160,7 @@ void UBpNode_CreateActionFromClassBase::CreatePinsForClass(UClass* InClass, TArr
 	ResultPin->PinType.PinSubCategoryObject = InClass->GetAuthoritativeClass();
 }
 
-UClass* UBpNode_CreateActionFromClassBase::GetClassToSpawn(const TArray<UEdGraphPin*>* InPinsToSearch /*=NULL*/) const
+UClass* UBpNode_AD_CreateObjectBase::GetClassToSpawn(const TArray<UEdGraphPin*>* InPinsToSearch /*=NULL*/) const
 {
 	UClass* UseSpawnClass = nullptr;
 	const TArray<UEdGraphPin*>* PinsToSearch = InPinsToSearch ? InPinsToSearch : &Pins;
@@ -180,17 +179,18 @@ UClass* UBpNode_CreateActionFromClassBase::GetClassToSpawn(const TArray<UEdGraph
 	return UseSpawnClass;
 }
 
-void UBpNode_CreateActionFromClassBase::ReallocatePinsDuringReconstruction(TArray<UEdGraphPin*>& OldPins) 
+void UBpNode_AD_CreateObjectBase::ReallocatePinsDuringReconstruction(TArray<UEdGraphPin*>& OldPins) 
 {
 	AllocateDefaultPins();
 	if (UClass* UseSpawnClass = GetClassToSpawn(&OldPins))
 	{
 		CreatePinsForClass(UseSpawnClass);
 	}
+	ShowExtendPins();
 	RestoreSplitPins(OldPins);
 }
 
-void UBpNode_CreateActionFromClassBase::PostPlacedNewNode()
+void UBpNode_AD_CreateObjectBase::PostPlacedNewNode()
 {
 	Super::PostPlacedNewNode();
 
@@ -198,15 +198,16 @@ void UBpNode_CreateActionFromClassBase::PostPlacedNewNode()
 	{
 		CreatePinsForClass(UseSpawnClass);
 	}
+	ShowExtendPins();
 }
 
-void UBpNode_CreateActionFromClassBase::AddSearchMetaDataInfo(TArray<struct FSearchTagDataPair>& OutTaggedMetaData) const
+void UBpNode_AD_CreateObjectBase::AddSearchMetaDataInfo(TArray<struct FSearchTagDataPair>& OutTaggedMetaData) const
 {
 	Super::AddSearchMetaDataInfo(OutTaggedMetaData);
 	OutTaggedMetaData.Add(FSearchTagDataPair(FFindInBlueprintSearchTags::FiB_NativeName, CachedNodeTitle.GetCachedText()));
 }
 
-bool UBpNode_CreateActionFromClassBase::IsSpawnVarPin(UEdGraphPin* Pin) const
+bool UBpNode_AD_CreateObjectBase::IsSpawnVarPin(UEdGraphPin* Pin) const
 {
 	return(	Pin->PinName != UEdGraphSchema_K2::PN_Execute &&
 			Pin->PinName != UEdGraphSchema_K2::PN_Then &&
@@ -216,7 +217,7 @@ bool UBpNode_CreateActionFromClassBase::IsSpawnVarPin(UEdGraphPin* Pin) const
 			Pin->PinName != FBpNode_CreateActionFromClassHelper::OuterPinName);
 }
 
-void UBpNode_CreateActionFromClassBase::OnClassPinChanged()
+void UBpNode_AD_CreateObjectBase::OnClassPinChanged()
 {
 	// Remove all pins related to archetype variables
 	TArray<UEdGraphPin*> OldPins = Pins;
@@ -238,6 +239,7 @@ void UBpNode_CreateActionFromClassBase::OnClassPinChanged()
 	{
 		CreatePinsForClass(UseSpawnClass, &NewClassPins);
 	}
+	ShowExtendPins();
 
 	RestoreSplitPins(OldPins);
 
@@ -265,16 +267,17 @@ void UBpNode_CreateActionFromClassBase::OnClassPinChanged()
 	FBlueprintEditorUtils::MarkBlueprintAsModified(GetBlueprint());
 }
 
-void UBpNode_CreateActionFromClassBase::CreateResultPin()
+void UBpNode_AD_CreateObjectBase::CreateResultPin()
 {
 	//调整节点顺序
+	UObject* ClassType = GetResultPin()->PinType.PinSubCategoryObject.Get();
 	RemovePin(GetThenPin());
 	RemovePin(GetResultPin());
-	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, GetClassPinBaseClass(), UEdGraphSchema_K2::PN_ReturnValue);
+	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, ClassType, UEdGraphSchema_K2::PN_ReturnValue);
 	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Then);
 }
 
-void UBpNode_CreateActionFromClassBase::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
+void UBpNode_AD_CreateObjectBase::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
 
@@ -297,7 +300,7 @@ void UBpNode_CreateActionFromClassBase::ExpandNode(class FKismetCompilerContext&
 	}
 }
 
-void UBpNode_CreateActionFromClassBase::PinConnectionListChanged(UEdGraphPin* Pin)
+void UBpNode_AD_CreateObjectBase::PinConnectionListChanged(UEdGraphPin* Pin)
 {
 	Super::PinConnectionListChanged(Pin);
 
@@ -307,7 +310,7 @@ void UBpNode_CreateActionFromClassBase::PinConnectionListChanged(UEdGraphPin* Pi
 	}
 }
 
-void UBpNode_CreateActionFromClassBase::GetPinHoverText(const UEdGraphPin& Pin, FString& HoverTextOut) const
+void UBpNode_AD_CreateObjectBase::GetPinHoverText(const UEdGraphPin& Pin, FString& HoverTextOut) const
 {
 	if (UEdGraphPin* ClassPin = GetClassPin())
 	{
@@ -325,29 +328,28 @@ void UBpNode_CreateActionFromClassBase::GetPinHoverText(const UEdGraphPin& Pin, 
 	return Super::GetPinHoverText(Pin, HoverTextOut);
 }
 
-void UBpNode_CreateActionFromClassBase::PinDefaultValueChanged(UEdGraphPin* ChangedPin) 
+void UBpNode_AD_CreateObjectBase::PinDefaultValueChanged(UEdGraphPin* ChangedPin) 
 {
 	if (ChangedPin && (ChangedPin->PinName == FBpNode_CreateActionFromClassHelper::ClassPinName))
 	{
-		ActionClass = GetClassToSpawn();
 		OnClassPinChanged();
 		ReconstructNode();
 	}
 }
 
-FText UBpNode_CreateActionFromClassBase::GetTooltipText() const
+FText UBpNode_AD_CreateObjectBase::GetTooltipText() const
 {
-	return ActionClass ? ActionClass->GetToolTipText() : LOCTEXT("NodeTooltip", "创建行为");
+	return LOCTEXT("NodeTooltip", "创建行为");
 }
 
-UEdGraphPin* UBpNode_CreateActionFromClassBase::GetThenPin()const
+UEdGraphPin* UBpNode_AD_CreateObjectBase::GetThenPin()const
 {
 	UEdGraphPin* Pin = FindPinChecked(UEdGraphSchema_K2::PN_Then);
 	check(Pin->Direction == EGPD_Output);
 	return Pin;
 }
 
-UEdGraphPin* UBpNode_CreateActionFromClassBase::GetClassPin(const TArray<UEdGraphPin*>* InPinsToSearch /*= NULL*/) const
+UEdGraphPin* UBpNode_AD_CreateObjectBase::GetClassPin(const TArray<UEdGraphPin*>* InPinsToSearch /*= NULL*/) const
 {
 	const TArray<UEdGraphPin*>* PinsToSearch = InPinsToSearch ? InPinsToSearch : &Pins;
 
@@ -364,31 +366,31 @@ UEdGraphPin* UBpNode_CreateActionFromClassBase::GetClassPin(const TArray<UEdGrap
 	return Pin;
 }
 
-UEdGraphPin* UBpNode_CreateActionFromClassBase::GetWorldContextPin() const
+UEdGraphPin* UBpNode_AD_CreateObjectBase::GetWorldContextPin() const
 {
 	UEdGraphPin* Pin = FindPin(FBpNode_CreateActionFromClassHelper::WorldContextPinName);
 	check(Pin == nullptr || Pin->Direction == EGPD_Input);
 	return Pin;
 }
 
-UEdGraphPin* UBpNode_CreateActionFromClassBase::GetResultPin() const
+UEdGraphPin* UBpNode_AD_CreateObjectBase::GetResultPin() const
 {
 	UEdGraphPin* Pin = FindPinChecked(UEdGraphSchema_K2::PN_ReturnValue);
 	check(Pin->Direction == EGPD_Output);
 	return Pin;
 }
 
-FText UBpNode_CreateActionFromClassBase::GetBaseNodeTitle() const
+FText UBpNode_AD_CreateObjectBase::GetBaseNodeTitle() const
 {
 	return LOCTEXT("ConstructObject_BaseTitle", "Construct Object from Class");
 }
 
-FText UBpNode_CreateActionFromClassBase::GetNodeTitleFormat() const
+FText UBpNode_AD_CreateObjectBase::GetNodeTitleFormat() const
 {
 	return LOCTEXT("Construct", "Construct {ClassName}");
 }
 
-FText UBpNode_CreateActionFromClassBase::GetNodeTitle(ENodeTitleType::Type TitleType) const
+FText UBpNode_AD_CreateObjectBase::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	if (TitleType == ENodeTitleType::ListView || TitleType == ENodeTitleType::MenuTitle)
 	{
@@ -408,13 +410,13 @@ FText UBpNode_CreateActionFromClassBase::GetNodeTitle(ENodeTitleType::Type Title
 	return NSLOCTEXT("K2Node", "ConstructObject_Title_NONE", "Construct NONE");
 }
 
-bool UBpNode_CreateActionFromClassBase::IsCompatibleWithGraph(const UEdGraph* TargetGraph) const 
+bool UBpNode_AD_CreateObjectBase::IsCompatibleWithGraph(const UEdGraph* TargetGraph) const 
 {
 	UBlueprint* Blueprint = FBlueprintEditorUtils::FindBlueprintForGraph(TargetGraph);
 	return Super::IsCompatibleWithGraph(TargetGraph) && (!Blueprint || FBlueprintEditorUtils::FindUserConstructionScript(Blueprint) != TargetGraph);
 }
 
-void UBpNode_CreateActionFromClassBase::GetNodeAttributes( TArray<TKeyValuePair<FString, FString>>& OutNodeAttributes ) const
+void UBpNode_AD_CreateObjectBase::GetNodeAttributes( TArray<TKeyValuePair<FString, FString>>& OutNodeAttributes ) const
 {
 	UClass* ClassToSpawn = GetClassToSpawn();
 	const FString ClassToSpawnStr = ClassToSpawn ? ClassToSpawn->GetName() : TEXT( "InvalidClass" );
@@ -422,6 +424,54 @@ void UBpNode_CreateActionFromClassBase::GetNodeAttributes( TArray<TKeyValuePair<
 	OutNodeAttributes.Add( TKeyValuePair<FString, FString>( TEXT( "Class" ), GetClass()->GetName() ));
 	OutNodeAttributes.Add( TKeyValuePair<FString, FString>( TEXT( "Name" ), GetName() ));
 	OutNodeAttributes.Add( TKeyValuePair<FString, FString>( TEXT( "ObjectClass" ), ClassToSpawnStr ));
+}
+
+void UBpNode_AD_CreateObjectBase::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+
+}
+
+bool UBpNode_AD_CreateObjectBase::CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const
+{
+	if (!ShowPluginNode && Action->bIsPluginAction)
+	{
+		return false;
+	}
+	return true;
+}
+
+FText UBpNode_AD_CreateObjectBase::GetMenuCategory() const
+{
+	return LOCTEXT("行为调度器", "行为调度器");
+}
+
+bool UBpNode_AD_CreateObjectBase::HasExternalDependencies(TArray<class UStruct*>* OptionalOutput) const
+{
+	UClass* SourceClass = GetClassToSpawn();
+	const UBlueprint* SourceBlueprint = GetBlueprint();
+	const bool bResult = (SourceClass && (SourceClass->ClassGeneratedBy != SourceBlueprint));
+	if (bResult && OptionalOutput)
+	{
+		OptionalOutput->AddUnique(SourceClass);
+	}
+	const bool bSuperResult = Super::HasExternalDependencies(OptionalOutput);
+	return bSuperResult || bResult;
+}
+
+FText UBpNode_AD_CreateObjectBase::GetKeywords() const
+{
+	return LOCTEXT("ConstructObjectKeywords", "Create New");
+}
+
+void UBpNode_CreateActionFromClassBase::AllocateDefaultPins()
+{
+	Super::AllocateDefaultPins();
+}
+
+void UBpNode_CreateActionFromClassBase::PostPlacedNewNode()
+{
+	GetClassPin()->DefaultObject = ActionClass;
+	ReconstructNode();
 }
 
 void UBpNode_CreateActionFromClassBase::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
@@ -458,36 +508,15 @@ void UBpNode_CreateActionFromClassBase::GetMenuActions(FBlueprintActionDatabaseR
 	}
 }
 
-bool UBpNode_CreateActionFromClassBase::CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const
+FText UBpNode_CreateActionFromClassBase::GetTooltipText() const
 {
-	if (!ShowPluginNode && Action->bIsPluginAction)
-	{
-		return false;
-	}
-	return true;
+	return ActionClass ? ActionClass->GetToolTipText() : LOCTEXT("NodeTooltip", "创建行为");
 }
 
-FText UBpNode_CreateActionFromClassBase::GetMenuCategory() const
+void UBpNode_CreateActionFromClassBase::OnClassPinChanged()
 {
-	return LOCTEXT("行为调度器", "行为调度器");
-}
-
-bool UBpNode_CreateActionFromClassBase::HasExternalDependencies(TArray<class UStruct*>* OptionalOutput) const
-{
-	UClass* SourceClass = GetClassToSpawn();
-	const UBlueprint* SourceBlueprint = GetBlueprint();
-	const bool bResult = (SourceClass && (SourceClass->ClassGeneratedBy != SourceBlueprint));
-	if (bResult && OptionalOutput)
-	{
-		OptionalOutput->AddUnique(SourceClass);
-	}
-	const bool bSuperResult = Super::HasExternalDependencies(OptionalOutput);
-	return bSuperResult || bResult;
-}
-
-FText UBpNode_CreateActionFromClassBase::GetKeywords() const
-{
-	return LOCTEXT("ConstructObjectKeywords", "Create New");
+	Super::OnClassPinChanged();
+	ActionClass = GetClassToSpawn();
 }
 
 #undef LOCTEXT_NAMESPACE

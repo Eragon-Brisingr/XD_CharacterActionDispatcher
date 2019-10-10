@@ -13,12 +13,13 @@ class UXD_ActionDispatcherBase;
  * 
  */
 UCLASS(abstract)
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_StartDispatcherBase : public UBpNode_CreateActionFromClassBase
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_StartDispatcherBase : public UBpNode_AD_CreateObjectBase
 {
 	GENERATED_BODY()
 public:
 	UBpNode_StartDispatcherBase();
 	void AllocateDefaultPins() override;
+	void ShowExtendPins() override;
 	void PinDefaultValueChanged(UEdGraphPin* ChangedPin) override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 protected:

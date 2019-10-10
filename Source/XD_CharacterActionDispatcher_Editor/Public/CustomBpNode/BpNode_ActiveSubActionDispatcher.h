@@ -13,7 +13,7 @@ class UXD_ActionDispatcherBase;
  * 
  */
 UCLASS()
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_ActiveSubActionDispatcher : public UBpNode_CreateActionFromClassBase, public IDA_BpNodeInterface
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_ActiveSubActionDispatcher : public UBpNode_AD_CreateObjectBase, public IDA_BpNodeInterface
 {
 	GENERATED_BODY()
 public:
@@ -24,6 +24,7 @@ public:
 	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
 
 	void AllocateDefaultPins() override;
+	void ShowExtendPins() override;
 	void PinDefaultValueChanged(UEdGraphPin* ChangedPin) override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 protected:

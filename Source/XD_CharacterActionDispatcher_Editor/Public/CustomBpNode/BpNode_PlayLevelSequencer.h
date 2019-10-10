@@ -82,6 +82,7 @@ public:
 	void GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const override;
 
 	void AllocateDefaultPins() override;
+	void ShowExtendPins() override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 	UClass* GetClassPinBaseClass() const override;
 private:

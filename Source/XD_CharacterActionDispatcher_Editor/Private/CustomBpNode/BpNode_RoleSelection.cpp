@@ -104,6 +104,11 @@ void UBpNode_RoleSelection::AllocateDefaultPins()
 	Super::AllocateDefaultPins();
 
 	SelectionPins.Empty();
+}
+
+void UBpNode_RoleSelection::ShowExtendPins()
+{
+	Super::ShowExtendPins();
 	for (int32 i = 0; i < SelectionNum; ++i)
 	{
 		AddSelectionImpl(i);

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "GameplayTagContainer.h"
 #include "XD_DispatchableEntityInterface.generated.h"
 
 class UXD_DispatchableActionBase;
@@ -54,6 +55,18 @@ public:
 };
 
 // This class does not need to be modified.
+UCLASS()
+class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_StateTagUtils : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = true))
+	static bool HasStateTag(UObject* Obj, FGameplayTag Tag);
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
+	static void AddStateTag(UObject* Obj, FGameplayTag Tag);
+};
+
+// This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UXD_DispatchableEntityInterface : public UInterface
 {
@@ -100,4 +113,14 @@ public:
 	bool CanExecuteDispatcher() const;
 	virtual bool CanExecuteDispatcher_Implementation() const { return true; }
 	static bool CanExecuteDispatcher(UObject* Obj) { return IXD_DispatchableEntityInterface::Execute_CanExecuteDispatcher(Obj); }
+
+	UFUNCTION(BlueprintNativeEvent, Category = "行为")
+	bool AD_HasStateTag(const FGameplayTag& Tag) const;
+	virtual bool AD_HasStateTag_Implementation(const FGameplayTag& Tag) const { return true; }
+	static bool AD_HasStateTag(UObject* Obj, const FGameplayTag& Tag) { return IXD_DispatchableEntityInterface::Execute_AD_HasStateTag(Obj, Tag); }
+
+	UFUNCTION(BlueprintNativeEvent, Category = "行为")
+	void AD_AddStateTag(const FGameplayTag& Tag);
+	virtual void AD_AddStateTag_Implementation(const FGameplayTag& Tag) {}
+	static void AD_AddStateTag(UObject* Obj, const FGameplayTag& Tag) { IXD_DispatchableEntityInterface::Execute_AD_AddStateTag(Obj, Tag); }
 };

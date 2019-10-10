@@ -92,9 +92,6 @@ void UBpNode_ExecuteAction::GetContextMenuActions(const FGraphNodeContextMenuBui
 void UBpNode_ExecuteAction::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
-	ReflushFinishExec();
-
-	CreateResultPin();
 }
 
 void UBpNode_ExecuteAction::ReflushFinishExec()
@@ -184,6 +181,13 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 	{
 		CompilerContext.MessageLog.Error(*LOCTEXT("ExecuteAction_Error", "ICE: ExecuteAction error @@").ToString(), this);
 	}
+}
+
+void UBpNode_ExecuteAction::ShowExtendPins()
+{
+	Super::ShowExtendPins();
+	ReflushFinishExec();
+	CreateResultPin();
 }
 
 UClass* UBpNode_ExecuteAction::GetClassPinBaseClass() const

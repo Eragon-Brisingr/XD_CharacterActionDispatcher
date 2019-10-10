@@ -64,7 +64,11 @@ void UBpNode_ActiveSubActionDispatcher::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
 	GetClassPin()->DefaultObject = ActionDispatcherClass;
+}
 
+void UBpNode_ActiveSubActionDispatcher::ShowExtendPins()
+{
+	Super::ShowExtendPins();
 	ReflushFinishExec();
 	CreateResultPin();
 }

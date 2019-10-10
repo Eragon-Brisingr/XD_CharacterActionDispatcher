@@ -26,6 +26,11 @@ UBpNode_StartDispatcherBase::UBpNode_StartDispatcherBase()
 void UBpNode_StartDispatcherBase::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
+}
+
+void UBpNode_StartDispatcherBase::ShowExtendPins()
+{
+	Super::ShowExtendPins();
 	GetClassPin()->DefaultObject = ActionDispatcherClass;
 	ReflushFinishExec();
 }

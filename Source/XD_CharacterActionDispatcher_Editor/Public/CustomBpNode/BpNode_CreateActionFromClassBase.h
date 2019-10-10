@@ -13,7 +13,7 @@ class UEdGraph;
 class UXD_DispatchableActionBase;
 
 UCLASS(abstract)
-class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_CreateActionFromClassBase : public UK2Node
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_AD_CreateObjectBase : public UK2Node
 {
 	GENERATED_UCLASS_BODY()
 
@@ -83,7 +83,7 @@ protected:
 	void SetPinToolTip(UEdGraphPin& MutatablePin, const FText& PinDescription) const;
 
 	/** Refresh pins when class was changed */
-	void OnClassPinChanged();
+	virtual void OnClassPinChanged();
 
 	/** Constructing FText strings can be costly, so we cache the node's title */
 	FNodeTextCache CachedNodeTitle;
@@ -93,8 +93,21 @@ protected:
 protected:
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 
+	virtual bool CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const;
+	virtual void ShowExtendPins() {}
+};
+
+UCLASS(abstract)
+class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_CreateActionFromClassBase : public UBpNode_AD_CreateObjectBase
+{
+	GENERATED_BODY()
+public:
+	void AllocateDefaultPins() override;
+	void PostPlacedNewNode() override;
+	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+	FText GetTooltipText() const override;
+	void OnClassPinChanged() override;
+
 	UPROPERTY()
 	TSubclassOf<UXD_DispatchableActionBase> ActionClass;
-
-	virtual bool CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const;
 };

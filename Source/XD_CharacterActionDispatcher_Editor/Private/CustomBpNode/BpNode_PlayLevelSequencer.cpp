@@ -139,14 +139,17 @@ void UBpNode_PlayLevelSequencer::RefreshSequenceData()
 void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
-
-	DA_NodeUtils::CreateActionEventPins(this, ActionClass);
-	CreateResultPin();
-
 	for (const FSequencerBindingOption& Option : BindingOptions)
 	{
 		UpdatePinInfo(Option);
 	}
+	DA_NodeUtils::CreateActionEventPins(this, ActionClass);
+	CreateResultPin();
+}
+
+void UBpNode_PlayLevelSequencer::ShowExtendPins()
+{
+	Super::ShowExtendPins();
 }
 
 UBpNode_PlayLevelSequencer::UBpNode_PlayLevelSequencer()
@@ -158,7 +161,7 @@ void UBpNode_PlayLevelSequencer::PostEditChangeProperty(FPropertyChangedEvent& P
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	FName PropertyName = (PropertyChangedEvent.Property != NULL) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+	FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(UBpNode_PlayLevelSequencer, LevelSequence))
 	{
 		RefreshSequenceData();
@@ -169,7 +172,7 @@ void UBpNode_PlayLevelSequencer::PostEditChangeChainProperty(struct FPropertyCha
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
 
-	FName PropertyName = (PropertyChangedEvent.Property != NULL) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+	FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(FSequencerBindingOption, bIsPin))
 	{
 		int32 ModifyIndex = PropertyChangedEvent.GetArrayIndex(GET_MEMBER_NAME_STRING_CHECKED(UBpNode_PlayLevelSequencer, BindingOptions));
