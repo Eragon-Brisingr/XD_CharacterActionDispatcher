@@ -52,9 +52,6 @@ protected:
 	//当行为被再次激活时的实现
 	virtual void WhenActionReactived();
 
-	//行为是否能和其他行为同时执行
-	virtual bool IsCompatibleWith(UXD_DispatchableActionBase* Action) const { return false; }
-
 	UPROPERTY(EditDefaultsOnly, Category = "设置")
 	uint8 bTickable : 1;
 	//需开启bTickable

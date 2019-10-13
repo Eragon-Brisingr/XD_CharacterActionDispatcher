@@ -382,14 +382,19 @@ bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 				{
 					return false;
 				}
-				if (UXD_ActionDispatcherBase* Dispatcher = IXD_DispatchableEntityInterface::GetCurrentMainDispatcher(Obj))
-				{
-					//当主调度器（抢占式）存在的时候不能再启用别的调度器
- 					if (Dispatcher != this)
- 					{
- 						return false;
- 					}
-				}
+ 				if (UXD_ActionDispatcherBase* MainDispatcher = IXD_DispatchableEntityInterface::GetCurrentMainDispatcher(Obj))
+ 				{
+ 					//当主调度器（抢占式）存在的时候不能再启用别的调度器
+  					if (MainDispatcher != this)
+  					{
+						bool IsBeLeadingDispatcher = ActionDispatcherLeader ? true : false;
+
+						if (IsBeLeadingDispatcher == false)
+						{
+							return false;
+						}
+  					}
+ 				}
 			}
 		}
 		else

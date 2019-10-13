@@ -188,7 +188,7 @@ TSet<AActor*> UXD_DispatchableActionBase::GetAllRegistableEntities() const
 
 void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 {
-	check((Actor->GetWorld()->AreActorsInitialized()));
+	ensure((Actor->GetWorld()->AreActorsInitialized()));
 
 	if (Actor && Actor->Implements<UXD_DispatchableEntityInterface>())
 	{
@@ -197,27 +197,33 @@ void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 		{
 			check(PreAction != this);
 
-			const bool IsBothCompatible = PreAction->IsCompatibleWith(this) && IsCompatibleWith(PreAction);
+			//调度器内的行为抢占式跳转移除前一个进行时节点
+			UXD_ActionDispatcherBase* SelfDispatcher = GetOwner();
+			UXD_ActionDispatcherBase* PreDispatcher = PreAction->GetOwner();
+
+			const bool IsBothCompatible = SelfDispatcher->ActionIsBothCompatible(this, PreAction);
 			if (!IsBothCompatible)
 			{
-				//调度器内的行为抢占式跳转移除前一个进行时节点
-				if (PreAction->GetOwner() == GetOwner())
+				if (PreDispatcher == SelfDispatcher)
 				{
 					if (PreAction->State == EDispatchableActionState::Active)
 					{
 						PreAction->DeactiveAction();
-						GetOwner()->CurrentActions.Remove(PreAction);
+						SelfDispatcher->CurrentActions.Remove(PreAction);
 					}
 				}
 				else
 				{
-					if (PreAction->GetOwner()->State == EActionDispatcherState::Active)
+					// 若不为被领导的调度器
+					if (!SelfDispatcher->ActionDispatcherLeader)
 					{
-						//非同一调度器先将另一个调度器中断
-						PreAction->GetOwner()->AbortDispatch(PreAction);
+						if (PreDispatcher->State == EActionDispatcherState::Active)
+						{
+						 	//非同一调度器先将另一个调度器中断
+						 	PreDispatcher->AbortDispatch(PreAction);
+						}
 					}
 				}
-				Actions.Remove(PreAction);
 			}
 		}
 		Actions.Add(this);

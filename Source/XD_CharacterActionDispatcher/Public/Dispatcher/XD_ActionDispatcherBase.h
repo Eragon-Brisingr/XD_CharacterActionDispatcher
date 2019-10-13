@@ -45,7 +45,7 @@ public:
 	bool ReceiveCanStartDispatcher() const;
 
 	bool IsDispatcherValid() const;
-	//用于确保调度器里调度的所有对象有效性
+	// 用于确保调度器里调度的所有对象有效性
 	UFUNCTION(BlueprintNativeEvent, Category = "行为", meta = (DisplayName = "IsDispatcherValid"))
 	bool ReceiveIsDispatcherValid() const;
 
@@ -64,9 +64,16 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
 
-	//启用MainDispatcher会导致正在运行的MainDispatcher中断
+	virtual bool ActionIsBothCompatible(UXD_DispatchableActionBase* LHS, UXD_DispatchableActionBase* RHS) const { return false; }
+
+	// 启用MainDispatcher会导致正在运行的MainDispatcher中断
 	UPROPERTY(EditDefaultsOnly, Category = "行为", meta = (DisplayName = "为主调度器"))
 	uint8 bIsMainDispatcher : 1;
+
+	// 调度器的节点允许中允许直接激活别的调度器，所以要记录被哪个调度器领导
+	// 被领导的调度器的意思为：由调度行为激活的调度器，激活反激活由那个行为控制
+	UPROPERTY()
+	UXD_ActionDispatcherBase* ActionDispatcherLeader;
 public:
 	void Tick(float DeltaTime) override;
 	bool IsTickable() const override;
