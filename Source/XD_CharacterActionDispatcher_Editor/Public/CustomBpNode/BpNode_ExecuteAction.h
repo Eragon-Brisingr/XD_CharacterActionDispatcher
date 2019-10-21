@@ -26,7 +26,7 @@ public:
 
 	void AllocateDefaultPins() override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
-	void ShowExtendPins() override;
+	void ShowExtendPins(UClass* UseSpawnClass) override;
 protected:
 	UClass* GetClassPinBaseClass() const override;
 	bool CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const override;

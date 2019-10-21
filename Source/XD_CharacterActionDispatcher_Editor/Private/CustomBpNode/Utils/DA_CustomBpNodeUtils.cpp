@@ -117,10 +117,6 @@ void DA_NodeUtils::CreateActionEventPins(UK2Node* Node, const TSubclassOf<UXD_Di
 		{
 			DA_NodeUtils::CreateNormalEventPin(Node, EventName.PinName, EventName.PinDisplayName);
 		}
-		if (NormalEventNames.Num() > 0 && ENodeAdvancedPins::NoPins == Node->AdvancedPinDisplay)
-		{
-			Node->AdvancedPinDisplay = ENodeAdvancedPins::Hidden;
-		}
 	}
 }
 

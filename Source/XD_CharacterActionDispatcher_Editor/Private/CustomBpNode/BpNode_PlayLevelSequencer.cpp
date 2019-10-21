@@ -144,12 +144,12 @@ void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
 		UpdatePinInfo(Option);
 	}
 	DA_NodeUtils::CreateActionEventPins(this, ActionClass);
-	CreateResultPin();
 }
 
-void UBpNode_PlayLevelSequencer::ShowExtendPins()
+void UBpNode_PlayLevelSequencer::ShowExtendPins(UClass* UseSpawnClass)
 {
-	Super::ShowExtendPins();
+	Super::ShowExtendPins(UseSpawnClass);
+	CreateResultPin(UseSpawnClass);
 }
 
 UBpNode_PlayLevelSequencer::UBpNode_PlayLevelSequencer()

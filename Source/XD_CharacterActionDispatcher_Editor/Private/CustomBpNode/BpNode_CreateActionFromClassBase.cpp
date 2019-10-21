@@ -48,7 +48,6 @@ void UBpNode_AD_CreateObjectBase::AllocateDefaultPins()
 {
 	// Add execution pins
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Execute);
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Then);
 
 	// If required add the world context pin
 	if (UseWorldContext())
@@ -59,15 +58,17 @@ void UBpNode_AD_CreateObjectBase::AllocateDefaultPins()
 	// Add blueprint pin
 	UEdGraphPin* ClassPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Class, GetClassPinBaseClass(), FBpNode_CreateActionFromClassHelper::ClassPinName);
 	
-	// Result pin
-	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, GetClassPinBaseClass(), UEdGraphSchema_K2::PN_ReturnValue);
-	
 	if (UseOuter())
 	{
 		UEdGraphPin* OuterPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, UObject::StaticClass(), FBpNode_CreateActionFromClassHelper::OuterPinName);
 	}
 
 	Super::AllocateDefaultPins();
+
+	if (AdvancedPinDisplay == ENodeAdvancedPins::NoPins)
+	{
+		AdvancedPinDisplay = ENodeAdvancedPins::Hidden;
+	}
 }
 
 UEdGraphPin* UBpNode_AD_CreateObjectBase::GetOuterPin() const
@@ -131,7 +132,6 @@ void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEd
 	}
 	SortedExposePropertys.Insert(CurrentClassPropertys, 0);
 
-	bool HasAdvancedPins = false;
 	for (UProperty* Property : SortedExposePropertys)
 	{
 		if (UEdGraphPin* Pin = CreatePin(EGPD_Input, NAME_None, Property->GetFName()))
@@ -143,9 +143,7 @@ void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEd
 			}
 			Pin->PinFriendlyName = Property->GetDisplayNameText();
 
-			const bool bAdvancedPin = Property->HasAllPropertyFlags(CPF_AdvancedDisplay);
-			HasAdvancedPins |= bAdvancedPin;
-			Pin->bAdvancedView = bAdvancedPin;
+			Pin->bAdvancedView = Property->HasAllPropertyFlags(CPF_AdvancedDisplay);
 
 			if (ClassDefaultObject && K2Schema->PinDefaultValueIsEditable(*Pin))
 			{
@@ -160,14 +158,11 @@ void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEd
 		}
 	}
 
-	if (HasAdvancedPins && ENodeAdvancedPins::NoPins == AdvancedPinDisplay)
-	{
-		AdvancedPinDisplay = ENodeAdvancedPins::Hidden;
-	}
-
 	// Change class of output pin
-	UEdGraphPin* ResultPin = GetResultPin();
-	ResultPin->PinType.PinSubCategoryObject = InClass->GetAuthoritativeClass();
+	if (UEdGraphPin* ResultPin = FindPin(UEdGraphSchema_K2::PN_ReturnValue))
+	{
+		ResultPin->PinType.PinSubCategoryObject = InClass->GetAuthoritativeClass();
+	}
 }
 
 UClass* UBpNode_AD_CreateObjectBase::GetClassToSpawn(const TArray<UEdGraphPin*>* InPinsToSearch /*=NULL*/) const
@@ -195,8 +190,8 @@ void UBpNode_AD_CreateObjectBase::ReallocatePinsDuringReconstruction(TArray<UEdG
 	if (UClass* UseSpawnClass = GetClassToSpawn(&OldPins))
 	{
 		CreatePinsForClass(UseSpawnClass);
+		ShowExtendPins(UseSpawnClass);
 	}
-	ShowExtendPins();
 	RestoreSplitPins(OldPins);
 }
 
@@ -207,8 +202,8 @@ void UBpNode_AD_CreateObjectBase::PostPlacedNewNode()
 	if (UClass* UseSpawnClass = GetClassToSpawn())
 	{
 		CreatePinsForClass(UseSpawnClass);
+		ShowExtendPins(UseSpawnClass);
 	}
-	ShowExtendPins();
 }
 
 void UBpNode_AD_CreateObjectBase::AddSearchMetaDataInfo(TArray<struct FSearchTagDataPair>& OutTaggedMetaData) const
@@ -248,8 +243,8 @@ void UBpNode_AD_CreateObjectBase::OnClassPinChanged()
 	if (UClass* UseSpawnClass = GetClassToSpawn())
 	{
 		CreatePinsForClass(UseSpawnClass, &NewClassPins);
+		ShowExtendPins(UseSpawnClass);
 	}
-	ShowExtendPins();
 
 	RestoreSplitPins(OldPins);
 
@@ -277,14 +272,14 @@ void UBpNode_AD_CreateObjectBase::OnClassPinChanged()
 	FBlueprintEditorUtils::MarkBlueprintAsModified(GetBlueprint());
 }
 
-void UBpNode_AD_CreateObjectBase::CreateResultPin()
+void UBpNode_AD_CreateObjectBase::CreateResultPin(UClass* UseSpawnClass)
 {
 	//调整节点顺序
-	UObject* ClassType = GetResultPin()->PinType.PinSubCategoryObject.Get();
-	RemovePin(GetThenPin());
-	RemovePin(GetResultPin());
-	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, ClassType, UEdGraphSchema_K2::PN_ReturnValue);
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Then);
+	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, UEdGraphSchema_K2::PN_ReturnValue);
+	ResultPin->bAdvancedView = true;
+	ResultPin->PinType.PinSubCategoryObject = UseSpawnClass;
+	UEdGraphPin* ThenPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Then);
+	ThenPin->bAdvancedView = true;
 }
 
 void UBpNode_AD_CreateObjectBase::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)

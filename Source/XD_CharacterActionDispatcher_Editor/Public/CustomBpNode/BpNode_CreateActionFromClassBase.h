@@ -88,13 +88,13 @@ protected:
 	/** Constructing FText strings can be costly, so we cache the node's title */
 	FNodeTextCache CachedNodeTitle;
 
-	void CreateResultPin();
+	void CreateResultPin(UClass* UseSpawnClass);
 
 protected:
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 
 	virtual bool CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const;
-	virtual void ShowExtendPins() {}
+	virtual void ShowExtendPins(UClass* UseSpawnClass) {}
 };
 
 UCLASS(abstract)

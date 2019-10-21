@@ -24,7 +24,7 @@ public:
 	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
 
 	void AllocateDefaultPins() override;
-	void ShowExtendPins() override;
+	void ShowExtendPins(UClass* UseSpawnClass) override;
 	void PinDefaultValueChanged(UEdGraphPin* ChangedPin) override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 protected:

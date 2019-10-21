@@ -183,11 +183,11 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 	}
 }
 
-void UBpNode_ExecuteAction::ShowExtendPins()
+void UBpNode_ExecuteAction::ShowExtendPins(UClass* UseSpawnClass)
 {
-	Super::ShowExtendPins();
+	Super::ShowExtendPins(UseSpawnClass);
 	ReflushFinishExec();
-	CreateResultPin();
+	CreateResultPin(UseSpawnClass);
 }
 
 UClass* UBpNode_ExecuteAction::GetClassPinBaseClass() const

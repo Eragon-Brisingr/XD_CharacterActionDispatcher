@@ -106,20 +106,15 @@ void UBpNode_RoleSelection::AllocateDefaultPins()
 	SelectionPins.Empty();
 }
 
-void UBpNode_RoleSelection::ShowExtendPins()
+void UBpNode_RoleSelection::ShowExtendPins(UClass* UseSpawnClass)
 {
-	Super::ShowExtendPins();
+	Super::ShowExtendPins(UseSpawnClass);
 	for (int32 i = 0; i < SelectionNum; ++i)
 	{
 		AddSelectionImpl(i);
 	}
 
-	CreateResultPin();
-
-	if (ENodeAdvancedPins::NoPins == AdvancedPinDisplay)
-	{
-		AdvancedPinDisplay = ENodeAdvancedPins::Hidden;
-	}
+	CreateResultPin(UseSpawnClass);
 }
 
 void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)

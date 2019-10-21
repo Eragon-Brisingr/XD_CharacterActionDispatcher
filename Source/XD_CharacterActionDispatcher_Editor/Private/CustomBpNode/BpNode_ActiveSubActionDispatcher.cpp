@@ -66,11 +66,11 @@ void UBpNode_ActiveSubActionDispatcher::AllocateDefaultPins()
 	GetClassPin()->DefaultObject = ActionDispatcherClass;
 }
 
-void UBpNode_ActiveSubActionDispatcher::ShowExtendPins()
+void UBpNode_ActiveSubActionDispatcher::ShowExtendPins(UClass* UseSpawnClass)
 {
-	Super::ShowExtendPins();
+	Super::ShowExtendPins(UseSpawnClass);
 	ReflushFinishExec();
-	CreateResultPin();
+	CreateResultPin(UseSpawnClass);
 }
 
 void UBpNode_ActiveSubActionDispatcher::PinDefaultValueChanged(UEdGraphPin* ChangedPin)
