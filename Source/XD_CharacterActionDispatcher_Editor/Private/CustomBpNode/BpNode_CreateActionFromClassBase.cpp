@@ -131,6 +131,7 @@ void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEd
 	}
 	SortedExposePropertys.Insert(CurrentClassPropertys, 0);
 
+	bool HasAdvancedPins = false;
 	for (UProperty* Property : SortedExposePropertys)
 	{
 		if (UEdGraphPin* Pin = CreatePin(EGPD_Input, NAME_None, Property->GetFName()))
@@ -141,6 +142,10 @@ void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEd
 				OutClassPins->Add(Pin);
 			}
 			Pin->PinFriendlyName = Property->GetDisplayNameText();
+
+			const bool bAdvancedPin = Property->HasAllPropertyFlags(CPF_AdvancedDisplay);
+			HasAdvancedPins |= bAdvancedPin;
+			Pin->bAdvancedView = bAdvancedPin;
 
 			if (ClassDefaultObject && K2Schema->PinDefaultValueIsEditable(*Pin))
 			{
@@ -153,6 +158,11 @@ void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEd
 			// Copy tooltip from the property.
 			K2Schema->ConstructBasicPinTooltip(*Pin, Property->GetToolTipText(), Pin->PinToolTip);
 		}
+	}
+
+	if (HasAdvancedPins && ENodeAdvancedPins::NoPins == AdvancedPinDisplay)
+	{
+		AdvancedPinDisplay = ENodeAdvancedPins::Hidden;
 	}
 
 	// Change class of output pin

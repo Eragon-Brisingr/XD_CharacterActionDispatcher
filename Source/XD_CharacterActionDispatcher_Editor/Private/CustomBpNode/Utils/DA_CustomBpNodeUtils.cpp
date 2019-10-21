@@ -99,6 +99,7 @@ UEdGraphPin* DA_NodeUtils::CreateNormalEventPin(UK2Node* EdNode, const FName& Pi
 	UEdGraphPin* Pin = EdNode->CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, PinName);
 	Pin->PinFriendlyName = DisplayName;
 	Pin->PinToolTip = PinNormalEventToopTip;
+	Pin->bAdvancedView = true;
 	return Pin;
 }
 
@@ -115,6 +116,10 @@ void DA_NodeUtils::CreateActionEventPins(UK2Node* Node, const TSubclassOf<UXD_Di
 		for (const UXD_DispatchableActionBase::FPinNameData& EventName : NormalEventNames)
 		{
 			DA_NodeUtils::CreateNormalEventPin(Node, EventName.PinName, EventName.PinDisplayName);
+		}
+		if (NormalEventNames.Num() > 0 && ENodeAdvancedPins::NoPins == Node->AdvancedPinDisplay)
+		{
+			Node->AdvancedPinDisplay = ENodeAdvancedPins::Hidden;
 		}
 	}
 }

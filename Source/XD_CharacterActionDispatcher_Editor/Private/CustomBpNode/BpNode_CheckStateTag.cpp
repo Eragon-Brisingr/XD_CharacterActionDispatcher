@@ -14,6 +14,7 @@
 #include "K2Node_IfThenElse.h"
 #include "K2Node_CallFunction.h"
 #include "XD_DispatchableEntityInterface.h"
+#include "LinkToFinishNodeChecker.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -84,28 +85,22 @@ void UBpNode_CheckStateTag::ExpandNode(class FKismetCompilerContext& CompilerCon
 	UEdGraphNode* TargetNode = FindPinChecked(LinkStateTagPinName)->LinkedTo[0]->GetOwningNode();
 	if (TagNotExistPin->LinkedTo.Num() > 0)
 	{
-		struct
+		struct FCheckStateTagLinkChecker : FNodeLinkCheckerBase
 		{
 			bool Check(UEdGraphNode* Node, UEdGraphNode* InTargetNode)
 			{
 				TargetNode = InTargetNode;
-				return CheckImpl(Node);
+				return CheckNextNode(Node);
 			}
 		private:
-			TArray<UEdGraphNode*> VisitedNodes;
 			UEdGraphNode* TargetNode;
 
-			bool CheckImpl(UEdGraphNode* Node)
+			bool ExecuteCheck(UEdGraphNode* Node) override
 			{
 				if (Node == TargetNode)
 				{
 					return true;
 				}
-				if (VisitedNodes.Contains(Node))
-				{
-					return false;
-				}
-				VisitedNodes.Add(Node);
 
 				for (UEdGraphPin* Pin : Node->Pins)
 				{
@@ -113,8 +108,10 @@ void UBpNode_CheckStateTag::ExpandNode(class FKismetCompilerContext& CompilerCon
 					{
 						for (UEdGraphPin* LinkToPin : Pin->LinkedTo)
 						{
+							bool bShowErrorOnLinkedPin;
+							ConvertRetargetPin(LinkToPin, bShowErrorOnLinkedPin);
 							UEdGraphNode* NextNode = LinkToPin->GetOwningNode();
-							if (CheckImpl(NextNode))
+							if (CheckNextNode(NextNode))
 							{
 								return true;
 							}

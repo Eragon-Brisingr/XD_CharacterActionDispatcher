@@ -115,6 +115,11 @@ void UBpNode_RoleSelection::ShowExtendPins()
 	}
 
 	CreateResultPin();
+
+	if (ENodeAdvancedPins::NoPins == AdvancedPinDisplay)
+	{
+		AdvancedPinDisplay = ENodeAdvancedPins::Hidden;
+	}
 }
 
 void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
@@ -240,6 +245,7 @@ void UBpNode_RoleSelection::AddSelectionImpl(int32 Idx)
 	UEdGraphPin* SelectionPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Struct, SelectionStructType, GetSelectionPinName(Idx));
 	UEdGraphPin* ShowSelectionConditionPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Boolean, GetShowSelectionConditionName(Idx));
 	ShowSelectionConditionPin->DefaultValue = TEXT("True");
+	ShowSelectionConditionPin->bAdvancedView = true;
 	UEdGraphPin* ExecPin = DA_NodeUtils::CreateFinishEventPin(this, GetExecPinName(Idx));
 
 	FSelectionPin SelectionPinData;
