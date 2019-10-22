@@ -54,6 +54,9 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void InitLeader(AActor* InDispatcherLeader);
 
+	UFUNCTION(BlueprintCallable, Category = "Spawning", meta = (BlueprintInternalUseOnly = true, DeterminesOutputType = ObjectClass))
+	static UXD_DispatchableActionBase* CreateAction(TSubclassOf<UXD_DispatchableActionBase> ObjectClass, UObject* Outer);
+
 	void StartDispatchWithEvent(const FOnDispatchDeactiveNative& OnDispatchDeactive);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "执行调度"))
@@ -62,7 +65,7 @@ public:
 	bool IsDispatcherStarted() const { return CurrentActions.Num() > 0; }
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
-	void InvokeActiveAction(UXD_DispatchableActionBase* Action);
+	void InvokeActiveAction(UXD_DispatchableActionBase* Action, bool SaveAction, FGuid ActionGuid);
 
 	virtual bool ActionIsBothCompatible(UXD_DispatchableActionBase* LHS, UXD_DispatchableActionBase* RHS) const { return false; }
 
@@ -146,6 +149,14 @@ public:
 public:
 	UPROPERTY(SaveGame)
 	TArray<UXD_DispatchableActionBase*> CurrentActions;
+
+	UPROPERTY(SaveGame)
+	TMap<FGuid, UXD_DispatchableActionBase*> SavedActions;
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true, DeterminesOutputType = ActionType))
+	UXD_DispatchableActionBase* FindAction(FGuid ActionGuid, TSubclassOf<UXD_DispatchableActionBase> ActionType) const;
+
+	void Reset();
 
 	UPROPERTY(BlueprintReadOnly, Category = "行为调度器")
 	EActionDispatcherState State;

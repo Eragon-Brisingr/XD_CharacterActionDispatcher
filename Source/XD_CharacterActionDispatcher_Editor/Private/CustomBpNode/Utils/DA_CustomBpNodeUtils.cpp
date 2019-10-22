@@ -196,19 +196,6 @@ UEdGraphPin* DA_NodeUtils::CreateAllEventNode(const TSubclassOf<UXD_Dispatchable
 	return LastThen;
 }
 
-UEdGraphPin* DA_NodeUtils::CreateInvokeActiveActionNode(UK2Node* ActionNode, UEdGraphPin* LastThen, UK2Node_CallFunction* GetMainActionDispatcherNode, UEdGraphPin* ActionRefPin, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
-{
-	UK2Node_CallFunction* ActiveActionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(ActionNode, SourceGraph);
-	ActiveActionNode->SetFromFunction(UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InvokeActiveAction)));
-	ActiveActionNode->AllocateDefaultPins();
-	GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
-	ActionRefPin->MakeLinkTo(ActiveActionNode->FindPinChecked(TEXT("Action")));
-
-	LastThen->MakeLinkTo(ActiveActionNode->GetExecPin());
-	LastThen = ActiveActionNode->GetThenPin();
-	return LastThen;
-}
-
 UEdGraphPin* DA_NodeUtils::GenerateAssignmentNodes(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph, UK2Node_CallFunction* CallBeginSpawnNode, UEdGraphNode* SpawnNode, UEdGraphPin* CallBeginResult, const UClass* ForClass)
 {
 	static const FName ObjectParamName(TEXT("Object"));

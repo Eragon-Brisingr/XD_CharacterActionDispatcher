@@ -12,6 +12,8 @@
 #include "XD_ObjectFunctionLibrary.h"
 #include "XD_DispatchableActionBase.h"
 #include "KismetCompiler.h"
+#include "K2Node_CallFunction.h"
+#include "XD_ActionDispatcherBase.h"
 
 struct FBpNode_CreateActionFromClassHelper
 {
@@ -46,6 +48,8 @@ bool UBpNode_AD_CreateObjectBase::UseWorldContext() const
 
 void UBpNode_AD_CreateObjectBase::AllocateDefaultPins()
 {
+	Super::AllocateDefaultPins();
+
 	// Add execution pins
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Execute);
 
@@ -62,8 +66,6 @@ void UBpNode_AD_CreateObjectBase::AllocateDefaultPins()
 	{
 		UEdGraphPin* OuterPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, UObject::StaticClass(), FBpNode_CreateActionFromClassHelper::OuterPinName);
 	}
-
-	Super::AllocateDefaultPins();
 
 	if (AdvancedPinDisplay == ENodeAdvancedPins::NoPins)
 	{
@@ -425,7 +427,7 @@ void UBpNode_AD_CreateObjectBase::GetNodeAttributes( TArray<TKeyValuePair<FStrin
 {
 	UClass* ClassToSpawn = GetClassToSpawn();
 	const FString ClassToSpawnStr = ClassToSpawn ? ClassToSpawn->GetName() : TEXT( "InvalidClass" );
-	OutNodeAttributes.Add( TKeyValuePair<FString, FString>( TEXT( "Type" ), TEXT( "ConstructObjectFromClass" ) ));
+	OutNodeAttributes.Add( TKeyValuePair<FString, FString>( TEXT( "Type" ), TEXT( "AD_CreateObject" ) ));
 	OutNodeAttributes.Add( TKeyValuePair<FString, FString>( TEXT( "Class" ), GetClass()->GetName() ));
 	OutNodeAttributes.Add( TKeyValuePair<FString, FString>( TEXT( "Name" ), GetName() ));
 	OutNodeAttributes.Add( TKeyValuePair<FString, FString>( TEXT( "ObjectClass" ), ClassToSpawnStr ));
@@ -471,6 +473,7 @@ FText UBpNode_AD_CreateObjectBase::GetKeywords() const
 void UBpNode_CreateActionFromClassBase::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
+
 }
 
 void UBpNode_CreateActionFromClassBase::PostPlacedNewNode()
@@ -522,6 +525,46 @@ void UBpNode_CreateActionFromClassBase::OnClassPinChanged()
 {
 	Super::OnClassPinChanged();
 	ActionClass = GetClassToSpawn();
+}
+
+FString UBpNode_CreateActionFromClassBase::GetActionGuidValue() const
+{
+	return NodeGuid.ToString();
+}
+
+FString UBpNode_CreateActionFromClassBase::GetSaveActionValue() const
+{
+	return GetResultPin()->LinkedTo.Num() > 0 ? TEXT("True") : TEXT("False");
+}
+
+UEdGraphPin* UBpNode_CreateActionFromClassBase::CreateInvokeActiveActionNode(UEdGraphPin* LastThen, UK2Node_CallFunction* GetMainActionDispatcherNode, UEdGraphPin* ActionRefPin, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
+{
+	UK2Node_CallFunction* ActiveActionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	ActiveActionNode->SetFromFunction(UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, InvokeActiveAction)));
+	ActiveActionNode->AllocateDefaultPins();
+	GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(ActiveActionNode->FindPinChecked(UEdGraphSchema_K2::PN_Self));
+	ActionRefPin->MakeLinkTo(ActiveActionNode->FindPinChecked(TEXT("Action")));
+	ActiveActionNode->FindPinChecked(TEXT("ActionGuid"))->DefaultValue = GetActionGuidValue();
+	ActiveActionNode->FindPinChecked(TEXT("SaveAction"))->DefaultValue = GetSaveActionValue();
+
+	LastThen->MakeLinkTo(ActiveActionNode->GetExecPin());
+	LastThen = ActiveActionNode->GetThenPin();
+	return LastThen;
+}
+
+void UBpNode_CreateActionFromClassBase::LinkResultPin(UK2Node_CallFunction* GetMainActionDispatcherNode, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
+{
+	UK2Node_CallFunction* FindActionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+	FindActionNode->SetFromFunction(UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, FindAction)));
+	FindActionNode->AllocateDefaultPins();
+	FindActionNode->FindPinChecked(TEXT("ActionGuid"))->DefaultValue = GetActionGuidValue();
+	UEdGraphPin& ResultPin = *FindActionNode->GetReturnValuePin();
+	{
+		FindActionNode->FindPinChecked(TEXT("ActionType"))->DefaultObject = ActionClass;
+		ResultPin.PinType.PinSubCategoryObject = GetResultPin()->PinType.PinSubCategoryObject;
+	}
+	FindActionNode->FindPinChecked(UEdGraphSchema_K2::PN_Self)->MakeLinkTo(GetMainActionDispatcherNode->GetReturnValuePin());
+	CompilerContext.MovePinLinksToIntermediate(*GetResultPin(), ResultPin);
 }
 
 #undef LOCTEXT_NAMESPACE

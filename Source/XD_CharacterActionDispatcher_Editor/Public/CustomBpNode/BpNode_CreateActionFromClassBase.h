@@ -11,6 +11,7 @@
 class FBlueprintActionDatabaseRegistrar;
 class UEdGraph;
 class UXD_DispatchableActionBase;
+class UK2Node_CallFunction;
 
 UCLASS(abstract)
 class XD_CHARACTERACTIONDISPATCHER_EDITOR_API UBpNode_AD_CreateObjectBase : public UK2Node
@@ -110,4 +111,11 @@ public:
 
 	UPROPERTY()
 	TSubclassOf<UXD_DispatchableActionBase> ActionClass;
+
+protected:
+	FString GetActionGuidValue() const;
+	FString GetSaveActionValue() const;
+
+	UEdGraphPin* CreateInvokeActiveActionNode(UEdGraphPin* LastThen, UK2Node_CallFunction* GetMainActionDispatcherNode, UEdGraphPin* ActionRefPin, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
+	void LinkResultPin(UK2Node_CallFunction* GetMainActionDispatcherNode, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
 };

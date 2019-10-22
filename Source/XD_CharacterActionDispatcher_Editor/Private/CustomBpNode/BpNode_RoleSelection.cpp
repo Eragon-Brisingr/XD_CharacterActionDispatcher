@@ -23,7 +23,6 @@
 #include "EdGraph/EdGraphNode.h"
 #include "MultiBoxBuilder.h"
 #include "K2Node_IfThenElse.h"
-#include "Kismet/GameplayStatics.h"
 #include "K2Node_Knot.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -131,12 +130,12 @@ void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerCon
 	DA_NodeUtils::CreateDebugEventEntryPoint(this, CompilerContext, GetExecPin(), EntryPointEventName);
 
 	UK2Node_CallFunction* CallCreateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-	CallCreateNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UGameplayStatics, SpawnObject), UGameplayStatics::StaticClass());
+	CallCreateNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, CreateAction), UXD_ActionDispatcherBase::StaticClass());
 	CallCreateNode->AllocateDefaultPins();
 	CallCreateNode->GetReturnValuePin()->PinType = GetResultPin()->PinType;
 	CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *CallCreateNode->GetExecPin());
 	CompilerContext.MovePinLinksToIntermediate(*GetClassPin(), *CallCreateNode->FindPinChecked(TEXT("ObjectClass")));
-	CompilerContext.MovePinLinksToIntermediate(*GetResultPin(), *CallCreateNode->GetReturnValuePin());
+
 	UEdGraphPin* LastThen = DA_NodeUtils::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallCreateNode->GetReturnValuePin(), ClassToSpawn);
 	UK2Node_CallFunction* GetMainActionDispatcherNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 	{
@@ -149,6 +148,8 @@ void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerCon
 	CallShowSelectionNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_DA_RoleSelectionBase, ShowSelection), UXD_DA_RoleSelectionBase::StaticClass());
 	CallShowSelectionNode->AllocateDefaultPins();
 	CallShowSelectionNode->FindPinChecked(UEdGraphSchema_K2::PN_Self)->MakeLinkTo(CallCreateNode->GetReturnValuePin());
+	CallShowSelectionNode->FindPinChecked(TEXT("SaveAction"))->DefaultValue = GetSaveActionValue();
+	CallShowSelectionNode->FindPinChecked(TEXT("ActionGuid"))->DefaultValue = GetActionGuidValue();
 	GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(CallShowSelectionNode->FindPinChecked(TEXT("ActionDispatcher")));
 	LastThen->MakeLinkTo(CallShowSelectionNode->GetExecPin());
 
@@ -194,6 +195,8 @@ void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerCon
 	{
 		CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(GetShowSelectionConditionName(i), EGPD_Input), *MakeShowSelectionConditionsArrayNode->FindPinChecked(*FString::Printf(TEXT("[%d]"), i), EGPD_Input));
 	}
+
+	LinkResultPin(GetMainActionDispatcherNode, CompilerContext, SourceGraph);
 
 	BreakAllNodeLinks();
 }

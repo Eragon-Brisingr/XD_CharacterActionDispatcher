@@ -56,8 +56,6 @@ void FSequencerBindingOption_Customization::CustomizeHeader(TSharedRef<class IPr
 		];
 }
 
-FName UBpNode_PlayLevelSequencer::RetureValuePinName = TEXT("ReturnValue");
-
 void UBpNode_PlayLevelSequencer::RefreshSequenceData()
 {
 	if (ULevelSequence* LevelSequenceRef = LevelSequence.LoadSynchronous())
@@ -239,8 +237,6 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 	}
 	GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(CreatePlaySequenceNode->FindPinChecked(TEXT("ActionDispatcher")));
 
-	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(RetureValuePinName), *CreatePlaySequenceNode->GetReturnValuePin());
-
 	UK2Node_MakeArray* MakeActorDatasArrayNode = CompilerContext.SpawnIntermediateNode<UK2Node_MakeArray>(this, SourceGraph);
 	MakeActorDatasArrayNode->NumInputs = 0;
 	MakeActorDatasArrayNode->AllocateDefaultPins();
@@ -289,7 +285,9 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
  	}
 
 	LastThen = DA_NodeUtils::CreateAllEventNode(ActionClass, this, LastThen, CreatePlaySequenceNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
-	LastThen = DA_NodeUtils::CreateInvokeActiveActionNode(this, LastThen, GetMainActionDispatcherNode, CreatePlaySequenceNode->GetReturnValuePin(), CompilerContext, SourceGraph);
+	LastThen = CreateInvokeActiveActionNode(LastThen, GetMainActionDispatcherNode, CreatePlaySequenceNode->GetReturnValuePin(), CompilerContext, SourceGraph);
+	LinkResultPin(GetMainActionDispatcherNode, CompilerContext, SourceGraph);
+
 	CompilerContext.MovePinLinksToIntermediate(*FindPinChecked(UEdGraphSchema_K2::PN_Then), *LastThen);
 }
 

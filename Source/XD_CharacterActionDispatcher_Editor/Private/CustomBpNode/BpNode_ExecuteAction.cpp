@@ -6,7 +6,6 @@
 #include "XD_ActionDispatcherBase.h"
 #include "KismetCompiler.h"
 #include "K2Node_CallFunction.h"
-#include "Kismet/GameplayStatics.h"
 #include "K2Node_Self.h"
 #include "Action/XD_DispatchableActionBase.h"
 #include "K2Node_MakeArray.h"
@@ -120,7 +119,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 	DA_NodeUtils::CreateDebugEventEntryPoint(this, CompilerContext, GetExecPin(), EntryPointEventName);
 
 	UK2Node_CallFunction* CallCreateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-	CallCreateNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UGameplayStatics, SpawnObject), UGameplayStatics::StaticClass());
+	CallCreateNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, CreateAction), UXD_ActionDispatcherBase::StaticClass());
 	CallCreateNode->AllocateDefaultPins();
 
 	// store off the class to spawn before we mutate pin connections:
@@ -152,26 +151,13 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 		GetMainActionDispatcherNode->GetReturnValuePin()->MakeLinkTo(CallCreateNode->FindPinChecked(TEXT("Outer")));
 	}
 
-	UEdGraphPin* CallResultPin = nullptr;
-	//connect result
-	{
-		UEdGraphPin* SpawnResultPin = GetResultPin();
-		CallResultPin = CallCreateNode->GetReturnValuePin();
-
-		// cast HACK. It should be safe. The only problem is native code generation.
-		if (SpawnResultPin && CallResultPin)
-		{
-			CallResultPin->PinType = SpawnResultPin->PinType;
-		}
-		bSucceeded &= SpawnResultPin && CallResultPin && CompilerContext.MovePinLinksToIntermediate(*SpawnResultPin, *CallResultPin).CanSafeConnect();
-	}
-
-	UEdGraphPin* LastThen = DA_NodeUtils::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallResultPin, ClassToSpawn);
+	UEdGraphPin* LastThen = DA_NodeUtils::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallCreateNode->GetReturnValuePin(), ClassToSpawn);
 
 	//创建所有事件的委托
 	LastThen = DA_NodeUtils::CreateAllEventNode(ActionClass, this, LastThen, CallCreateNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
 
-	LastThen = DA_NodeUtils::CreateInvokeActiveActionNode(this, LastThen, GetMainActionDispatcherNode, CallCreateNode->GetReturnValuePin(), CompilerContext, SourceGraph);
+	LastThen = CreateInvokeActiveActionNode(LastThen, GetMainActionDispatcherNode, CallCreateNode->GetReturnValuePin(), CompilerContext, SourceGraph);
+	LinkResultPin(GetMainActionDispatcherNode, CompilerContext, SourceGraph);
 
 	bSucceeded &= CompilerContext.MovePinLinksToIntermediate(*GetThenPin(), *LastThen).CanSafeConnect();
 

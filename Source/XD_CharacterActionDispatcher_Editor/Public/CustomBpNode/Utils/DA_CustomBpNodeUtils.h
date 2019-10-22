@@ -57,8 +57,6 @@ struct DA_NodeUtils
 	static UEdGraphPin* CreateAllEventNode(const TSubclassOf<UXD_DispatchableActionBase>& ActionClass, UK2Node* ActionNode, UEdGraphPin* LastThen, UEdGraphPin* ActionRefPin, const FName& EntryPointEventName,
 		FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
 
-	static UEdGraphPin* CreateInvokeActiveActionNode(UK2Node* ActionNode, UEdGraphPin* LastThen, UK2Node_CallFunction* GetMainActionDispatcherNode, UEdGraphPin* ActionRefPin, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
-
 	// 从FKismetCompilerUtilities::GenerateAssignmentNodes拷贝，增加了对Property的元数据MD_ExposeOnSpawn的检查
 	static UEdGraphPin* GenerateAssignmentNodes(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph, UK2Node_CallFunction* CallBeginSpawnNode, UEdGraphNode* SpawnNode, UEdGraphPin* CallBeginResult, const UClass* ForClass);
 

@@ -93,10 +93,21 @@ void UXD_ActionDispatcherBase::InitLeader(AActor* InDispatcherLeader)
 	}
 }
 
-void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Action)
+UXD_DispatchableActionBase* UXD_ActionDispatcherBase::CreateAction(TSubclassOf<UXD_DispatchableActionBase> ObjectClass, UObject* Outer)
+{
+	return NewObject<UXD_DispatchableActionBase>(Outer, ObjectClass);
+}
+
+void UXD_ActionDispatcherBase::InvokeActiveAction(UXD_DispatchableActionBase* Action, bool SaveAction, FGuid ActionGuid)
 {
 	check(Action && !CurrentActions.Contains(Action));
 	check(IsSubActionDispatcher() == false);
+
+	if (SaveAction)
+	{
+		check(ActionGuid.IsValid());
+		SavedActions.FindOrAdd(ActionGuid) = Action;
+	}
 
 	if (State == EActionDispatcherState::Active)
 	{
@@ -434,6 +445,19 @@ TArray<FName> UXD_ActionDispatcherBase::GetAllFinishTags() const
 	return AD_Blueprint->FinishTags;
 }
 #endif
+
+UXD_DispatchableActionBase* UXD_ActionDispatcherBase::FindAction(FGuid ActionGuid, TSubclassOf<UXD_DispatchableActionBase> ActionType) const
+{
+	UXD_DispatchableActionBase* Action = SavedActions.FindRef(ActionGuid);
+	check(Action && Action->IsA(ActionType));
+	return Action;
+}
+
+void UXD_ActionDispatcherBase::Reset()
+{
+	CurrentActions.Empty();
+	SavedActions.Empty();
+}
 
 UXD_ActionDispatcherManager* UXD_ActionDispatcherBase::GetManager() const
 {

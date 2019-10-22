@@ -36,7 +36,7 @@ public:
 	static void ExecuteRoleSelected(APawn* InRole, const FDA_DisplaySelection& Selection);
 public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
-	void ShowSelection(UXD_ActionDispatcherBase* ActionDispatcher, const TArray<FDA_RoleSelection>& InSelections, const TArray<bool>& ShowSelectionConditions);
+	void ShowSelection(UXD_ActionDispatcherBase* ActionDispatcher, bool SaveAction, FGuid ActionGuid, const TArray<FDA_RoleSelection>& InSelections, const TArray<bool>& ShowSelectionConditions);
 
 	UFUNCTION(BlueprintPure, meta = (BlueprintInternalUseOnly = true))
 	static FDA_RoleSelection& SetWhenSelectedEvent(FDA_RoleSelection Selection, const FOnDispatchableActionFinishedEvent& Event);

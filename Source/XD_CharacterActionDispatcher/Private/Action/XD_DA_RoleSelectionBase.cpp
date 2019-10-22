@@ -87,7 +87,7 @@ void UXD_DA_RoleSelectionBase::ExecuteRoleSelected(APawn* InRole, const FDA_Disp
 	}
 }
 
-void UXD_DA_RoleSelectionBase::ShowSelection(UXD_ActionDispatcherBase* ActionDispatcher, const TArray<FDA_RoleSelection>& InSelections, const TArray<bool>& ShowSelectionConditions)
+void UXD_DA_RoleSelectionBase::ShowSelection(UXD_ActionDispatcherBase* ActionDispatcher, bool SaveAction, FGuid ActionGuid, const TArray<FDA_RoleSelection>& InSelections, const TArray<bool>& ShowSelectionConditions)
 {
 	for (int32 Idx = 0; Idx < InSelections.Num(); ++Idx)
 	{
@@ -96,7 +96,7 @@ void UXD_DA_RoleSelectionBase::ShowSelection(UXD_ActionDispatcherBase* ActionDis
 			Selections.Add(InSelections[Idx]);
 		}
 	}
-	ActionDispatcher->InvokeActiveAction(this);
+	ActionDispatcher->InvokeActiveAction(this, SaveAction, ActionGuid);
 }
 
 FDA_RoleSelection& UXD_DA_RoleSelectionBase::SetWhenSelectedEvent(FDA_RoleSelection Selection, const FOnDispatchableActionFinishedEvent& Event)
