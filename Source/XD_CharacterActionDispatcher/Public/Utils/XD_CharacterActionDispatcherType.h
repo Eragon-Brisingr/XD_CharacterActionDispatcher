@@ -53,7 +53,7 @@ struct XD_CHARACTERACTIONDISPATCHER_API FDA_RoleSelection : public FDA_RoleSelec
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(SaveGame)
+	UPROPERTY(SaveGame, BlueprintReadWrite)
 	FOnDispatchableActionFinishedEvent WhenSelected;
 };
 

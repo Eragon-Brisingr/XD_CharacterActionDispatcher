@@ -30,8 +30,6 @@ public:
 protected:
 	UClass* GetClassPinBaseClass() const override;
 	bool CanShowActionClass(bool ShowPluginNode, UXD_DispatchableActionBase* Action) const override;
-
-	void ReflushFinishExec();
 private:
 	bool ShouldShowNodeProperties() const override { return true; }
 	void PostPlacedNewNode() override;

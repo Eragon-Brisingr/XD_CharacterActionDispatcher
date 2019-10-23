@@ -64,10 +64,10 @@ public:
 	void WhenActionDeactived() override;
 	void WhenActionFinished() override;
 
-	UPROPERTY(SaveGame, meta = (DisplayName = "播放完毕"))
+	UPROPERTY(SaveGame, BlueprintReadWrite, meta = (DisplayName = "播放完毕"))
 	FOnDispatchableActionFinishedEvent WhenPlayCompleted;
 
-	UPROPERTY(SaveGame, meta = (DisplayName = "无法播放"))
+	UPROPERTY(SaveGame, BlueprintReadWrite, meta = (DisplayName = "无法播放"))
 	FOnDispatchableActionFinishedEvent WhenCanNotPlay;
 
 	UFUNCTION()

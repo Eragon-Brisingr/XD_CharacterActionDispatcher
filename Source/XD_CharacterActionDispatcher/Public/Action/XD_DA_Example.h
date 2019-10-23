@@ -16,7 +16,7 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_Example : public UXD_DispatchableA
 public:
 	UXD_DA_Example();
 
-	UPROPERTY(SaveGame, meta = (DisplayName = "当结束时"))
+	UPROPERTY(SaveGame, BlueprintReadWrite, meta = (DisplayName = "当结束时"))
 	FOnDispatchableActionFinishedEvent OnFinished;
 
 	TSet<AActor*> GetAllRegistableEntities() const override { return {}; }

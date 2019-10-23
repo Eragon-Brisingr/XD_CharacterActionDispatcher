@@ -118,4 +118,7 @@ protected:
 
 	UEdGraphPin* CreateInvokeActiveActionNode(UEdGraphPin* LastThen, UK2Node_CallFunction* GetMainActionDispatcherNode, UEdGraphPin* ActionRefPin, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
 	void LinkResultPin(UK2Node_CallFunction* GetMainActionDispatcherNode, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
+
+	void CreateActionEventPins(const TSubclassOf<UXD_DispatchableActionBase>& InActionClass);
+	UEdGraphPin* CreateAllEventNode(UEdGraphPin* LastThen, UEdGraphPin* ActionRefPin, const FName& EntryPointEventName, FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph);
 };

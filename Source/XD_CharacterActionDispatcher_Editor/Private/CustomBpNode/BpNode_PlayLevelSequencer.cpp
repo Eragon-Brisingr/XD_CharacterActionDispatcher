@@ -141,12 +141,12 @@ void UBpNode_PlayLevelSequencer::AllocateDefaultPins()
 	{
 		UpdatePinInfo(Option);
 	}
-	DA_NodeUtils::CreateActionEventPins(this, ActionClass);
 }
 
 void UBpNode_PlayLevelSequencer::ShowExtendPins(UClass* UseSpawnClass)
 {
 	Super::ShowExtendPins(UseSpawnClass);
+	CreateActionEventPins(UseSpawnClass);
 	CreateResultPin(UseSpawnClass);
 }
 
@@ -284,7 +284,7 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
  		}
  	}
 
-	LastThen = DA_NodeUtils::CreateAllEventNode(ActionClass, this, LastThen, CreatePlaySequenceNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
+	LastThen = CreateAllEventNode(LastThen, CreatePlaySequenceNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
 	LastThen = CreateInvokeActiveActionNode(LastThen, GetMainActionDispatcherNode, CreatePlaySequenceNode->GetReturnValuePin(), CompilerContext, SourceGraph);
 	LinkResultPin(GetMainActionDispatcherNode, CompilerContext, SourceGraph);
 

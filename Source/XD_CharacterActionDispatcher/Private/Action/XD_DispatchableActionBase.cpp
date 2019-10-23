@@ -134,50 +134,14 @@ UXD_ActionDispatcherBase* UXD_DispatchableActionBase::GetOwner() const
 	return CastChecked<UXD_ActionDispatcherBase>(GetOuter());
 }
 
-TArray<UXD_DispatchableActionBase::FPinNameData> UXD_DispatchableActionBase::GetAllFinishedEventName() const
+void UXD_DispatchableActionBase::BindFinishedEvent(FOnDispatchableActionFinishedEvent& FinishedEvent, const FDispatchableActionEventDelegate& InEvent)
 {
-	TArray<FPinNameData> Res;
-#if WITH_EDITOR
-	for (UStructProperty* Struct : GetAllFinishedEvents())
-	{
-		FPinNameData Data;
-		Data.PinName = *Struct->GetName();
-		Data.PinDisplayName = Struct->GetDisplayNameText();
-		Res.Add(Data);
-	}
-#endif
-	return Res;
+	FinishedEvent.Event = InEvent;
 }
 
-TArray<UXD_DispatchableActionBase::FPinNameData> UXD_DispatchableActionBase::GetAllNormalEventName() const
+void UXD_DispatchableActionBase::BindNormalEvent(FDispatchableActionNormalEvent& NormalEvent, const FDispatchableActionEventDelegate& InEvent)
 {
-	TArray<FPinNameData> Res;
-#if WITH_EDITOR
-	for (UStructProperty* Struct : GetAllNormalEvents())
-	{
-		FPinNameData Data;
-		Data.PinName = *Struct->GetName();
-		Data.PinDisplayName = Struct->GetDisplayNameText();
-		Res.Add(Data);
-	}
-#endif
-	return Res;
-}
-
-void UXD_DispatchableActionBase::BindAllActionEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents, const TArray<FDispatchableActionNormalEvent>& NormalEvents)
-{
-	const TArray<UStructProperty*>& AllFinishedEvents = GetAllFinishedEvents();
-	for (int32 BindIdx = 0; BindIdx < FinishedEvents.Num(); ++BindIdx)
-	{
-		FOnDispatchableActionFinishedEvent* Value = AllFinishedEvents[BindIdx]->ContainerPtrToValuePtr<FOnDispatchableActionFinishedEvent>(this);
-		*Value = FinishedEvents[BindIdx];
-	}
-	const TArray<UStructProperty*>& AllNormalEvents = GetAllNormalEvents();
-	for (int32 BindIdx = 0; BindIdx < NormalEvents.Num(); ++BindIdx)
-	{
-		FDispatchableActionNormalEvent* Value = AllNormalEvents[BindIdx]->ContainerPtrToValuePtr<FDispatchableActionNormalEvent>(this);
-		*Value = NormalEvents[BindIdx];
-	}
+	NormalEvent.Event = InEvent;
 }
 
 TSet<AActor*> UXD_DispatchableActionBase::GetAllRegistableEntities() const
@@ -301,35 +265,4 @@ bool UXD_DispatchableActionBase::InvokeReactiveDispatcher()
 void UXD_DispatchableActionBase::ReactiveDispatcher()
 {
 	GetOwner()->ReactiveDispatcher();
-}
-
-void UXD_DispatchableActionBase::PostInitProperties()
-{
-	Super::PostInitProperties();
-
-	if (HasAnyFlags(RF_ClassDefaultObject))
-	{
-		for (TFieldIterator<UStructProperty> It(GetClass()); It; ++It)
-		{
-			UStructProperty* Struct = *It;
-			if (Struct->Struct->IsChildOf(FOnDispatchableActionFinishedEvent::StaticStruct()))
-			{
-				CachedAllFinishedEvents.Add(Struct);
-			}
-			else if (Struct->Struct->IsChildOf(FDispatchableActionNormalEvent::StaticStruct()))
-			{
-				CachedAllNormalEvents.Add(Struct);
-			}
-		}
-	}
-}
-
-const TArray<UStructProperty*>& UXD_DispatchableActionBase::GetAllFinishedEvents() const
-{
-	return GetClass()->GetDefaultObject<UXD_DispatchableActionBase>()->CachedAllFinishedEvents;
-}
-
-const TArray<UStructProperty*>& UXD_DispatchableActionBase::GetAllNormalEvents() const
-{
-	return GetClass()->GetDefaultObject<UXD_DispatchableActionBase>()->CachedAllNormalEvents;
 }

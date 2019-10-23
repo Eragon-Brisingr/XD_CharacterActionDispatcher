@@ -93,13 +93,6 @@ void UBpNode_ExecuteAction::AllocateDefaultPins()
 	Super::AllocateDefaultPins();
 }
 
-void UBpNode_ExecuteAction::ReflushFinishExec()
-{
-	UK2Node* Node = this;
-
-	DA_NodeUtils::CreateActionEventPins(Node, ActionClass);
-}
-
 void UBpNode_ExecuteAction::PostPlacedNewNode()
 {
 	Super::PostPlacedNewNode();
@@ -121,6 +114,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 	UK2Node_CallFunction* CallCreateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 	CallCreateNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, CreateAction), UXD_ActionDispatcherBase::StaticClass());
 	CallCreateNode->AllocateDefaultPins();
+	CallCreateNode->GetReturnValuePin()->PinType.PinSubCategoryObject = *ActionClass;
 
 	// store off the class to spawn before we mutate pin connections:
 	UClass* ClassToSpawn = GetClassToSpawn();
@@ -154,7 +148,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 	UEdGraphPin* LastThen = DA_NodeUtils::GenerateAssignmentNodes(CompilerContext, SourceGraph, CallCreateNode, this, CallCreateNode->GetReturnValuePin(), ClassToSpawn);
 
 	//创建所有事件的委托
-	LastThen = DA_NodeUtils::CreateAllEventNode(ActionClass, this, LastThen, CallCreateNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
+	LastThen = CreateAllEventNode(LastThen, CallCreateNode->GetReturnValuePin(), EntryPointEventName, CompilerContext, SourceGraph);
 
 	LastThen = CreateInvokeActiveActionNode(LastThen, GetMainActionDispatcherNode, CallCreateNode->GetReturnValuePin(), CompilerContext, SourceGraph);
 	LinkResultPin(GetMainActionDispatcherNode, CompilerContext, SourceGraph);
@@ -172,7 +166,7 @@ void UBpNode_ExecuteAction::ExpandNode(class FKismetCompilerContext& CompilerCon
 void UBpNode_ExecuteAction::ShowExtendPins(UClass* UseSpawnClass)
 {
 	Super::ShowExtendPins(UseSpawnClass);
-	ReflushFinishExec();
+	CreateActionEventPins(UseSpawnClass);
 	CreateResultPin(UseSpawnClass);
 }
 

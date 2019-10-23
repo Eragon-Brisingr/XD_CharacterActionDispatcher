@@ -132,7 +132,7 @@ void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerCon
 	UK2Node_CallFunction* CallCreateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 	CallCreateNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, CreateAction), UXD_ActionDispatcherBase::StaticClass());
 	CallCreateNode->AllocateDefaultPins();
-	CallCreateNode->GetReturnValuePin()->PinType = GetResultPin()->PinType;
+	CallCreateNode->GetReturnValuePin()->PinType.PinSubCategoryObject = *ActionClass;
 	CompilerContext.MovePinLinksToIntermediate(*GetExecPin(), *CallCreateNode->GetExecPin());
 	CompilerContext.MovePinLinksToIntermediate(*GetClassPin(), *CallCreateNode->FindPinChecked(TEXT("ObjectClass")));
 

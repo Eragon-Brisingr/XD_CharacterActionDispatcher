@@ -74,16 +74,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "行为", SaveGame)
 	EDispatchableActionState State;
 public:
-	struct FPinNameData
-	{
-		FName PinName;
-		FText PinDisplayName;
-	};
-	TArray<FPinNameData> GetAllFinishedEventName() const;
-	TArray<FPinNameData> GetAllNormalEventName() const;
-	// TODO 可以不为运行时行为，ExpandNode时根据类型绑定上回调，这样还可以支持参数
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	void BindAllActionEvent(const TArray<FOnDispatchableActionFinishedEvent>& FinishedEvents, const TArray<FDispatchableActionNormalEvent>& NormalEvents);
+	static void BindFinishedEvent(UPARAM(Ref)FOnDispatchableActionFinishedEvent& FinishedEvent, const FDispatchableActionEventDelegate& InEvent);
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	static void BindNormalEvent(UPARAM(Ref)FDispatchableActionNormalEvent& NormalEvent, const FDispatchableActionEventDelegate& InEvent);
 protected:
 	//返回行为中所有需要注册的实体
 	virtual TSet<AActor*> GetAllRegistableEntities() const;
@@ -119,12 +113,6 @@ public:
 	FDispatchableActionNormalEvent OnActionActived;
 	UPROPERTY(SaveGame, meta = (DisplayName = "行为反激活"))
 	FDispatchableActionNormalEvent OnActionDeactived;
-private:
-	void PostInitProperties() override;
-	TArray<UStructProperty*> CachedAllFinishedEvents;
-	TArray<UStructProperty*> CachedAllNormalEvents;
-	const TArray<UStructProperty*>& GetAllFinishedEvents() const;
-	const TArray<UStructProperty*>& GetAllNormalEvents() const;
 };
 
 UCLASS(abstract, Blueprintable)
