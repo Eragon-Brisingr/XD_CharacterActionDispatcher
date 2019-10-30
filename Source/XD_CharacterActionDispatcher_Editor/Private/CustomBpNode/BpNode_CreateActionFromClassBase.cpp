@@ -291,13 +291,13 @@ void UBpNode_AD_CreateObjectBase::ExpandNode(class FKismetCompilerContext& Compi
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
 
-	for (UEdGraphPin* Pin : Pins)
+	if (UClass* ClassToSpawn = GetClassToSpawn())
 	{
-		if (Pin->Direction == EEdGraphPinDirection::EGPD_Input && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_SoftObject)
+		for (UEdGraphPin* Pin : Pins)
 		{
-			if (Pin->DefaultValue.IsEmpty() && Pin->LinkedTo.Num() == 0)
+			if (Pin->Direction == EEdGraphPinDirection::EGPD_Input && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_SoftObject)
 			{
-				if (UClass* ClassToSpawn = GetClassToSpawn())
+				if (Pin->DefaultValue.IsEmpty() && Pin->LinkedTo.Num() == 0)
 				{
 					UProperty* Property = FindField<UProperty>(ClassToSpawn, Pin->PinName);
 					if (!Property->GetBoolMetaData(TEXT("AllowEmpty")))
@@ -307,6 +307,10 @@ void UBpNode_AD_CreateObjectBase::ExpandNode(class FKismetCompilerContext& Compi
 				}
 			}
 		}
+	}
+	else
+	{
+		CompilerContext.MessageLog.Error(*LOCTEXT("类型为空Error", "ICE: @@类型不得为空").ToString(), this);
 	}
 }
 
@@ -326,7 +330,7 @@ void UBpNode_AD_CreateObjectBase::GetPinHoverText(const UEdGraphPin& Pin, FStrin
 	{
 		SetPinToolTip(*ClassPin, LOCTEXT("ClassPinDescription", "创建的行为类型"));
 	}
-	if (UEdGraphPin* ResultPin = GetResultPin())
+	if (UEdGraphPin* ResultPin = FindPin(UEdGraphSchema_K2::PN_ReturnValue))
 	{
 		SetPinToolTip(*ResultPin, LOCTEXT("ResultPinDescription", "行为实例"));
 	}

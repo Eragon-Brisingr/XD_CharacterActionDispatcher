@@ -214,6 +214,11 @@ void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& Compil
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
 
+	if (ActionClass == nullptr)
+	{
+		return;
+	}
+
 	DA_NodeUtils::CreateDebugEventEntryPoint(this, CompilerContext, GetExecPin(), EntryPointEventName);
 
 	if (LevelSequence.IsNull())

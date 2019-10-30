@@ -123,7 +123,6 @@ void UBpNode_RoleSelection::ExpandNode(class FKismetCompilerContext& CompilerCon
 	UClass* ClassToSpawn = GetClassToSpawn();
 	if (ClassToSpawn == nullptr)
 	{
-		CompilerContext.MessageLog.Error(*LOCTEXT("角色选择节点_类型为空Error", "ICE: @@类型不得为空").ToString(), this);
 		return;
 	}
 
