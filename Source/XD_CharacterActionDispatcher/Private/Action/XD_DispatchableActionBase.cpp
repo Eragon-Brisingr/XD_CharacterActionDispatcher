@@ -5,6 +5,7 @@
 #include "XD_DispatchableEntityInterface.h"
 #include "XD_DebugFunctionLibrary.h"
 #include "XD_ActionDispatcher_Log.h"
+#include "Package.h"
 
 UXD_DispatchableActionBase::UXD_DispatchableActionBase()
 {
@@ -27,6 +28,20 @@ UWorld* UXD_DispatchableActionBase::GetWorld() const
 
 void UXD_DispatchableActionBase::ActiveAction()
 {
+#if WITH_EDITOR
+	// 编辑器下修复SoftObject运行时的指向
+	const int32 PIEInstanceID = GetWorld()->GetOutermost()->PIEInstanceID;
+	for (TFieldIterator<USoftObjectProperty> PropertyIt(GetClass(), EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+	{
+		TSoftObjectPtr<UObject>* SoftObjectPtr = PropertyIt->ContainerPtrToValuePtr<TSoftObjectPtr<UObject>>(this);
+		FSoftObjectPath& SoftObjectPath = const_cast<FSoftObjectPath&>(SoftObjectPtr->ToSoftObjectPath());
+		if (SoftObjectPath.FixupForPIE(PIEInstanceID))
+		{
+			*SoftObjectPtr = SoftObjectPath.ResolveObject();
+		}
+	}
+#endif
+
 	check(State != EDispatchableActionState::Active);
 	ActionDispatcher_Display_VLog(GetOwner(), "激活%s中的行为%s", *UXD_DebugFunctionLibrary::GetDebugName(GetOwner()), *UXD_DebugFunctionLibrary::GetDebugName(GetClass()));
 	State = EDispatchableActionState::Active;
@@ -152,7 +167,7 @@ TSet<AActor*> UXD_DispatchableActionBase::GetAllRegistableEntities() const
 
 void UXD_DispatchableActionBase::RegisterEntity(AActor* Actor)
 {
-	ensure((Actor->GetWorld()->AreActorsInitialized()));
+	check((Actor->GetWorld()->AreActorsInitialized()));
 
 	if (Actor && Actor->Implements<UXD_DispatchableEntityInterface>())
 	{
