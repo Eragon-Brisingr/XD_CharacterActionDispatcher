@@ -147,11 +147,6 @@ FText UActionDispatcherFactory::GetDisplayName() const
 	return LOCTEXT("创建行为调度器标题", "行为调度器");
 }
 
-uint32 UActionDispatcherFactory::GetMenuCategories() const
-{
-	return EAssetTypeCategories::Blueprint;
-}
-
 bool UActionDispatcherFactory::ConfigureProperties()
 {
 	class FActionDispatcherFilterViewer : public IClassViewerFilter

@@ -32,7 +32,6 @@ public:
 	UObject* FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;
 
 	FText GetDisplayName() const override;
-	uint32 GetMenuCategories() const override;
 	
 	TSubclassOf<UXD_ActionDispatcherBase> ActionDispatcherClass;
 

@@ -25,7 +25,7 @@ FColor FActionDispatcher_AssetActions::GetTypeColor() const
 
 uint32 FActionDispatcher_AssetActions::GetCategories()
 {
-	return EAssetTypeCategories::Blueprint | EAssetTypeCategories::Basic;
+	return EAssetTypeCategories::Gameplay;
 }
 
 bool FActionDispatcher_AssetActions::HasActions(const TArray<UObject*>& InObjects) const
