@@ -20,9 +20,6 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_ActionDispatcherSettings : public UOb
 public:
 	UXD_ActionDispatcherSettings();
 
-	UPROPERTY(EditAnywhere, Category = "设置", Config)
-	TSubclassOf<UXD_DA_PlaySequenceBase> PlaySequenceImplClass;
-
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = "设置", Config)
 	uint8 bShowPluginNode : 1;

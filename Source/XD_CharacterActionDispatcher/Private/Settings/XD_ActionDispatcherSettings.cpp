@@ -5,7 +5,6 @@
 #include "XD_DA_RoleSelectionBase.h"
 
 UXD_ActionDispatcherSettings::UXD_ActionDispatcherSettings()
-	:PlaySequenceImplClass(UXD_DA_PlaySequenceBase::StaticClass())
 {
 #if WITH_EDITORONLY_DATA
 	bShowPluginNode = true;
