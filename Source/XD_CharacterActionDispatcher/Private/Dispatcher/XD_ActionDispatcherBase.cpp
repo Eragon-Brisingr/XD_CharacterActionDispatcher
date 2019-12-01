@@ -308,7 +308,7 @@ void UXD_ActionDispatcherBase::PostCDOContruct()
 
 void UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason)
 {
-	if (State != EActionDispatcherState::Deactive)
+	if (State == EActionDispatcherState::Active)
 	{
 		ActionDispatcher_Display_Log("因玩家%s离开导至%s终止", *UXD_DebugFunctionLibrary::GetDebugName(Actor), *UXD_DebugFunctionLibrary::GetDebugName(this));
 		AbortDispatch();
@@ -317,7 +317,7 @@ void UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlay
 
 void UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed(ULevel* Level)
 {
-	if (State != EActionDispatcherState::Deactive)
+	if (State == EActionDispatcherState::Active)
 	{
 		ULevel* CurLevel = Cast<ULevel>(DispatcherLeader.Get());
 		if (CurLevel == Level)
