@@ -21,7 +21,7 @@ public:
 	FText GetMenuCategory() const override;
 	FName GetCornerIcon() const override;
 	bool IsCompatibleWithGraph(const UEdGraph* TargetGraph) const override;
-	void GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const override;
+	void GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
 
 	void AllocateDefaultPins() override;
 	void ShowExtendPins(UClass* UseSpawnClass) override;

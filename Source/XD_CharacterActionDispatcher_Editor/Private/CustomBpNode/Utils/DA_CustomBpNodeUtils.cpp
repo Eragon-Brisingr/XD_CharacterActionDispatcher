@@ -20,6 +20,8 @@
 #include "BlueprintCompilationManager.h"
 #include "K2Node_CallArrayFunction.h"
 #include "K2Node_EnumLiteral.h"
+#include "ToolMenu.h"
+#include "ToolMenuSection.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -53,32 +55,30 @@ void DA_NodeUtils::CreateDebugEventEntryPoint(UEdGraphNode* SourceNode, FKismetC
 	CallPreDebugForceExecuteNodeNode->GetThenPin()->MakeLinkTo(ExecPin);
 }
 
-void DA_NodeUtils::AddDebugMenuSection(const UK2Node* Node, const FGraphNodeContextMenuBuilder& Context, FName EntryPointEventName)
+void DA_NodeUtils::AddDebugMenuSection(const UK2Node* Node, class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context, FName EntryPointEventName)
 {
-	if (Context.bIsDebugging)
+	if (Context->bIsDebugging)
 	{
-		if (UObject * DebuggedObject = Node->GetBlueprint()->GetObjectBeingDebugged())
+		if (UObject* DebuggedObject = Node->GetBlueprint()->GetObjectBeingDebugged())
 		{
-			Context.MenuBuilder->BeginSection("调试", LOCTEXT("调试", "调试"));
-			{
-				Context.MenuBuilder->AddMenuEntry(
-					LOCTEXT("强制执行", "强制执行"),
-					LOCTEXT("强制执行描述", "强制执行该节点"),
-					FSlateIcon(),
-					FUIAction(
-						FExecuteAction::CreateLambda([=]()
+			FToolMenuSection& Section = Menu->AddSection(TEXT("DA Node Debug"), LOCTEXT("调试", "调试"));
+			Section.AddMenuEntry(
+				TEXT("Force Execute"),
+				LOCTEXT("强制执行", "强制执行"),
+				LOCTEXT("强制执行描述", "强制执行该节点"),
+				FSlateIcon(),
+				FUIAction(
+					FExecuteAction::CreateLambda([=]()
+						{
+							if (UFunction * EntryPointEvent = DebuggedObject->FindFunction(EntryPointEventName))
 							{
-								if (UFunction * EntryPointEvent = DebuggedObject->FindFunction(EntryPointEventName))
-								{
-									ActionDispatcher_Editor_Display_Log("强制执行调试跳转事件[%s]", *EntryPointEventName.ToString());
-									DebuggedObject->ProcessEvent(EntryPointEvent, nullptr);
-								}
-							}),
-						FIsActionChecked()
-								)
-				);
-			}
-			Context.MenuBuilder->EndSection();
+								ActionDispatcher_Editor_Display_Log("强制执行调试跳转事件[%s]", *EntryPointEventName.ToString());
+								DebuggedObject->ProcessEvent(EntryPointEvent, nullptr);
+							}
+						}),
+					FIsActionChecked()
+							)
+			);
 		}
 	}
 }

@@ -8,7 +8,7 @@ AXD_ReplicableLevelSequence::AXD_ReplicableLevelSequence(const FObjectInitialize
 	:Super(Init)
 {
 	bReplicates = true;
-	bReplicateMovement = true;
+	SetReplicatingMovement(true);
 	bOverrideInstanceData = true;
 	bReplicatePlayback = true;
 

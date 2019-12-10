@@ -44,7 +44,7 @@ struct DA_NodeUtils
 	// 创建Debug用的跳转事件
 	static void CreateDebugEventEntryPoint(UEdGraphNode* SourceNode, FKismetCompilerContext& CompilerContext, UEdGraphPin* ExecPin, const FName& EventName);
 
-	static void AddDebugMenuSection(const UK2Node* Node, const FGraphNodeContextMenuBuilder& Context, FName EntryPointEventName);
+	static void AddDebugMenuSection(const UK2Node* Node, class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context, FName EntryPointEventName);
 
 	static FString PinFinishEventToopTip;
 	static FString PinNormalEventToopTip;

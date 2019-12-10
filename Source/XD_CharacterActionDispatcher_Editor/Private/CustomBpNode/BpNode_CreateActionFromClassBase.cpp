@@ -481,6 +481,8 @@ void UBpNode_CreateActionFromClassBase::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
 
+	// 不允许用户修改类型
+	FindPinChecked(FBpNode_CreateActionFromClassHelper::ClassPinName, EGPD_Input)->bHidden = true;
 }
 
 void UBpNode_CreateActionFromClassBase::PostPlacedNewNode()

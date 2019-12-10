@@ -47,13 +47,13 @@ public class XD_CharacterActionDispatcher_Editor : ModuleRules
                 "EditorWidgets",
                 "Projects",
                 "AssetTools",
-
                 "MovieScene",
                 "MovieSceneTools",
                 "MovieSceneTracks",
                 "LevelSequence",
-
                 "GameplayTags",
+                "ToolMenus",
+
 				// ... add private dependencies that you statically link with here ...	
 
                 "XD_UnrealLibraryEx",

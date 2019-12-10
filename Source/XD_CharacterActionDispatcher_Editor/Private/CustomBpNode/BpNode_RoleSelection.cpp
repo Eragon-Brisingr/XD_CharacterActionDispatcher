@@ -25,6 +25,8 @@
 #include "K2Node_IfThenElse.h"
 #include "K2Node_Knot.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "ToolMenu.h"
+#include "ToolMenuSection.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -62,40 +64,39 @@ bool UBpNode_RoleSelection::IsCompatibleWithGraph(const UEdGraph* TargetGraph) c
 	return Super::IsCompatibleWithGraph(TargetGraph) && DA_NodeUtils::IsActionDispatcherGraph(TargetGraph);
 }
 
-void UBpNode_RoleSelection::GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const
+void UBpNode_RoleSelection::GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const
 {
-	Super::GetContextMenuActions(Context);
-	if (!Context.bIsDebugging)
+	Super::GetNodeContextMenuActions(Menu, Context);
+	if (!Context->bIsDebugging)
 	{
-		Context.MenuBuilder->BeginSection("选项", LOCTEXT("选项", "选项"));
+		FToolMenuSection& Section = Menu->AddSection(TEXT("选项"), LOCTEXT("选项", "选项"));
+		Section.AddMenuEntry(
+			TEXT("Add Selection"),
+			LOCTEXT("添加选项", "添加选项"),
+			LOCTEXT("添加选项描述", "添加选项"),
+			FSlateIcon(),
+			FUIAction(
+				FExecuteAction::CreateUObject(this, &UBpNode_RoleSelection::AddSelection),
+				FIsActionChecked()
+			)
+		);
+
+		if (Context->Pin && SelectionNum > 1 && SelectionPins.ContainsByPredicate([&](const FSelectionPin& E) {return E.SelectionPin == Context->Pin; }))
 		{
-			Context.MenuBuilder->AddMenuEntry(
-				LOCTEXT("添加选项", "添加选项"),
-				LOCTEXT("添加选项描述", "添加选项"),
+			Section.AddMenuEntry(
+				TEXT("Remove Selection"),
+				LOCTEXT("移除选项", "移除选项"),
+				LOCTEXT("移除选项描述", "移除选项"),
 				FSlateIcon(),
 				FUIAction(
-					FExecuteAction::CreateUObject(this, &UBpNode_RoleSelection::AddSelection),
+					FExecuteAction::CreateUObject(this, &UBpNode_RoleSelection::RemoveSelection, Context->Pin),
 					FIsActionChecked()
 				)
 			);
-
-			if (Context.Pin && SelectionNum > 1 && SelectionPins.ContainsByPredicate([&](const FSelectionPin& E) {return E.SelectionPin == Context.Pin;}))
-			{
-				Context.MenuBuilder->AddMenuEntry(
-					LOCTEXT("移除选项", "移除选项"),
-					LOCTEXT("移除选项描述", "移除选项"),
-					FSlateIcon(),
-					FUIAction(
-						FExecuteAction::CreateUObject(this, &UBpNode_RoleSelection::RemoveSelection, Context.Pin),
-						FIsActionChecked()
-					)
-				);
-			}
 		}
-		Context.MenuBuilder->EndSection();
 	}
 
-	DA_NodeUtils::AddDebugMenuSection(this, Context, EntryPointEventName);
+	DA_NodeUtils::AddDebugMenuSection(this, Menu, Context, EntryPointEventName);
 }
 
 void UBpNode_RoleSelection::AllocateDefaultPins()

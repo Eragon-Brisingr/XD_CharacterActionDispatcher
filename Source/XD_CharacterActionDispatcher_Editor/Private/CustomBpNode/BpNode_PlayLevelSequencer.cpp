@@ -204,10 +204,10 @@ bool UBpNode_PlayLevelSequencer::IsCompatibleWithGraph(const UEdGraph* TargetGra
 	return Super::IsCompatibleWithGraph(TargetGraph) && DA_NodeUtils::IsActionDispatcherGraph(TargetGraph);
 }
 
-void UBpNode_PlayLevelSequencer::GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const
+void UBpNode_PlayLevelSequencer::GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const
 {
-	Super::GetContextMenuActions(Context);
-	DA_NodeUtils::AddDebugMenuSection(this, Context, EntryPointEventName);
+	Super::GetNodeContextMenuActions(Menu, Context);
+	DA_NodeUtils::AddDebugMenuSection(this, Menu, Context, EntryPointEventName);
 }
 
 void UBpNode_PlayLevelSequencer::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)

@@ -14,6 +14,8 @@
 #include "MultiBoxBuilder.h"
 #include "DA_CustomBpNodeUtils.h"
 #include "LinkToFinishNodeChecker.h"
+#include "ToolMenu.h"
+#include "ToolMenuSection.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 
@@ -57,37 +59,36 @@ bool UBpNode_FlowControl_Together::IsCompatibleWithGraph(const UEdGraph* TargetG
 	return Super::IsCompatibleWithGraph(TargetGraph) && DA_NodeUtils::IsActionDispatcherGraph(TargetGraph);
 }
 
-void UBpNode_FlowControl_Together::GetContextMenuActions(const FGraphNodeContextMenuBuilder& Context) const
+void UBpNode_FlowControl_Together::GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const
 {
-	Super::GetContextMenuActions(Context);
-	if (!Context.bIsDebugging)
+	Super::GetNodeContextMenuActions(Menu, Context);
+	if (!Context->bIsDebugging)
 	{
-		Context.MenuBuilder->BeginSection("FlowControl Together", LOCTEXT("FlowControl Together", "FlowControl Together"));
+		FToolMenuSection& Section = Menu->AddSection(TEXT("FlowControl Together"), LOCTEXT("FlowControl Together", "FlowControl Together"));
+		Section.AddMenuEntry(
+			TEXT("Add FlowControl Together Event"),
+			LOCTEXT("FlowControl Together Add Pin Desc", "添加共同事件输入"),
+			LOCTEXT("FlowControl Together Add Pin Desc", "添加共同事件输入"),
+			FSlateIcon(),
+			FUIAction(
+				FExecuteAction::CreateUObject(this, &UBpNode_FlowControl_Together::AddExecPin),
+				FIsActionChecked()
+			)
+		);
+
+		if (Context->Pin && TogetherEventCount > 2 && TogetherPins.Contains(Context->Pin))
 		{
-			Context.MenuBuilder->AddMenuEntry(
-				LOCTEXT("FlowControl Together Add Pin Desc", "添加共同事件输入"),
-				LOCTEXT("FlowControl Together Add Pin Desc", "添加共同事件输入"),
+			Section.AddMenuEntry(
+				TEXT("Remove FlowControl Together Event"),
+				LOCTEXT("FlowControl Together Remove Pin Desc", "移除共同事件输入"),
+				LOCTEXT("FlowControl Together Remove Pin Desc", "移除共同事件输入"),
 				FSlateIcon(),
 				FUIAction(
-					FExecuteAction::CreateUObject(this, &UBpNode_FlowControl_Together::AddExecPin),
+					FExecuteAction::CreateUObject(this, &UBpNode_FlowControl_Together::RemoveExecPin, Context->Pin),
 					FIsActionChecked()
 				)
 			);
-
-			if (Context.Pin && TogetherEventCount > 2 && TogetherPins.Contains(Context.Pin))
-			{
-				Context.MenuBuilder->AddMenuEntry(
-					LOCTEXT("FlowControl Together Remove Pin Desc", "移除共同事件输入"),
-					LOCTEXT("FlowControl Together Remove Pin Desc", "移除共同事件输入"),
-					FSlateIcon(),
-					FUIAction(
-						FExecuteAction::CreateUObject(this, &UBpNode_FlowControl_Together::RemoveExecPin, Context.Pin),
-						FIsActionChecked()
-					)
-				);
-			}
 		}
-		Context.MenuBuilder->EndSection();
 	}
 }
 
