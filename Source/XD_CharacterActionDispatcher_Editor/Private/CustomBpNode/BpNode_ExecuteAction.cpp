@@ -1,19 +1,20 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "BpNode_ExecuteAction.h"
-#include "BlueprintActionDatabaseRegistrar.h"
-#include "BlueprintNodeSpawner.h"
-#include "XD_ActionDispatcherBase.h"
-#include "KismetCompiler.h"
-#include "K2Node_CallFunction.h"
-#include "K2Node_Self.h"
-#include "Action/XD_DispatchableActionBase.h"
-#include "K2Node_MakeArray.h"
-#include "K2Node_CustomEvent.h"
+#include "CustomBpNode/BpNode_ExecuteAction.h"
+#include <BlueprintActionDatabaseRegistrar.h>
+#include <BlueprintNodeSpawner.h>
+#include <KismetCompiler.h>
+#include <K2Node_CallFunction.h>
+#include <K2Node_Self.h>
+#include <K2Node_MakeArray.h>
+#include <K2Node_CustomEvent.h>
+#include <EdGraphSchema_K2_Actions.h>
+#include <Kismet2/BlueprintEditorUtils.h>
+
 #include "XD_BpNodeFunctionWarpper.h"
-#include "EdGraphSchema_K2_Actions.h"
-#include "BlueprintEditorUtils.h"
-#include "Utils/DA_CustomBpNodeUtils.h"
+#include "Action/XD_DispatchableActionBase.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
 #include "Settings/XD_ActionDispatcherSettings.h"
 #include "XD_ObjectFunctionLibrary.h"
 

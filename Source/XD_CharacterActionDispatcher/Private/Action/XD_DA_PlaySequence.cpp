@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "XD_DA_PlaySequence.h"
-#include "GameFramework/Pawn.h"
-#include "XD_ReplicableLevelSequence.h"
-#include "XD_ActionDispatcherBase.h"
-#include "AIController.h"
+#include "Action/XD_DA_PlaySequence.h"
+#include <GameFramework/Pawn.h>
+#include <AIController.h>
+#include "Actors/XD_ReplicableLevelSequence.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
 
 UXD_DA_PlaySequenceBase::UXD_DA_PlaySequenceBase()
 {

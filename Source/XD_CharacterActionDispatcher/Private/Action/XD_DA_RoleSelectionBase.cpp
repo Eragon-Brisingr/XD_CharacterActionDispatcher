@@ -1,13 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "XD_DA_RoleSelectionBase.h"
-#include "XD_DispatchableEntityInterface.h"
-#include "XD_DA_RoleSelectionInterface.h"
+#include "Action/XD_DA_RoleSelectionBase.h"
+#include <GameFramework/Pawn.h>
+
+#include "Interface/XD_DispatchableEntityInterface.h"
+#include "Interface/XD_DA_RoleSelectionInterface.h"
 #include "XD_DebugFunctionLibrary.h"
-#include "XD_ActionDispatcher_Log.h"
-#include "XD_ActionDispatcherSettings.h"
-#include "XD_ActionDispatcherBase.h"
-#include "GameFramework/Pawn.h"
+#include "Utils/XD_ActionDispatcher_Log.h"
+#include "Settings/XD_ActionDispatcherSettings.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
 
 UXD_DA_RoleSelectionBase::UXD_DA_RoleSelectionBase()
 {

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "GameplayTagContainer.h"
+#include <GameplayTagContainer.h>
 #include "XD_DispatchableEntityInterface.generated.h"
 
 class UXD_DispatchableActionBase;

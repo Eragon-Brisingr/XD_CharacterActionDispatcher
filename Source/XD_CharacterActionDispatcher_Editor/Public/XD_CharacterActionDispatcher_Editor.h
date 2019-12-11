@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Modules/ModuleManager.h"
+#include <Modules/ModuleManager.h>
 
 class FSlateStyleSet;
 class FActionDispatcher_AssetActions;

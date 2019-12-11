@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BlueprintEditor.h"
+#include <BlueprintEditor.h>
 
 class UActionDispatcherBlueprint;
 

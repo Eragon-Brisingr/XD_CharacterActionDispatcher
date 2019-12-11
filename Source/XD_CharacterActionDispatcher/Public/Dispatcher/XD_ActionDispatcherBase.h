@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
-#include "XD_CharacterActionDispatcherType.h"
-#include "GameplayTagContainer.h"
-#include "Engine/EngineTypes.h"
-#include "Tickable.h"
+#include <UObject/NoExportTypes.h>
+#include <GameplayTagContainer.h>
+#include <Engine/EngineTypes.h>
+#include <Tickable.h>
+#include "Utils/XD_CharacterActionDispatcherType.h"
 #include "XD_ActionDispatcherBase.generated.h"
 
 class UXD_DispatchableActionBase;

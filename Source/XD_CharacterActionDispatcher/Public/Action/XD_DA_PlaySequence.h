@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Action/XD_DispatchableActionBase.h"
-#include "MovieSceneObjectBindingID.h"
+#include <MovieSceneObjectBindingID.h>
 #include "AITypes.h"
 #include "XD_DA_PlaySequence.generated.h"
 

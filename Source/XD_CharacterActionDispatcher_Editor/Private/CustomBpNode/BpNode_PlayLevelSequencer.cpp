@@ -1,34 +1,35 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "BpNode_PlayLevelSequencer.h"
-#include "BlueprintActionDatabaseRegistrar.h"
-#include "BlueprintNodeSpawner.h"
-#include "EdGraphSchema_K2.h"
-#include "LevelSequence.h"
-#include "SlateIconFinder.h"
-#include "MovieSceneSubSection.h"
-#include "MovieSceneCinematicShotSection.h"
-#include "EditorStyleSet.h"
-#include "MovieSceneSubTrack.h"
-#include "BlueprintEditorUtils.h"
-#include "DetailWidgetRow.h"
-#include "PropertyHandle.h"
-#include "STextBlock.h"
-#include "KismetCompiler.h"
-#include "K2Node_CallFunction.h"
-#include "K2Node_Knot.h"
+#include "CustomBpNode/BpNode_PlayLevelSequencer.h"
+#include <BlueprintActionDatabaseRegistrar.h>
+#include <BlueprintNodeSpawner.h>
+#include <EdGraphSchema_K2.h>
+#include <LevelSequence.h>
+#include <Styling/SlateIconFinder.h>
+#include <Sections/MovieSceneSubSection.h>
+#include <Sections/MovieSceneCinematicShotSection.h>
+#include <EditorStyleSet.h>
+#include <Tracks/MovieSceneSubTrack.h>
+#include <Kismet2/BlueprintEditorUtils.h>
+#include <DetailWidgetRow.h>
+#include <PropertyHandle.h>
+#include <Widgets/Text/STextBlock.h>
+#include <KismetCompiler.h>
+#include <K2Node_CallFunction.h>
+#include <K2Node_Knot.h>
+#include <Tracks/MovieScene3DTransformTrack.h>
+#include <Channels/MovieSceneFloatChannel.h>
+#include <Channels/MovieSceneChannelProxy.h>
+#include <K2Node_Self.h>
+#include <K2Node_CustomEvent.h>
+#include <K2Node_MakeArray.h>
+#include <K2Node_MakeStruct.h>
+
+#include "Action/XD_DA_PlaySequence.h"
 #include "XD_BpNodeFunctionWarpper.h"
-#include "MovieScene3DTransformTrack.h"
-#include "MovieSceneFloatChannel.h"
-#include "MovieSceneChannelProxy.h"
-#include "XD_DA_PlaySequence.h"
-#include "K2Node_Self.h"
-#include "K2Node_CustomEvent.h"
-#include "K2Node_MakeArray.h"
-#include "K2Node_MakeStruct.h"
-#include "DA_CustomBpNodeUtils.h"
-#include "XD_ActionDispatcherSettings.h"
-#include "XD_ActionDispatcherBase.h"
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
+#include "Settings/XD_ActionDispatcherSettings.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
 
 #define LOCTEXT_NAMESPACE "CharacterActionDispatcher"
 

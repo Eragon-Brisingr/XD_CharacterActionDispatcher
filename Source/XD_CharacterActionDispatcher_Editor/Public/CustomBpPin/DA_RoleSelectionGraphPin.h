@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SGraphPin.h"
-#include "EdGraphUtilities.h"
+#include <SGraphPin.h>
+#include <EdGraphUtilities.h>
 
 /**
  * 

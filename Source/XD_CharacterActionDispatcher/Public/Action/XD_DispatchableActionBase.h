@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
-#include "XD_CharacterActionDispatcherType.h"
+#include <UObject/NoExportTypes.h>
+#include "Utils/XD_CharacterActionDispatcherType.h"
 #include "XD_DispatchableActionBase.generated.h"
 
 class UXD_ActionDispatcherBase;

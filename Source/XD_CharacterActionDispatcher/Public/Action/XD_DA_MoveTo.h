@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "XD_DispatchableActionBase.h"
+#include "Action/XD_DispatchableActionBase.h"
 #include "AITypes.h"
 #include "XD_DA_MoveTo.generated.h"
 

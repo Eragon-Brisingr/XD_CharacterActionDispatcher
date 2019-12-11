@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "XD_CharacterActionDispatcherType.h"
+#include "Utils/XD_CharacterActionDispatcherType.h"
 #include "XD_BpNodeFunctionWarpper.generated.h"
 
 class ALevelSequenceActor;

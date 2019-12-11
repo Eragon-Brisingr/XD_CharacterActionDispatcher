@@ -1,26 +1,27 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
-#include "ActionDispatcherFactory.h"
-#include "KismetEditorUtilities.h"
-#include "XD_ActionDispatcherBase.h"
-#include "ActionDispatcherBlueprint.h"
-#include "ActionDispatcherGeneratedClass.h"
-#include "AssetTypeCategories.h"
-#include "ModuleManager.h"
-#include "KismetCompilerModule.h"
-#include "ClassViewerFilter.h"
-#include "ClassViewerModule.h"
-#include "SClassPickerDialog.h"
-#include "XD_ActionDispatcherSettings.h"
-#include "EdGraph/EdGraph.h"
-#include "K2Node_Event.h"
-#include "ObjectEditorUtils.h"
-#include "EdGraphSchema_K2.h"
-#include "EditorStyleSettings.h"
-#include "BlueprintEditorUtils.h"
-#include "K2Node_CallParentFunction.h"
-#include "BpNode_DispatchStartEvent.h"
-#include "EdGraph_ActionDispatcher.h"
-#include "EdGraphSchema_ActionDispatcher.h"
+#include "Factories/ActionDispatcherFactory.h"
+#include <Kismet2/KismetEditorUtilities.h>
+#include <AssetTypeCategories.h>
+#include <Modules/ModuleManager.h>
+#include <KismetCompilerModule.h>
+#include <ClassViewerFilter.h>
+#include <ClassViewerModule.h>
+#include <Kismet2/SClassPickerDialog.h>
+#include <EdGraph/EdGraph.h>
+#include <K2Node_Event.h>
+#include <ObjectEditorUtils.h>
+#include <EdGraphSchema_K2.h>
+#include <Classes/EditorStyleSettings.h>
+#include <Kismet2/BlueprintEditorUtils.h>
+#include <K2Node_CallParentFunction.h>
+
+#include "Dispatcher/XD_ActionDispatcherBase.h"
+#include "Blueprint/ActionDispatcherBlueprint.h"
+#include "Blueprint/ActionDispatcherGeneratedClass.h"
+#include "Settings/XD_ActionDispatcherSettings.h"
+#include "CustomBpNode/BpNode_DispatchStartEvent.h"
+#include "GraphEditor/EdGraph_ActionDispatcher.h"
+#include "GraphEditor/EdGraphSchema_ActionDispatcher.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 

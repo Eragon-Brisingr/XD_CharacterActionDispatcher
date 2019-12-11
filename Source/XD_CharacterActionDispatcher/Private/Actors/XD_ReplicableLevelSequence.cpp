@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "XD_ReplicableLevelSequence.h"
-#include "UnrealNetwork.h"
+#include "Actors/XD_ReplicableLevelSequence.h"
+#include <Net/UnrealNetwork.h>
 #include "DefaultLevelSequenceInstanceData.h"
 
 AXD_ReplicableLevelSequence::AXD_ReplicableLevelSequence(const FObjectInitializer& Init)

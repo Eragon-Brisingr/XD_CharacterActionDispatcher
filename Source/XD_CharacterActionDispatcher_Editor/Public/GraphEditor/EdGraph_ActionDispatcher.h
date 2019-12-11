@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EdGraph/EdGraph.h"
+#include <EdGraph/EdGraph.h>
 #include "EdGraph_ActionDispatcher.generated.h"
 
 /**

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "K2Node_Event.h"
+#include <K2Node_Event.h>
 #include "BpNode_DispatchStartEvent.generated.h"
 
 /**

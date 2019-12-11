@@ -4,7 +4,7 @@
 #if WITH_EDITOR
 #include <ISettingsModule.h>
 #include <ISettingsSection.h>
-#include "XD_ActionDispatcherSettings.h"
+#include "Settings/XD_ActionDispatcherSettings.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "FXD_CharacterActionDispatcherModule"

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DA_BpNodeInterface.h"
-#include "BpNode_CreateActionFromClassBase.h"
+#include "Interface/DA_BpNodeInterface.h"
+#include "CustomBpNode/BpNode_CreateActionFromClassBase.h"
 #include "BpNode_RoleSelection.generated.h"
 
 /**

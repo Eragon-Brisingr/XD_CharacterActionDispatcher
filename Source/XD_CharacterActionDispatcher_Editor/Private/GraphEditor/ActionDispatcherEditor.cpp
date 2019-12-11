@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ActionDispatcherEditor.h"
-#include "ActionDispatcherBlueprint.h"
+#include "GraphEditor/ActionDispatcherEditor.h"
+#include "Blueprint/ActionDispatcherBlueprint.h"
 #include "BlueprintEditorModes.h"
 #include "WatchPointViewer.h"
 

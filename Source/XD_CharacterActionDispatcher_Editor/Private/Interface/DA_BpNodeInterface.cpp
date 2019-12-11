@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "DA_BpNodeInterface.h"
-#include "LinkToFinishNodeChecker.h"
-#include "EdGraph/EdGraphPin.h"
-#include "EdGraphSchema_K2.h"
-#include "DA_CustomBpNodeUtils.h"
+#include "Interface/DA_BpNodeInterface.h"
+#include "Compiler/LinkToFinishNodeChecker.h"
+#include <EdGraph/EdGraphPin.h>
+#include <EdGraphSchema_K2.h>
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
 
 void IDA_BpNodeInterface::WhenCheckLinkedFinishNode(FLinkToFinishNodeChecker& Checker) const
 {

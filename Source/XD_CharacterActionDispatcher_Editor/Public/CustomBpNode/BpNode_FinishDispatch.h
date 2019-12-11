@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "K2Node.h"
-#include "GameplayTagContainer.h"
-#include "DA_BpNodeInterface.h"
+#include <GameplayTagContainer.h>
+#include "Interface/DA_BpNodeInterface.h"
 #include "BpNode_FinishDispatch.generated.h"
 
 /**

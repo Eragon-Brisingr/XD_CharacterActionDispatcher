@@ -1,13 +1,13 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "BpNode_FinishDispatch.h"
-#include "DA_CustomBpNodeUtils.h"
-#include "BlueprintActionDatabaseRegistrar.h"
-#include "BlueprintNodeSpawner.h"
-#include "EdGraphSchema_K2.h"
-#include "K2Node_CallFunction.h"
-#include "XD_ActionDispatcherBase.h"
-#include "KismetCompiler.h"
+#include "CustomBpNode/BpNode_FinishDispatch.h"
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
+#include <BlueprintActionDatabaseRegistrar.h>
+#include <BlueprintNodeSpawner.h>
+#include <EdGraphSchema_K2.h>
+#include <K2Node_CallFunction.h>
+#include "Dispatcher/XD_ActionDispatcherBase.h"
+#include <KismetCompiler.h>
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 

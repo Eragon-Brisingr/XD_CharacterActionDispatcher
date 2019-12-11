@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "BTD_IsInActionDispatcherState.h"
-#include "AIController.h"
-#include "XD_DispatchableEntityInterface.h"
-#include "XD_DispatchableActionBase.h"
-#include "XD_ActionDispatcherBase.h"
+#include "AI/BTD_IsInActionDispatcherState.h"
+#include <AIController.h>
+#include "Interface/XD_DispatchableEntityInterface.h"
+#include "Action/XD_DispatchableActionBase.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
 
 UBTD_IsInActionDispatcherState::UBTD_IsInActionDispatcherState()
 {

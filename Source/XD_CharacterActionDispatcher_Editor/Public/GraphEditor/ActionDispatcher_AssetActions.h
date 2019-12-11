@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AssetTypeActions_Blueprint.h"
+#include <AssetTypeActions/AssetTypeActions_Blueprint.h>
 
 /**
  * 

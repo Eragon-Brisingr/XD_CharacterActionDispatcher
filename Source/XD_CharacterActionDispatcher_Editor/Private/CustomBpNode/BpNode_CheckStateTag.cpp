@@ -1,20 +1,21 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BpNode_CheckStateTag.h"
-#include "DA_CustomBpNodeUtils.h"
-#include "BlueprintActionDatabaseRegistrar.h"
-#include "BlueprintNodeSpawner.h"
-#include "EdGraph/EdGraph.h"
-#include "EdGraphSchema_K2.h"
-#include "GameFramework/Actor.h"
-#include "GameplayTagContainer.h"
-#include "GraphEditAction.h"
-#include "KismetCompiler.h"
-#include "K2Node_IfThenElse.h"
-#include "K2Node_CallFunction.h"
-#include "XD_DispatchableEntityInterface.h"
-#include "LinkToFinishNodeChecker.h"
+#include "CustomBpNode/BpNode_CheckStateTag.h"
+#include <BlueprintActionDatabaseRegistrar.h>
+#include <BlueprintNodeSpawner.h>
+#include <EdGraph/EdGraph.h>
+#include <EdGraphSchema_K2.h>
+#include <GameFramework/Actor.h>
+#include <GameplayTagContainer.h>
+#include <GraphEditAction.h>
+#include <KismetCompiler.h>
+#include <K2Node_IfThenElse.h>
+#include <K2Node_CallFunction.h>
+
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
+#include "Interface/XD_DispatchableEntityInterface.h"
+#include "Compiler/LinkToFinishNodeChecker.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 

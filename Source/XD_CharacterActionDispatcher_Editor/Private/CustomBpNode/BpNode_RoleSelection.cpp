@@ -1,32 +1,33 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "BpNode_RoleSelection.h"
-#include "BlueprintActionDatabaseRegistrar.h"
-#include "BlueprintNodeSpawner.h"
-#include "DA_CustomBpNodeUtils.h"
-#include "EdGraphSchema_K2.h"
-#include "XD_DA_RoleSelectionBase.h"
-#include "XD_ActionDispatcherSettings.h"
-#include "K2Node_CallFunction.h"
-#include "KismetCompiler.h"
+#include "CustomBpNode/BpNode_RoleSelection.h"
+#include <BlueprintActionDatabaseRegistrar.h>
+#include <BlueprintNodeSpawner.h>
+#include <EdGraphSchema_K2.h>
+#include <K2Node_CallFunction.h>
+#include <KismetCompiler.h>
+#include <K2Node_CustomEvent.h>
+#include <K2Node_MakeArray.h>
+#include <K2Node_MakeStruct.h>
+#include <GameFramework/Pawn.h>
+#include <K2Node_Self.h>
+#include <UObject/PropertyPortFlags.h>
+#include <CoreGlobals.h>
+#include <Misc/FeedbackContext.h>
+#include <Framework/Commands/UIAction.h>
+#include <EdGraph/EdGraphNode.h>
+#include <Framework/MultiBox/MultiBoxBuilder.h>
+#include <K2Node_IfThenElse.h>
+#include <K2Node_Knot.h>
+#include <Kismet/KismetMathLibrary.h>
+#include <ToolMenu.h>
+#include <ToolMenuSection.h>
+
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
+#include "Action/XD_DA_RoleSelectionBase.h"
+#include "Settings/XD_ActionDispatcherSettings.h"
 #include "XD_BpNodeFunctionWarpper.h"
-#include "K2Node_CustomEvent.h"
-#include "K2Node_MakeArray.h"
-#include "K2Node_MakeStruct.h"
-#include "GameFramework/Pawn.h"
-#include "K2Node_Self.h"
-#include "XD_ActionDispatcherBase.h"
-#include "PropertyPortFlags.h"
-#include "CoreGlobals.h"
-#include "FeedbackContext.h"
-#include "UIAction.h"
-#include "EdGraph/EdGraphNode.h"
-#include "MultiBoxBuilder.h"
-#include "K2Node_IfThenElse.h"
-#include "K2Node_Knot.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "ToolMenu.h"
-#include "ToolMenuSection.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 

@@ -1,18 +1,19 @@
 ﻿// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "XD_CharacterActionDispatcher_Editor.h"
-#include "PropertyEditorModule.h"
-#include "BpNode_PlayLevelSequencer.h"
-#include "EdGraphUtilities.h"
-#include "DA_RoleSelectionGraphPin.h"
-#include "ActionDispatcherBP_Compiler.h"
-#include "ActionDispatcherBlueprint.h"
-#include "SlateStyle.h"
-#include "IPluginManager.h"
-#include "SlateImageBrush.h"
-#include "SlateStyleRegistry.h"
-#include "AssetToolsModule.h"
-#include "ActionDispatcher_AssetActions.h"
+#include <PropertyEditorModule.h>
+#include <EdGraphUtilities.h>
+#include <Styling/SlateStyle.h>
+#include <Interfaces/IPluginManager.h>
+#include <Brushes/SlateImageBrush.h>
+#include <Styling/SlateStyleRegistry.h>
+#include <AssetToolsModule.h>
+
+#include "CustomBpNode/BpNode_PlayLevelSequencer.h"
+#include "CustomBpPin/DA_RoleSelectionGraphPin.h"
+#include "Compiler/ActionDispatcherBP_Compiler.h"
+#include "Blueprint/ActionDispatcherBlueprint.h"
+#include "GraphEditor/ActionDispatcher_AssetActions.h"
 
 #define LOCTEXT_NAMESPACE "FXD_CharacterActionDispatcher_EditorModule"
 

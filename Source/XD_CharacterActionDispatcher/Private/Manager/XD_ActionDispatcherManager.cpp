@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "XD_ActionDispatcherManager.h"
-#include "GameFramework/GameStateBase.h"
+#include "Manager/XD_ActionDispatcherManager.h"
+#include <GameFramework/GameStateBase.h>
 #include "XD_ActorFunctionLibrary.h"
-#include "XD_ActionDispatcher_Log.h"
+#include "Utils/XD_ActionDispatcher_Log.h"
 #include "XD_DebugFunctionLibrary.h"
-#include "XD_ActionDispatcherGameStateImpl.h"
+#include "Interface/XD_ActionDispatcherGameStateImpl.h"
 #include "XD_SaveGameSystemBase.h"
 #include "Engine/LevelStreaming.h"
 

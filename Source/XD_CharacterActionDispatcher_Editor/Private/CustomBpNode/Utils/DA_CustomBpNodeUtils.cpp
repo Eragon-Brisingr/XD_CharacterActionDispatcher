@@ -1,27 +1,27 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "DA_CustomBpNodeUtils.h"
-#include "BlueprintEditorUtils.h"
-#include "XD_ActionDispatcherBase.h"
-#include "EdGraph/EdGraph.h"
-#include "EdGraph/EdGraphNode.h"
-#include "KismetCompiler.h"
-#include "EdGraph/EdGraphPin.h"
-#include "BpNode_DispatchStartEvent.h"
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
+#include <Kismet2/BlueprintEditorUtils.h>
+#include "Dispatcher/XD_ActionDispatcherBase.h"
+#include <EdGraph/EdGraph.h>
+#include <EdGraph/EdGraphNode.h>
+#include <KismetCompiler.h>
+#include <EdGraph/EdGraphPin.h>
+#include "CustomBpNode/BpNode_DispatchStartEvent.h"
 #include "K2Node.h"
-#include "MultiBoxBuilder.h"
-#include "UIAction.h"
-#include "K2Node_CallFunction.h"
+#include <Framework/MultiBox/MultiBoxBuilder.h>
+#include <Framework/Commands/UIAction.h>
+#include <K2Node_CallFunction.h>
 #include "XD_CharacterActionDispatcher_EditorUtility.h"
-#include "XD_DispatchableActionBase.h"
-#include "K2Node_MakeArray.h"
-#include "K2Node_CustomEvent.h"
+#include "Action/XD_DispatchableActionBase.h"
+#include <K2Node_MakeArray.h>
+#include <K2Node_CustomEvent.h>
 #include "XD_BpNodeFunctionWarpper.h"
 #include "BlueprintCompilationManager.h"
 #include "K2Node_CallArrayFunction.h"
 #include "K2Node_EnumLiteral.h"
-#include "ToolMenu.h"
-#include "ToolMenuSection.h"
+#include <ToolMenu.h>
+#include <ToolMenuSection.h>
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 

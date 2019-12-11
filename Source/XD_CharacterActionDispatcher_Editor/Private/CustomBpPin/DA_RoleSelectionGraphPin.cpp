@@ -1,15 +1,16 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "DA_RoleSelectionGraphPin.h"
-#include "SEditableTextBox.h"
-#include "EdGraphSchema_K2.h"
-#include "XD_CharacterActionDispatcherType.h"
-#include "STextPropertyEditableTextBox.h"
-#include "EditorStyleSet.h"
-#include "CoreGlobals.h"
-#include "ScopedTransaction.h"
-#include "FeedbackContext.h"
-#include "PropertyPortFlags.h"
+#include "CustomBpPin/DA_RoleSelectionGraphPin.h"
+#include <Widgets/Input/SEditableTextBox.h>
+#include <EdGraphSchema_K2.h>
+#include <STextPropertyEditableTextBox.h>
+#include <EditorStyleSet.h>
+#include <CoreGlobals.h>
+#include <ScopedTransaction.h>
+#include <Misc/FeedbackContext.h>
+#include <UObject/PropertyPortFlags.h>
+
+#include "Utils/XD_CharacterActionDispatcherType.h"
 
 namespace
 {

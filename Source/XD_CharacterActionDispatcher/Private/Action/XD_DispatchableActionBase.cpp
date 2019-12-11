@@ -1,11 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "XD_DispatchableActionBase.h"
-#include "XD_ActionDispatcherBase.h"
-#include "XD_DispatchableEntityInterface.h"
+#include "Action/XD_DispatchableActionBase.h"
+#include <UObject/Package.h>
+
 #include "XD_DebugFunctionLibrary.h"
-#include "XD_ActionDispatcher_Log.h"
-#include "Package.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
+#include "Interface/XD_DispatchableEntityInterface.h"
+#include "Utils/XD_ActionDispatcher_Log.h"
 
 UXD_DispatchableActionBase::UXD_DispatchableActionBase()
 {

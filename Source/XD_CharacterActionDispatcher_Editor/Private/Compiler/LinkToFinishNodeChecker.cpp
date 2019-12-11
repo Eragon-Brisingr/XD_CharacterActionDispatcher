@@ -1,14 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "LinkToFinishNodeChecker.h"
-#include "DA_BpNodeInterface.h"
-#include "EdGraph/EdGraphPin.h"
-#include "EdGraphSchema_K2.h"
-#include "CompilerResultsLog.h"
-#include "BpNode_FinishDispatch.h"
-#include "K2Node_Composite.h"
-#include "K2Node_MacroInstance.h"
-#include "DA_CustomBpNodeUtils.h"
+#include "Compiler/LinkToFinishNodeChecker.h"
+#include <EdGraph/EdGraphPin.h>
+#include <EdGraphSchema_K2.h>
+#include <Kismet2/CompilerResultsLog.h>
+#include <K2Node_Composite.h>
+#include <K2Node_MacroInstance.h>
+
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
+#include "Interface/DA_BpNodeInterface.h"
+#include "CustomBpNode/BpNode_FinishDispatch.h"
 
 bool FNodeLinkCheckerBase::CheckNextNode(UEdGraphNode* Node)
 {

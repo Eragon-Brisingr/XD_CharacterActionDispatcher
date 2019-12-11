@@ -1,9 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "BTT_ActionDispatcher.h"
-#include "AIController.h"
-#include "XD_DispatchableEntityInterface.h"
-#include "XD_DispatchableActionBase.h"
+#include "AI/BTT_ActionDispatcher.h"
+#include <AIController.h>
+#include "Interface/XD_DispatchableEntityInterface.h"
+#include "Action/XD_DispatchableActionBase.h"
 
 FString UBTT_ActionDispatcher::GetStaticDescription() const
 {

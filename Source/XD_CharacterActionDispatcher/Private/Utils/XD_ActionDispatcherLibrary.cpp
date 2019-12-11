@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "XD_ActionDispatcherLibrary.h"
-#include "XD_ActionDispatcherBase.h"
-#include "XD_ActionDispatcherManager.h"
+#include "Utils/XD_ActionDispatcherLibrary.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
+#include "Manager/XD_ActionDispatcherManager.h"
 
 UXD_ActionDispatcherBase* UXD_ActionDispatcherLibrary::GetOrCreateDispatcherWithOwner(UObject* Owner, TSubclassOf<UXD_ActionDispatcherBase> Dispatcher, UXD_ActionDispatcherBase*& Dispatcher_MemberVar)
 {

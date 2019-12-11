@@ -1,21 +1,22 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "BpNode_FlowControl_Together.h"
-#include "BlueprintEditorUtils.h"
-#include "BlueprintNodeSpawner.h"
-#include "BlueprintActionDatabaseRegistrar.h"
-#include "EdGraphSchema_K2.h"
-#include "K2Node_CallFunction.h"
-#include "KismetCompiler.h"
-#include "XD_ActionDispatcherBase.h"
-#include "K2Node_IfThenElse.h"
-#include "K2Node_Knot.h"
-#include "EdGraph/EdGraphNode.h"
-#include "MultiBoxBuilder.h"
-#include "DA_CustomBpNodeUtils.h"
-#include "LinkToFinishNodeChecker.h"
-#include "ToolMenu.h"
-#include "ToolMenuSection.h"
+#include "CustomBpNode/BpNode_FlowControl_Together.h"
+#include <Kismet2/BlueprintEditorUtils.h>
+#include <BlueprintNodeSpawner.h>
+#include <BlueprintActionDatabaseRegistrar.h>
+#include <EdGraphSchema_K2.h>
+#include <K2Node_CallFunction.h>
+#include <KismetCompiler.h>
+#include "Dispatcher/XD_ActionDispatcherBase.h"
+#include <K2Node_IfThenElse.h>
+#include <K2Node_Knot.h>
+#include <EdGraph/EdGraphNode.h>
+#include <Framework/MultiBox/MultiBoxBuilder.h>
+#include <ToolMenu.h>
+#include <ToolMenuSection.h>
+
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
+#include "Compiler/LinkToFinishNodeChecker.h"
 
 #define LOCTEXT_NAMESPACE "XD_CharacterActionDispatcher"
 

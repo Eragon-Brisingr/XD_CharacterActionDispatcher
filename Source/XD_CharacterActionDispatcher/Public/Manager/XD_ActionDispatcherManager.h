@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include <Components/ActorComponent.h>
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "XD_SaveGameInterface.h"
 #include "XD_ActionDispatcherManager.generated.h"

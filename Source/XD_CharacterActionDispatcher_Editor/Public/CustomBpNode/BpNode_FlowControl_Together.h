@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "K2Node.h"
-#include "DA_BpNodeInterface.h"
+#include "Interface/DA_BpNodeInterface.h"
 #include "BpNode_FlowControl_Together.generated.h"
 
 class UEdGraphPin;

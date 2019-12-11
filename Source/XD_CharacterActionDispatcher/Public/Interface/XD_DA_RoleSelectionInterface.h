@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "XD_CharacterActionDispatcherType.h"
+#include "Utils/XD_CharacterActionDispatcherType.h"
 #include "XD_DA_RoleSelectionInterface.generated.h"
 
 // This class does not need to be modified.

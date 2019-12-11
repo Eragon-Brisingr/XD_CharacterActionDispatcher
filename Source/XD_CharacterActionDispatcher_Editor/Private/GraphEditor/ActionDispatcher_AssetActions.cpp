@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ActionDispatcher_AssetActions.h"
-#include "MessageDialog.h"
-#include "ActionDispatcherBlueprint.h"
-#include "ActionDispatcherEditor.h"
+#include "GraphEditor/ActionDispatcher_AssetActions.h"
+#include <Misc/MessageDialog.h>
+#include "Blueprint/ActionDispatcherBlueprint.h"
+#include "GraphEditor/ActionDispatcherEditor.h"
 
 #define LOCTEXT_NAMESPACE "ActionDispatcher_Editor"
 

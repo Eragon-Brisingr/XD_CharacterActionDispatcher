@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "XD_ActionDispatcherSettings.h"
-#include "XD_DA_PlaySequence.h"
-#include "XD_DA_RoleSelectionBase.h"
+#include "Settings/XD_ActionDispatcherSettings.h"
+#include "Action/XD_DA_PlaySequence.h"
+#include "Action/XD_DA_RoleSelectionBase.h"
 
 UXD_ActionDispatcherSettings::UXD_ActionDispatcherSettings()
 {

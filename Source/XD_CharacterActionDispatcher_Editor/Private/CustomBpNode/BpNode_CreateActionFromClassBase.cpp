@@ -1,22 +1,22 @@
 ﻿// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
-#include "BpNode_CreateActionFromClassBase.h"
+#include "CustomBpNode/BpNode_CreateActionFromClassBase.h"
 #include "UObject/UnrealType.h"
-#include "EdGraphSchema_K2.h"
+#include <EdGraphSchema_K2.h>
 #include "Kismet2/BlueprintEditorUtils.h"
-#include "BlueprintNodeSpawner.h"
+#include <BlueprintNodeSpawner.h>
 #include "EditorCategoryUtils.h"
-#include "BlueprintActionDatabaseRegistrar.h"
+#include <BlueprintActionDatabaseRegistrar.h>
 #include "FindInBlueprintManager.h"
-#include "XD_ActionDispatcherSettings.h"
+#include "Settings/XD_ActionDispatcherSettings.h"
 #include "XD_ObjectFunctionLibrary.h"
-#include "XD_DispatchableActionBase.h"
-#include "KismetCompiler.h"
-#include "K2Node_CallFunction.h"
-#include "XD_ActionDispatcherBase.h"
+#include "Action/XD_DispatchableActionBase.h"
+#include <KismetCompiler.h>
+#include <K2Node_CallFunction.h>
+#include "Dispatcher/XD_ActionDispatcherBase.h"
 #include "K2Node_VariableGet.h"
-#include "K2Node_CustomEvent.h"
-#include "DA_CustomBpNodeUtils.h"
+#include <K2Node_CustomEvent.h>
+#include "CustomBpNode/Utils/DA_CustomBpNodeUtils.h"
 
 struct FBpNode_CreateActionFromClassHelper
 {

@@ -1,13 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ActionDispatcherBP_Compiler.h"
-#include "ActionDispatcherGeneratedClass.h"
-#include "KismetReinstanceUtilities.h"
-#include "ActionDispatcherBlueprint.h"
-#include "XD_ActionDispatcherBase.h"
+#include "Compiler/ActionDispatcherBP_Compiler.h"
+#include <Kismet2/KismetReinstanceUtilities.h>
+#include "Blueprint/ActionDispatcherGeneratedClass.h"
+#include "Blueprint/ActionDispatcherBlueprint.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
 
-#include "LinkToFinishNodeChecker.h"
-#include "BpNode_FinishDispatch.h"
+#include "Compiler/LinkToFinishNodeChecker.h"
+#include "CustomBpNode/BpNode_FinishDispatch.h"
+
 FActionDispatcherBP_Compiler::FActionDispatcherBP_Compiler(UActionDispatcherBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions)
 	: FKismetCompilerContext(SourceSketch, InMessageLog, InCompilerOptions)
 {

@@ -1,18 +1,18 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "XD_ActionDispatcherBase.h"
+#include "Dispatcher/XD_ActionDispatcherBase.h"
 #if WITH_EDITOR
-#include "Engine/BlueprintGeneratedClass.h"
-#include "ActionDispatcherBlueprint.h"
+#include <Engine/BlueprintGeneratedClass.h>
+#include "Blueprint/ActionDispatcherBlueprint.h"
 #endif
 
-#include "GameFramework/Pawn.h"
-#include "Engine/World.h"
-#include "XD_DispatchableActionBase.h"
-#include "XD_ActionDispatcherManager.h"
-#include "XD_ActionDispatcher_Log.h"
+#include <GameFramework/Pawn.h>
+#include <Engine/World.h>
+#include "Action/XD_DispatchableActionBase.h"
+#include "Manager/XD_ActionDispatcherManager.h"
+#include "Utils/XD_ActionDispatcher_Log.h"
 #include "XD_DebugFunctionLibrary.h"
-#include "XD_DispatchableEntityInterface.h"
+#include "Interface/XD_DispatchableEntityInterface.h"
 #include "XD_SaveGameSystemBase.h"
 
 UXD_ActionDispatcherBase::UXD_ActionDispatcherBase()
