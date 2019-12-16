@@ -297,10 +297,10 @@ void UBpNode_AD_CreateObjectBase::ExpandNode(class FKismetCompilerContext& Compi
 		{
 			if (Pin->Direction == EEdGraphPinDirection::EGPD_Input && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_SoftObject)
 			{
-				if (Pin->DefaultValue.IsEmpty() && Pin->LinkedTo.Num() == 0)
+				if (Pin->LinkedTo.Num() == 0 && (Pin->DefaultValue.IsEmpty() || Pin->DefaultValue == TEXT("None")))
 				{
 					UProperty* Property = FindField<UProperty>(ClassToSpawn, Pin->PinName);
-					if (!Property->GetBoolMetaData(TEXT("AllowEmpty")))
+					if (Property == nullptr || !Property->GetBoolMetaData(TEXT("AllowEmpty")))
 					{
 						CompilerContext.MessageLog.Error(*LOCTEXT("节点软引用为空", "节点 @@ 的引脚 @@ 必须存在连接。").ToString(), this, Pin);
 					}
