@@ -27,7 +27,17 @@ bool UBTD_IsInActionDispatcherState::CalculateRawConditionValue(UBehaviorTreeCom
 void UBTD_IsInActionDispatcherState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	const bool bIsOnActiveBranch = OwnerComp.IsExecutingBranch(GetMyNode(), GetChildIndex());
-	if (bIsOnActiveBranch && !CalculateRawConditionValue(OwnerComp, NodeMemory))
+	bool bShouldAbort = false;
+	if (bIsOnActiveBranch)
+	{
+		bShouldAbort = (FlowAbortMode == EBTFlowAbortMode::Self || FlowAbortMode == EBTFlowAbortMode::Both) && CalculateRawConditionValue(OwnerComp, NodeMemory) == IsInversed();
+	}
+	else
+	{
+		bShouldAbort = (FlowAbortMode == EBTFlowAbortMode::LowerPriority || FlowAbortMode == EBTFlowAbortMode::Both) && CalculateRawConditionValue(OwnerComp, NodeMemory) != IsInversed();
+	}
+
+	if (bShouldAbort)
 	{
 		OwnerComp.RequestExecution(this);
 	}
