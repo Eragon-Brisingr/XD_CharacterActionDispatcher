@@ -26,7 +26,8 @@ bool UBTD_IsInActionDispatcherState::CalculateRawConditionValue(UBehaviorTreeCom
 
 void UBTD_IsInActionDispatcherState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	if (CalculateRawConditionValue(OwnerComp, NodeMemory))
+	const bool bIsOnActiveBranch = OwnerComp.IsExecutingBranch(GetMyNode(), GetChildIndex());
+	if (bIsOnActiveBranch && !CalculateRawConditionValue(OwnerComp, NodeMemory))
 	{
 		OwnerComp.RequestExecution(this);
 	}
