@@ -116,11 +116,11 @@ public:
 };
 
 UCLASS(abstract, Blueprintable)
-class XD_CHARACTERACTIONDISPATCHER_API UXD_DA_BlueprintBase : public UXD_DispatchableActionBase
+class XD_CHARACTERACTIONDISPATCHER_API UXD_DispatchAction_ScriptBase : public UXD_DispatchableActionBase
 {
 	GENERATED_BODY()
 public:
-	UXD_DA_BlueprintBase(){}
+	UXD_DispatchAction_ScriptBase(){}
 
 	void WhenActionActived() override { ReceiveWhenActionActived(); }
 	UFUNCTION(BlueprintImplementableEvent, Category = "行为", meta = (DisplayName = "WhenActionActived"))

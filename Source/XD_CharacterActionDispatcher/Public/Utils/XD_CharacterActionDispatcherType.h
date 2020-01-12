@@ -11,7 +11,7 @@
  */
 DECLARE_DYNAMIC_DELEGATE(FDispatchableActionEventDelegate);
 
-USTRUCT(BlueprintType)
+USTRUCT()
 struct XD_CHARACTERACTIONDISPATCHER_API FDispatchableActionEventBase
 {
 	GENERATED_BODY()
