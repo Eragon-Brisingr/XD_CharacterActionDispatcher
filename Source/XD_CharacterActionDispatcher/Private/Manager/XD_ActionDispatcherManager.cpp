@@ -26,7 +26,7 @@ void UXD_ActionDispatcherManager::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	UXD_SaveGameSystemBase::Get(this)->OnLoadLevelCompleted.AddDynamic(this, &UXD_ActionDispatcherManager::WhenLevelLoadCompleted);
+	UXD_SaveGameSystemBase::Get(this)->OnLoadLevelCompleted.AddUObject(this, &UXD_ActionDispatcherManager::WhenLevelLoadCompleted);
 
 	for (ULevelStreaming* LevelStream : GetWorld()->GetStreamingLevels())
 	{
