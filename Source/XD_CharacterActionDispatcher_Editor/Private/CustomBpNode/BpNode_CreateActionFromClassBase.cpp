@@ -249,22 +249,22 @@ void UBpNode_AD_CreateObjectBase::OnClassPinChanged()
 	{
 		CreatePinsForClass(UseSpawnClass, &NewClassPins);
 		ShowExtendPins(UseSpawnClass);
-	}
 
-	RestoreSplitPins(OldPins);
+		RestoreSplitPins(OldPins);
 
-	UEdGraphPin* ResultPin = GetResultPin();
-	// Cache all the pin connections to the ResultPin, we will attempt to recreate them
-	TArray<UEdGraphPin*> ResultPinConnectionList = ResultPin->LinkedTo;
-	// Because the archetype has changed, we break the output link as the output pin type will change
-	ResultPin->BreakAllPinLinks(true);
+		UEdGraphPin* ResultPin = GetResultPin();
+		// Cache all the pin connections to the ResultPin, we will attempt to recreate them
+		TArray<UEdGraphPin*> ResultPinConnectionList = ResultPin->LinkedTo;
+		// Because the archetype has changed, we break the output link as the output pin type will change
+		ResultPin->BreakAllPinLinks(true);
 
-	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
+		const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
 
-	// Recreate any pin links to the Result pin that are still valid
-	for (UEdGraphPin* Connections : ResultPinConnectionList)
-	{
-		K2Schema->TryCreateConnection(ResultPin, Connections);
+		// Recreate any pin links to the Result pin that are still valid
+		for (UEdGraphPin* Connections : ResultPinConnectionList)
+		{
+			K2Schema->TryCreateConnection(ResultPin, Connections);
+		}
 	}
 
 	// Rewire the old pins to the new pins so connections are maintained if possible
