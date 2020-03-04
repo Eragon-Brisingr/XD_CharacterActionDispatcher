@@ -42,9 +42,9 @@ class XD_CHARACTERACTIONDISPATCHER_API UXD_DispatchableActionListUtils : public 
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintPure, Category = "行为", meta = (NativeMakeFunc))
-	static FXD_DispatchableActionList MakeDispatchableActionList(UPARAM(Ref) TArray<UXD_DispatchableActionBase*>& Actions)
+	static FXD_DispatchableActionList MakeDispatchableActionList(const TArray<UXD_DispatchableActionBase*>& Actions)
 	{
-		return FXD_DispatchableActionList(Actions);
+		return FXD_DispatchableActionList(const_cast<TArray<UXD_DispatchableActionBase*>&>(Actions));
 	}
 
 	UFUNCTION(BlueprintPure, Category = "行为", meta = (NativeBreakFunc))
