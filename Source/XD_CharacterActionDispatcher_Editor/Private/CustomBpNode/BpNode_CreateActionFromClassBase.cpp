@@ -105,16 +105,16 @@ void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEd
 
 	const UObject* const ClassDefaultObject = InClass->GetDefaultObject(false);
 
-	TArray<UProperty*> SortedExposePropertys;
+	TArray<FProperty*> SortedExposePropertys;
 
-	TArray<UProperty*> CurrentClassPropertys;
+	TArray<FProperty*> CurrentClassPropertys;
 	UClass* CurrentClass = InClass;
-	for (TFieldIterator<UProperty> PropertyIt(InClass, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+	for (TFieldIterator<FProperty> PropertyIt(InClass, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
 	{
-		UProperty* Property = *PropertyIt;
-		UClass* PropertyClass = CastChecked<UClass>(Property->GetOuter());
+		FProperty* Property = *PropertyIt;
+		UClass* PropertyClass = Property->GetOwnerClass();
 
-		const bool bIsDelegate = Property->IsA(UMulticastDelegateProperty::StaticClass());
+		const bool bIsDelegate = Property->IsA(FMulticastDelegateProperty::StaticClass());
 		const bool bIsExposedToSpawn = UEdGraphSchema_K2::IsPropertyExposedOnSpawn(Property);
 		const bool bIsSettableExternally = !Property->HasAnyPropertyFlags(CPF_DisableEditOnInstance);
 
@@ -137,7 +137,7 @@ void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEd
 	}
 	SortedExposePropertys.Insert(CurrentClassPropertys, 0);
 
-	for (UProperty* Property : SortedExposePropertys)
+	for (FProperty* Property : SortedExposePropertys)
 	{
 		if (UEdGraphPin* Pin = CreatePin(EGPD_Input, NAME_None, Property->GetFName()))
 		{
@@ -310,7 +310,7 @@ void UBpNode_AD_CreateObjectBase::ExpandNode(class FKismetCompilerContext& Compi
 			{
 				if (Pin->LinkedTo.Num() == 0 && (Pin->DefaultValue.IsEmpty() || Pin->DefaultValue == TEXT("None")))
 				{
-					UProperty* Property = FindField<UProperty>(ClassToSpawn, Pin->PinName);
+					FProperty* Property = FindField<FProperty>(ClassToSpawn, Pin->PinName);
 					if (Property == nullptr || !Property->GetBoolMetaData(TEXT("AllowEmpty")))
 					{
 						CompilerContext.MessageLog.Error(*LOCTEXT("节点软引用为空", "节点 @@ 的引脚 @@ 必须存在连接。").ToString(), this, Pin);
@@ -596,9 +596,9 @@ void UBpNode_CreateActionFromClassBase::CreateActionEventPins(const TSubclassOf<
 {
 	if (InActionClass)
 	{
-		for (TFieldIterator<UStructProperty> It(InActionClass); It; ++It)
+		for (TFieldIterator<FStructProperty> It(InActionClass); It; ++It)
 		{
-			UStructProperty* Struct = *It;
+			FStructProperty* Struct = *It;
 			if (!Struct->HasAllPropertyFlags(CPF_BlueprintVisible))
 			{
 				continue;
@@ -625,9 +625,9 @@ UEdGraphPin* UBpNode_CreateActionFromClassBase::CreateAllEventNode(UEdGraphPin* 
 {
 	if (ActionClass)
 	{
-		for (TFieldIterator<UStructProperty> It(ActionClass); It; ++It)
+		for (TFieldIterator<FStructProperty> It(ActionClass); It; ++It)
 		{
-			UStructProperty* Struct = *It;
+			FStructProperty* Struct = *It;
 			if (!Struct->HasAllPropertyFlags(CPF_BlueprintVisible))
 			{
 				continue;

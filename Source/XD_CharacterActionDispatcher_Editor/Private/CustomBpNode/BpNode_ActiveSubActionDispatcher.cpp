@@ -189,10 +189,10 @@ void UBpNode_ActiveSubActionDispatcher::ExpandNode(class FKismetCompilerContext&
 		UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(this, SubDispatchFinishedEventPin, SourceGraph);
 		FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("WhenSubDispatcherFinished_[%s]"), *CompilerContext.GetGuid(this));
 		FinishedEventNode->AllocateDefaultPins();
-		const UDelegateProperty* DelegateProperty = CastChecked<UDelegateProperty>(UXD_ActionDispatcherBase::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UXD_ActionDispatcherBase, WhenDispatchFinished)));
-		for (TFieldIterator<UProperty> PropIt(DelegateProperty->SignatureFunction); PropIt && (PropIt->PropertyFlags & CPF_Parm); ++PropIt)
+		const FDelegateProperty* DelegateProperty = CastFieldChecked<FDelegateProperty>(UXD_ActionDispatcherBase::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UXD_ActionDispatcherBase, WhenDispatchFinished)));
+		for (TFieldIterator<FProperty> PropIt(DelegateProperty->SignatureFunction); PropIt && (PropIt->PropertyFlags & CPF_Parm); ++PropIt)
 		{
-			const UProperty* Param = *PropIt;
+			const FProperty* Param = *PropIt;
 			if (!Param->HasAnyPropertyFlags(CPF_OutParm) || Param->HasAnyPropertyFlags(CPF_ReferenceParm))
 			{
 				FEdGraphPinType PinType;

@@ -32,7 +32,7 @@ void UXD_DispatchableActionBase::ActiveAction()
 #if WITH_EDITOR
 	// 编辑器下修复SoftObject运行时的指向
 	const int32 PIEInstanceID = GetWorld()->GetOutermost()->PIEInstanceID;
-	for (TFieldIterator<USoftObjectProperty> PropertyIt(GetClass(), EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+	for (TFieldIterator<FSoftObjectProperty> PropertyIt(GetClass(), EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
 	{
 		TSoftObjectPtr<UObject>* SoftObjectPtr = PropertyIt->ContainerPtrToValuePtr<TSoftObjectPtr<UObject>>(this);
 		FSoftObjectPath& SoftObjectPath = const_cast<FSoftObjectPath&>(SoftObjectPtr->ToSoftObjectPath());

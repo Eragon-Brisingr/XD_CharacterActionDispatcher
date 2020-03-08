@@ -89,10 +89,10 @@ void UBpNode_StartDispatcherBase::GenerateFinishEvent(class FKismetCompilerConte
 	UK2Node_CustomEvent* FinishedEventNode = CompilerContext.SpawnIntermediateEventNode<UK2Node_CustomEvent>(this, DispatchFinishedEventPin, SourceGraph);
 	FinishedEventNode->CustomFunctionName = *FString::Printf(TEXT("%s_[%s]"), *EventName, *CompilerContext.GetGuid(this));
 	FinishedEventNode->AllocateDefaultPins();
-	const UDelegateProperty* DelegateProperty = CastChecked<UDelegateProperty>(UXD_ActionDispatcherBase::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UXD_ActionDispatcherBase, WhenDispatchFinished)));
-	for (TFieldIterator<UProperty> PropIt(DelegateProperty->SignatureFunction); PropIt && (PropIt->PropertyFlags & CPF_Parm); ++PropIt)
+	const FDelegateProperty* DelegateProperty = CastFieldChecked<FDelegateProperty>(UXD_ActionDispatcherBase::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UXD_ActionDispatcherBase, WhenDispatchFinished)));
+	for (TFieldIterator<FProperty> PropIt(DelegateProperty->SignatureFunction); PropIt && (PropIt->PropertyFlags & CPF_Parm); ++PropIt)
 	{
-		const UProperty* Param = *PropIt;
+		const FProperty* Param = *PropIt;
 		if (!Param->HasAnyPropertyFlags(CPF_OutParm) || Param->HasAnyPropertyFlags(CPF_ReferenceParm))
 		{
 			FEdGraphPinType PinType;
@@ -165,8 +165,8 @@ void UBpNode_StartDispatcherWithManager::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
 
-	UEdGraphPin* LeaderPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, AActor::StaticClass(), LeaderPinName);
-	LeaderPin->PinToolTip = *LOCTEXT("Leader Pin Desc", "调度器的主导者，当主导者无效时则停止调度，输入的Actor为玩家时默认为玩家，输入非玩家时则为Level").ToString();
+	UEdGraphPin* LeaderPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_SoftObject, AActor::StaticClass(), LeaderPinName);
+	LeaderPin->PinToolTip = *LOCTEXT("Leader Pin Desc", "调度器的主导者，当主导者无效时则停止调度\n输入的为玩家时主导者为玩家，输入非玩家时则主导者为Level").ToString();
 }
 
 void UBpNode_StartDispatcherWithManager::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)

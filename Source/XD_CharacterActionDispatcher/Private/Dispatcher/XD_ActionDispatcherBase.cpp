@@ -56,7 +56,7 @@ void UXD_ActionDispatcherBase::StartDispatch()
 #if WITH_EDITOR
 		// 编辑器下修复SoftObject运行时的指向
 		const int32 PIEInstanceID = GetWorld()->GetOutermost()->PIEInstanceID;
-		for (TFieldIterator<USoftObjectProperty> PropertyIt(GetClass(), EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+		for (TFieldIterator<FSoftObjectProperty> PropertyIt(GetClass(), EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
 		{
 			TSoftObjectPtr<UObject>* SoftObjectPtr = PropertyIt->ContainerPtrToValuePtr<TSoftObjectPtr<UObject>>(this);
 			FSoftObjectPath& SoftObjectPath = const_cast<FSoftObjectPath&>(SoftObjectPtr->ToSoftObjectPath());
@@ -84,27 +84,14 @@ void UXD_ActionDispatcherBase::StartDispatchWithEvent(const FOnDispatchDeactiveN
 	StartDispatch();
 }
 
-void UXD_ActionDispatcherBase::InitLeader(AActor* InDispatcherLeader)
+void UXD_ActionDispatcherBase::InitLeader(const TSoftObjectPtr<AActor>& InDispatcherLeader)
 {
-	check(DispatcherLeader == nullptr);
+	check(InDispatcherLeader.IsNull() == false);
 
-	if (InDispatcherLeader)
-	{
-		APawn* Pawn = Cast<APawn>(InDispatcherLeader);
-		if (Pawn && Pawn->IsPlayerControlled())
-		{
-			DispatcherLeader = InDispatcherLeader;
-		}
-		else
-		{
-			DispatcherLeader = InDispatcherLeader->GetLevel();
-		}
-		ActionDispatcher_Display_Log("调度器%s领导者设置为%s", *UXD_DebugFunctionLibrary::GetDebugName(this), *UXD_DebugFunctionLibrary::GetDebugName(DispatcherLeader.Get()));
-	}
-	else
-	{
-		DispatcherLeader = nullptr;
-	}
+	APawn* Pawn = Cast<APawn>(InDispatcherLeader.Get());
+	bIsPlayerLeader = Pawn && Pawn->IsPlayerControlled();
+	DispatcherLeader = InDispatcherLeader;
+	ActionDispatcher_Display_Log("调度器%s领导者设置为[%s]", *UXD_DebugFunctionLibrary::GetDebugName(this), *DispatcherLeader.ToString());
 }
 
 UXD_DispatchableActionBase* UXD_ActionDispatcherBase::CreateAction(TSubclassOf<UXD_DispatchableActionBase> ObjectClass, UObject* Outer)
@@ -240,7 +227,7 @@ void UXD_ActionDispatcherBase::DeactiveDispatcher(bool IsFinsihedCompleted)
 
 	if (bIsMainDispatcher)
 	{
-		for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
+		for (FSoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
 		{
 			FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
 			UObject* Obj = SoftObjectPtr.Get();
@@ -306,7 +293,7 @@ bool UXD_ActionDispatcherBase::CanReactiveDispatcher() const
 	}
 }
 
-const TArray<USoftObjectProperty*>& UXD_ActionDispatcherBase::GetSoftObjectPropertys() const
+const TArray<FSoftObjectProperty*>& UXD_ActionDispatcherBase::GetSoftObjectPropertys() const
 {
 	return GetClass()->GetDefaultObject<UXD_ActionDispatcherBase>()->SoftObjectPropertys;
 }
@@ -314,7 +301,7 @@ const TArray<USoftObjectProperty*>& UXD_ActionDispatcherBase::GetSoftObjectPrope
 void UXD_ActionDispatcherBase::PostCDOContruct()
 {
 	Super::PostCDOContruct();
-	for (TFieldIterator<USoftObjectProperty> It(GetClass(), EFieldIteratorFlags::IncludeSuper); It; ++It)
+	for (TFieldIterator<FSoftObjectProperty> It(GetClass(), EFieldIteratorFlags::IncludeSuper); It; ++It)
 	{
 		SoftObjectPropertys.Add(*It);
 	}
@@ -333,12 +320,17 @@ void UXD_ActionDispatcherBase::WhenLevelLeaderDestroyed(ULevel* Level)
 {
 	if (State == EActionDispatcherState::Active)
 	{
-		ULevel* CurLevel = Cast<ULevel>(DispatcherLeader.Get());
-		if (CurLevel == Level)
+		if (bIsPlayerLeader == false)
 		{
-			ActionDispatcher_Display_Log("因关卡%s卸载导至%s终止", *UXD_DebugFunctionLibrary::GetDebugName(Level), *UXD_DebugFunctionLibrary::GetDebugName(this));
-			AbortDispatch();
-			UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
+			AActor* LevelOwningActor = DispatcherLeader.Get();
+			check(LevelOwningActor);
+			ULevel* CurLevel = Cast<ULevel>(LevelOwningActor->GetLevel());
+			if (CurLevel == Level)
+			{
+				ActionDispatcher_Display_Log("因关卡%s卸载导至%s终止", *UXD_DebugFunctionLibrary::GetDebugName(Level), *UXD_DebugFunctionLibrary::GetDebugName(this));
+				AbortDispatch();
+				UXD_SaveGameSystemBase::Get(this)->OnPreLevelUnload.RemoveAll(this);
+			}
 		}
 	}
 }
@@ -363,7 +355,7 @@ void UXD_ActionDispatcherBase::ActiveDispatcher()
 {
 	if (bIsMainDispatcher)
 	{
-		for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
+		for (FSoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
 		{
 			FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
 			UObject* Obj = SoftObjectPtr.Get();
@@ -376,8 +368,9 @@ void UXD_ActionDispatcherBase::ActiveDispatcher()
 
 	if (UObject* Leader = DispatcherLeader.Get())
 	{
-		if (APawn* Pawn = Cast<APawn>(Leader))
+		if (bIsPlayerLeader == true)
 		{
+			APawn* Pawn = CastChecked<APawn>(Leader);
 			Pawn->OnEndPlay.AddUniqueDynamic(this, &UXD_ActionDispatcherBase::WhenPlayerLeaderDestroyed);
 		}
 		else
@@ -390,7 +383,7 @@ void UXD_ActionDispatcherBase::ActiveDispatcher()
 
 bool UXD_ActionDispatcherBase::IsAllSoftReferenceValid() const
 {
-	for (USoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
+	for (FSoftObjectProperty* SoftObjectProperty : GetSoftObjectPropertys())
 	{
 		FSoftObjectPtr SoftObjectPtr = SoftObjectProperty->GetPropertyValue(SoftObjectProperty->ContainerPtrToValuePtr<uint8>(this));
 #if WITH_EDITOR

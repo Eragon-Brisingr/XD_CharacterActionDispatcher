@@ -52,7 +52,7 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
 	void StartDispatch();
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
-	void InitLeader(AActor* InDispatcherLeader);
+	void InitLeader(const TSoftObjectPtr<AActor>& InDispatcherLeader);
 
 	UFUNCTION(BlueprintCallable, Category = "Spawning", meta = (BlueprintInternalUseOnly = true, DeterminesOutputType = ObjectClass))
 	static UXD_DispatchableActionBase* CreateAction(TSubclassOf<UXD_DispatchableActionBase> ObjectClass, UObject* Outer);
@@ -103,14 +103,17 @@ protected:
 
 	bool CanReactiveDispatcher() const;
 protected:
-	TArray<USoftObjectProperty*> SoftObjectPropertys;
-	const TArray<USoftObjectProperty*>& GetSoftObjectPropertys() const;
+	TArray<FSoftObjectProperty*> SoftObjectPropertys;
+	const TArray<FSoftObjectProperty*>& GetSoftObjectPropertys() const;
 	void PostCDOContruct() override;
 
 public:
-	//调度器的主导者，为所在关卡或者玩家的角色
+	// 调度器的主导者，为玩家或者主导关卡内的Actor
 	UPROPERTY(SaveGame)
-	TSoftObjectPtr<UObject> DispatcherLeader;
+	TSoftObjectPtr<AActor> DispatcherLeader;
+	// 为真则是玩家为主导者，为假则是该Actor所在的关卡为主导者
+	UPROPERTY(SaveGame)
+	uint8 bIsPlayerLeader : 1;
 
 	UFUNCTION()
 	void WhenPlayerLeaderDestroyed(AActor* Actor, EEndPlayReason::Type EndPlayReason);
