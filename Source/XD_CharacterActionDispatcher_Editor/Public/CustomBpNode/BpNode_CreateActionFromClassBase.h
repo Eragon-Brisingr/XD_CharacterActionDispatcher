@@ -84,7 +84,9 @@ protected:
 	void SetPinToolTip(UEdGraphPin& MutatablePin, const FText& PinDescription) const;
 
 	/** Refresh pins when class was changed */
-	virtual void OnClassPinChanged();
+	virtual void WhenClassPinChanged(UClass* NewClass);
+
+	void CreateClassPinsAndTryReconnect(UClass* UseSpawnClass);
 
 	/** Constructing FText strings can be costly, so we cache the node's title */
 	FNodeTextCache CachedNodeTitle;
@@ -107,7 +109,7 @@ public:
 	void PostPlacedNewNode() override;
 	void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 	FText GetTooltipText() const override;
-	void OnClassPinChanged() override;
+	void WhenClassPinChanged(UClass* NewClass) override;
 
 	UPROPERTY()
 	TSubclassOf<UXD_DispatchableActionBase> ActionClass;

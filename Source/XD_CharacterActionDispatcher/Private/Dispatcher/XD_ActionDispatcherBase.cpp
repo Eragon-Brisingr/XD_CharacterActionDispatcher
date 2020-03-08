@@ -53,6 +53,20 @@ void UXD_ActionDispatcherBase::StartDispatch()
 	{
 		check(State == EActionDispatcherState::Deactive);
 
+#if WITH_EDITOR
+		// 编辑器下修复SoftObject运行时的指向
+		const int32 PIEInstanceID = GetWorld()->GetOutermost()->PIEInstanceID;
+		for (TFieldIterator<USoftObjectProperty> PropertyIt(GetClass(), EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+		{
+			TSoftObjectPtr<UObject>* SoftObjectPtr = PropertyIt->ContainerPtrToValuePtr<TSoftObjectPtr<UObject>>(this);
+			FSoftObjectPath& SoftObjectPath = const_cast<FSoftObjectPath&>(SoftObjectPtr->ToSoftObjectPath());
+			if (SoftObjectPath.FixupForPIE(PIEInstanceID))
+			{
+				*SoftObjectPtr = SoftObjectPath.ResolveObject();
+			}
+		}
+#endif
+
 		State = EActionDispatcherState::Active;
 		ActiveDispatcher();
 		ActionDispatcher_Display_Log("开始行为调度器%s", *UXD_DebugFunctionLibrary::GetDebugName(this));

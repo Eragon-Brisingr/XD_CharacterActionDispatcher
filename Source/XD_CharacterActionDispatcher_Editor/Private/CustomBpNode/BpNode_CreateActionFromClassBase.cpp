@@ -168,6 +168,9 @@ void UBpNode_AD_CreateObjectBase::CreatePinsForClass(UClass* InClass, TArray<UEd
 	{
 		ResultPin->PinType.PinSubCategoryObject = InClass->GetAuthoritativeClass();
 	}
+
+	// Mark dirty
+	FBlueprintEditorUtils::MarkBlueprintAsModified(GetBlueprint());
 }
 
 UClass* UBpNode_AD_CreateObjectBase::GetClassToSpawn(const TArray<UEdGraphPin*>* InPinsToSearch /*=NULL*/) const
@@ -227,7 +230,12 @@ bool UBpNode_AD_CreateObjectBase::IsSpawnVarPin(UEdGraphPin* Pin) const
 			Pin->PinName != FBpNode_CreateActionFromClassHelper::OuterPinName);
 }
 
-void UBpNode_AD_CreateObjectBase::OnClassPinChanged()
+void UBpNode_AD_CreateObjectBase::WhenClassPinChanged(UClass* NewClass)
+{
+
+}
+
+void UBpNode_AD_CreateObjectBase::CreateClassPinsAndTryReconnect(UClass* UseSpawnClass)
 {
 	// Remove all pins related to archetype variables
 	TArray<UEdGraphPin*> OldPins = Pins;
@@ -245,7 +253,7 @@ void UBpNode_AD_CreateObjectBase::OnClassPinChanged()
 	CachedNodeTitle.MarkDirty();
 
 	TArray<UEdGraphPin*> NewClassPins;
-	if (UClass* UseSpawnClass = GetClassToSpawn())
+	if (UseSpawnClass)
 	{
 		CreatePinsForClass(UseSpawnClass, &NewClassPins);
 		ShowExtendPins(UseSpawnClass);
@@ -266,6 +274,10 @@ void UBpNode_AD_CreateObjectBase::OnClassPinChanged()
 			K2Schema->TryCreateConnection(ResultPin, Connections);
 		}
 	}
+	else
+	{
+		ShowExtendPins(nullptr);
+	}
 
 	// Rewire the old pins to the new pins so connections are maintained if possible
 	RewireOldPinsToNewPins(OldClassPins, Pins, nullptr);
@@ -279,7 +291,6 @@ void UBpNode_AD_CreateObjectBase::OnClassPinChanged()
 
 void UBpNode_AD_CreateObjectBase::CreateResultPin(UClass* UseSpawnClass)
 {
-	//调整节点顺序
 	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, UEdGraphSchema_K2::PN_ReturnValue);
 	ResultPin->bAdvancedView = true;
 	ResultPin->PinType.PinSubCategoryObject = UseSpawnClass;
@@ -320,7 +331,10 @@ void UBpNode_AD_CreateObjectBase::PinConnectionListChanged(UEdGraphPin* Pin)
 
 	if (Pin && (Pin->PinName == FBpNode_CreateActionFromClassHelper::ClassPinName))
 	{
-		OnClassPinChanged();
+		UClass* UseSpawnClass = GetClassToSpawn();
+		WhenClassPinChanged(UseSpawnClass);
+		CreateClassPinsAndTryReconnect(UseSpawnClass);
+		ReconstructNode();
 	}
 }
 
@@ -346,7 +360,9 @@ void UBpNode_AD_CreateObjectBase::PinDefaultValueChanged(UEdGraphPin* ChangedPin
 {
 	if (ChangedPin && (ChangedPin->PinName == FBpNode_CreateActionFromClassHelper::ClassPinName))
 	{
-		OnClassPinChanged();
+		UClass* UseSpawnClass = GetClassToSpawn();
+		WhenClassPinChanged(UseSpawnClass);
+		CreateClassPinsAndTryReconnect(UseSpawnClass);
 		ReconstructNode();
 	}
 }
@@ -530,10 +546,10 @@ FText UBpNode_CreateActionFromClassBase::GetTooltipText() const
 	return ActionClass ? ActionClass->GetToolTipText() : LOCTEXT("NodeTooltip", "创建行为");
 }
 
-void UBpNode_CreateActionFromClassBase::OnClassPinChanged()
+void UBpNode_CreateActionFromClassBase::WhenClassPinChanged(UClass* NewClass)
 {
-	Super::OnClassPinChanged();
-	ActionClass = GetClassToSpawn();
+	Super::WhenClassPinChanged(NewClass);
+	ActionClass = NewClass;
 }
 
 FString UBpNode_CreateActionFromClassBase::GetActionGuidValue() const

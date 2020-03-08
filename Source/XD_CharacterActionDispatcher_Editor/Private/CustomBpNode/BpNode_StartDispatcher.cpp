@@ -28,32 +28,23 @@ void UBpNode_StartDispatcherBase::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
 
+	UEdGraphPin* ThenPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Then);
+	UEdGraphPin* ResultPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Object, UEdGraphSchema_K2::PN_ReturnValue);
+
+	ReflushFinishExec();
 }
 
 void UBpNode_StartDispatcherBase::ShowExtendPins(UClass* UseSpawnClass)
 {
 	Super::ShowExtendPins(UseSpawnClass);
 	GetClassPin()->DefaultObject = ActionDispatcherClass;
-	CreateResultPin(UseSpawnClass);
-	ReflushFinishExec();
+	GetResultPin()->PinType.PinSubCategoryObject = UseSpawnClass;
 }
 
-void UBpNode_StartDispatcherBase::PinDefaultValueChanged(UEdGraphPin* ChangedPin)
+void UBpNode_StartDispatcherBase::WhenClassPinChanged(UClass* NewClass)
 {
-	Super::PinDefaultValueChanged(ChangedPin);
-	if (ChangedPin && (ChangedPin->PinName == TEXT("Class")))
-	{
-		ActionDispatcherClass = GetClassToSpawn();
-		if (ActionDispatcherClass)
-		{
-			FinishedTags = ActionDispatcherClass.GetDefaultObject()->GetAllFinishTags();
-		}
-		else
-		{
-			FinishedTags.Empty();
-		}
-		ReconstructNode();
-	}
+	Super::WhenClassPinChanged(NewClass);
+	ActionDispatcherClass = NewClass;
 }
 
 void UBpNode_StartDispatcherBase::ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
@@ -78,6 +69,14 @@ bool UBpNode_StartDispatcherBase::IsSpawnVarPin(UEdGraphPin* Pin) const
 
 void UBpNode_StartDispatcherBase::ReflushFinishExec()
 {
+	if (ActionDispatcherClass)
+	{
+		FinishedTags = ActionDispatcherClass.GetDefaultObject()->GetAllFinishTags();
+	}
+	else
+	{
+		FinishedTags.Empty();
+	}
 	for (const FName& Tag : FinishedTags)
 	{
 		CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, Tag);

@@ -79,9 +79,9 @@ void UXD_DA_PlaySequenceBase::WhenActionFinished()
 
 }
 
-void UXD_DA_PlaySequenceBase::WhenPlayFinished()
+void UXD_DA_PlaySequenceBase::WhenSequencerPlayFinished()
 {
-	SequencePlayer->SequencePlayer->OnStop.RemoveDynamic(this, &UXD_DA_PlaySequenceBase::WhenPlayFinished);
+	SequencePlayer->SequencePlayer->OnStop.RemoveDynamic(this, &UXD_DA_PlaySequenceBase::WhenSequencerPlayFinished);
 	SequencePlayer->Destroy();
 
 	ExecuteEventAndFinishAction(WhenPlayCompleted);
@@ -119,10 +119,10 @@ void UXD_DA_PlaySequenceBase::WhenMoveReached(int32 MoverIdx)
 		{
 			SequencePlayer = GetWorld()->SpawnActor<AXD_ReplicableLevelSequence>();
 		}
-
+		PrePlaySequencer();
 		SequencePlayer->Play(LevelSequence.LoadSynchronous(), PlayTransform, PlayData);
 		ULevelSequencePlayer* Player = SequencePlayer->SequencePlayer;
-		Player->OnStop.AddUniqueDynamic(this, &UXD_DA_PlaySequenceBase::WhenPlayFinished);
+		Player->OnStop.AddUniqueDynamic(this, &UXD_DA_PlaySequenceBase::WhenSequencerPlayFinished);
 	}
 }
 
@@ -141,7 +141,7 @@ void UXD_DA_PlaySequenceBase::StopSequencePlayer()
 		ULevelSequencePlayer* Player = SequencePlayer->SequencePlayer;
 		if (Player->IsPlaying())
 		{
-			Player->OnStop.RemoveDynamic(this, &UXD_DA_PlaySequenceBase::WhenPlayFinished);
+			Player->OnStop.RemoveDynamic(this, &UXD_DA_PlaySequenceBase::WhenSequencerPlayFinished);
 			Player->Stop();
 		}
 	}

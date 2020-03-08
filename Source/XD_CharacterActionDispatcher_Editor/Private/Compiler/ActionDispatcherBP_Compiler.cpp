@@ -85,7 +85,11 @@ void FActionDispatcherBP_Compiler::PreCompile()
 			{
 				if (UBpNode_FinishDispatch* FinishDispatchNode = Cast<UBpNode_FinishDispatch>(Node))
 				{
-					ActionDispatcherBlueprint->FinishTags.AddUnique(FinishDispatchNode->Tag.GetTagName());
+					FName TagName = FinishDispatchNode->Tag.GetTagName();
+					if (TagName != NAME_None)
+					{
+						ActionDispatcherBlueprint->FinishTags.AddUnique(TagName);
+					}
 				}
 			}
 		}

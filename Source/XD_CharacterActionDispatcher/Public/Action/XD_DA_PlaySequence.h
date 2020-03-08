@@ -71,9 +71,11 @@ public:
 	FOnDispatchableActionFinishedEvent WhenCanNotPlay;
 
 	UFUNCTION()
-	void WhenPlayFinished();
+	virtual void WhenSequencerPlayFinished();
 protected:
 	virtual bool MoveToSequencePlayLocation(APawn* Mover, const FVector& PlayLocation, const FRotator& PlayRotation, int32 MoverIdx);
+
+	virtual void PrePlaySequencer() {}
 
 	void WhenMoveReached(int32 MoverIdx);
 
@@ -95,7 +97,7 @@ public:
 	UPROPERTY()
 	AXD_ReplicableLevelSequence* SequencePlayer;
 
-	UPROPERTY(SaveGame, BlueprintReadOnly, meta = (ExposeOnSpawn = "true"))
+	UPROPERTY(SaveGame, BlueprintReadOnly, meta = (DisplayName = "播放时世界偏移", ExposeOnSpawn = "true"))
 	FTransform PlayTransform;
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))

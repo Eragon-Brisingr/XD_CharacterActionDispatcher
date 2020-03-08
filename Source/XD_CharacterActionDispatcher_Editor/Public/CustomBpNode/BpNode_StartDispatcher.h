@@ -20,7 +20,7 @@ public:
 	UBpNode_StartDispatcherBase();
 	void AllocateDefaultPins() override;
 	void ShowExtendPins(UClass* UseSpawnClass) override;
-	void PinDefaultValueChanged(UEdGraphPin* ChangedPin) override;
+	void WhenClassPinChanged(UClass* NewClass) override;
 	void ExpandNode(class FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
 protected:
 	UClass* GetClassPinBaseClass() const override;

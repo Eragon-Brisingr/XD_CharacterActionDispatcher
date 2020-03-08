@@ -92,11 +92,18 @@ void UBpNode_PlayLevelSequencer::RefreshSequenceData()
 							UMovieScene3DTransformSection* Section = Cast<UMovieScene3DTransformSection>(Sections[0]);
 							TArrayView<FMovieSceneFloatChannel*> FloatChannels = Section->GetChannelProxy().GetChannels<FMovieSceneFloatChannel>();
 
-							if (!FloatChannels.Slice(0, 6).ContainsByPredicate([](FMovieSceneFloatChannel* E) {return E->GetDefault().IsSet() == false; }))
-							{
-								BindingOption.Location = FVector(FloatChannels[0]->GetDefault().GetValue(), FloatChannels[1]->GetDefault().GetValue(), FloatChannels[2]->GetDefault().GetValue());
-								BindingOption.Rotation = FRotator(FloatChannels[4]->GetDefault().GetValue(), FloatChannels[5]->GetDefault().GetValue(), FloatChannels[3]->GetDefault().GetValue());
-							}
+							float X, Y, Z;
+							check(FloatChannels[0]->Evaluate(0, X));
+							check(FloatChannels[1]->Evaluate(0, Y));
+							check(FloatChannels[2]->Evaluate(0, Z));
+							BindingOption.Location = FVector(X, Y, Z);
+
+							float Pitch, Yaw, Roll;
+							check(FloatChannels[4]->Evaluate(0, Pitch));
+							check(FloatChannels[5]->Evaluate(0, Yaw));
+							check(FloatChannels[6]->Evaluate(0, Roll));
+
+							BindingOption.Rotation = FRotator(Pitch, Yaw, Roll);
 						}
 					}
 				}
