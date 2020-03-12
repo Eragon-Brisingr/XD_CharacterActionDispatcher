@@ -74,14 +74,12 @@ public:
 	virtual void WhenSequencerPlayFinished();
 protected:
 	virtual bool MoveToSequencePlayLocation(APawn* Mover, const FVector& PlayLocation, const FRotator& PlayRotation, int32 MoverIdx);
-
 	virtual void PrePlaySequencer() {}
-
+	virtual AXD_ReplicableLevelSequence* CreateLevelSequencePlayer();
 	void WhenMoveReached(int32 MoverIdx);
-
 	void WhenMoveCanNotReached(int32 MoverIdx);
-
 	void StopSequencePlayer();
+
 private:
 	void WhenMoveFinished(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 MoverIdx);
 public:

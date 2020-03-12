@@ -98,6 +98,13 @@ bool UXD_DA_PlaySequenceBase::MoveToSequencePlayLocation(APawn* Mover, const FVe
 	return false;
 }
 
+AXD_ReplicableLevelSequence* UXD_DA_PlaySequenceBase::CreateLevelSequencePlayer()
+{
+	FActorSpawnParameters ActorSpawnParameters;
+	ActorSpawnParameters.ObjectFlags = RF_Transient;
+	return GetWorld()->SpawnActor<AXD_ReplicableLevelSequence>(ActorSpawnParameters);
+}
+
 void UXD_DA_PlaySequenceBase::WhenMoveReached(int32 MoverIdx)
 {
 	PlaySequenceMoveToDatas[MoverIdx].bIsReached = true;
@@ -117,7 +124,7 @@ void UXD_DA_PlaySequenceBase::WhenMoveReached(int32 MoverIdx)
 
 		if (!SequencePlayer)
 		{
-			SequencePlayer = GetWorld()->SpawnActor<AXD_ReplicableLevelSequence>();
+			SequencePlayer = CreateLevelSequencePlayer();
 		}
 		PrePlaySequencer();
 		SequencePlayer->Play(LevelSequence.LoadSynchronous(), PlayTransform, PlayData);

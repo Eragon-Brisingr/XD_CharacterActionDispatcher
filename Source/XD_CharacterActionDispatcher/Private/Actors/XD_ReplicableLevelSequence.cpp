@@ -14,9 +14,11 @@ AXD_ReplicableLevelSequence::AXD_ReplicableLevelSequence(const FObjectInitialize
 
 	UDefaultLevelSequenceInstanceData* LevelSequenceInstanceData = Cast<UDefaultLevelSequenceInstanceData>(DefaultInstanceData);
 	LevelSequenceInstanceData->TransformOriginActor = this;
+
+	SequencePlayer->OnStop.AddDynamic(this, &AXD_ReplicableLevelSequence::WhenPlayEnd);
 }
 
-void AXD_ReplicableLevelSequence::GetLifetimeReplicatedProps(TArray< class FLifetimeProperty > & OutLifetimeProps) const
+void AXD_ReplicableLevelSequence::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty> & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
@@ -41,16 +43,12 @@ void AXD_ReplicableLevelSequence::OnRep_LevelSequence()
 	if (LevelSequenceRef)
 	{
 		SetSequence(LevelSequenceRef);
-		SequencePlayer->Play();
 	}
 }
 
 void AXD_ReplicableLevelSequence::OnRep_BindingDatas()
 {
-	if (!HasAuthority() && SequencePlayer && SequencePlayer->IsPlaying())
-	{
-		SequencePlayer->Stop();
-	}
+	ensure(!SequencePlayer->IsPlaying());
 
 	for (const FReplicableLevelSequenceData& BindingData : BindingDatas)
 	{
@@ -58,11 +56,6 @@ void AXD_ReplicableLevelSequence::OnRep_BindingDatas()
 		{
 			AddBinding(BindingData.BindingID, BindingData.BindingActor);
 		}
-	}
-
-	if (!HasAuthority() && SequencePlayer)
-	{
-		SequencePlayer->Play();
 	}
 }
 
@@ -75,5 +68,6 @@ void AXD_ReplicableLevelSequence::Play(ULevelSequence* Sequence, const FTransfor
 		BindingDatas = Data;
 		OnRep_BindingDatas();
 		OnRep_LevelSequence();
+		SequencePlayer->Play();
 	}
 }
