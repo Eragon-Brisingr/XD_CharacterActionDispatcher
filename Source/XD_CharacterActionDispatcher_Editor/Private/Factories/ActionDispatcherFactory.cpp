@@ -41,22 +41,13 @@ UObject* UActionDispatcherFactory::FactoryCreateNew(UClass* Class, UObject* InPa
 	KismetCompilerModule.GetBlueprintTypesForClass(ActionDispatcherClass, BlueprintClass, BlueprintGeneratedClass);
 
 	UActionDispatcherBlueprint* NewBP = CastChecked<UActionDispatcherBlueprint>(FKismetEditorUtilities::CreateBlueprint(ActionDispatcherClass, InParent, Name, EBlueprintType::BPTYPE_Normal, UActionDispatcherBlueprint::StaticClass(), BlueprintGeneratedClass, CallingContext));
-	FName WhenDispatchStartName = GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, WhenDispatchStart);
-	int32 NodePosY = 0;
-	UFunction* WhenDispatchStartFunction = UXD_ActionDispatcherBase::StaticClass()->FindFunctionByName(WhenDispatchStartName);
-
+	
 	UEdGraph* MainGraph = FBlueprintEditorUtils::CreateNewGraph(NewBP, TEXT("Action Dispatcher Graph"), UEdGraph_ActionDispatcher::StaticClass(), UEdGraphSchema_ActionDispatcher::StaticClass());
-#if WITH_EDITORONLY_DATA
-	if (NewBP->UbergraphPages.Num())
-	{
-		FBlueprintEditorUtils::RemoveGraphs(NewBP, NewBP->UbergraphPages);
-	}
-#endif
-	FBlueprintEditorUtils::AddUbergraphPage(NewBP, MainGraph);
-	NewBP->LastEditedDocuments.Add(MainGraph);
-
 	MainGraph->bAllowDeletion = false;
 	MainGraph->bAllowRenaming = false;
+	FBlueprintEditorUtils::RemoveGraphs(NewBP, NewBP->UbergraphPages);
+	FBlueprintEditorUtils::AddUbergraphPage(NewBP, MainGraph);
+	NewBP->LastEditedDocuments.Add(MainGraph);
 
 	struct FActionDispatcherEventUtil
 	{
@@ -133,7 +124,8 @@ UObject* UActionDispatcherFactory::FactoryCreateNew(UClass* Class, UObject* InPa
 
 	};
 
-	UBpNode_DispatchStartEvent* WhenDispatchStartNode = FActionDispatcherEventUtil::AddDefaultEventNode(NewBP, MainGraph, WhenDispatchStartName, UXD_ActionDispatcherBase::StaticClass(), NodePosY);
+	int32 NodePosY = 0;
+	UBpNode_DispatchStartEvent* WhenDispatchStartNode = FActionDispatcherEventUtil::AddDefaultEventNode(NewBP, MainGraph, GET_FUNCTION_NAME_CHECKED(UXD_ActionDispatcherBase, WhenDispatchStart), UXD_ActionDispatcherBase::StaticClass(), NodePosY);
 	NewBP->WhenDispatchStartNode = WhenDispatchStartNode;
 	return NewBP;
 }
