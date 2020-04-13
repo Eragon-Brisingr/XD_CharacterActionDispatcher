@@ -121,7 +121,7 @@ UEdGraphPin* DA_NodeUtils::GenerateAssignmentNodes(class FKismetCompilerContext&
 		if (NULL == CallBeginSpawnNode->FindPin(OrgPin->PinName) &&
 			(OrgPin->LinkedTo.Num() > 0 || bHasDefaultValue))
 		{
-			FProperty* Property = FindField<FProperty>(ForClass, OrgPin->PinName);
+			FProperty* Property = FindFProperty<FProperty>(ForClass, OrgPin->PinName);
 			// NULL property indicates that this pin was part of the original node, not the 
 			// class we're assigning to:
 			if (!Property)

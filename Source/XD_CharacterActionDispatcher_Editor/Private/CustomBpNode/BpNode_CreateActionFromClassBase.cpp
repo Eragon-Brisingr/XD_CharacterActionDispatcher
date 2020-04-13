@@ -310,7 +310,7 @@ void UBpNode_AD_CreateObjectBase::ExpandNode(class FKismetCompilerContext& Compi
 			{
 				if (Pin->LinkedTo.Num() == 0 && (Pin->DefaultValue.IsEmpty() || Pin->DefaultValue == TEXT("None")))
 				{
-					FProperty* Property = FindField<FProperty>(ClassToSpawn, Pin->PinName);
+					FProperty* Property = FindFProperty<FProperty>(ClassToSpawn, Pin->PinName);
 					if (Property == nullptr || !Property->GetBoolMetaData(TEXT("AllowEmpty")))
 					{
 						CompilerContext.MessageLog.Error(*LOCTEXT("节点软引用为空", "节点 @@ 的引脚 @@ 必须存在连接。").ToString(), this, Pin);

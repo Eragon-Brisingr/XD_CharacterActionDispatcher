@@ -22,8 +22,9 @@ public:
 	FSequencerBindingOption()
 		:bIsPin(false)
 	{}
-
-	UPROPERTY(VisibleAnywhere, Category = "Sequencer")
+	
+	// 绑定对象名
+	UPROPERTY(VisibleAnywhere)
 	FString PinName;
 
 	UPROPERTY()
@@ -38,7 +39,8 @@ public:
 	UPROPERTY()
 	FRotator Rotation = InvalidRotation;
 
-	UPROPERTY(EditAnywhere, Category = "Sequencer")
+	// 显示引脚
+	UPROPERTY(EditAnywhere)
 	uint8 bIsPin : 1;
 
 	static const FVector InvalidLocation;
